@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>스터디 참가 신청</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f5f7fb; color: #172033; font: 1rem/1.6 system-ui, sans-serif; }
+    main { max-width: 54rem; margin: auto; padding: clamp(1.5rem, 5vw, 3rem) 1rem; }
+    h1 { margin: 0 0 1.5rem; font-size: clamp(1.7rem, 4vw, 2.25rem); letter-spacing: -.04em; }
+    .actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: 1rem; }
+    form, section { padding: 1.25rem; border: 1px solid #dce3ee; border-radius: .875rem; background: white; }
+    form { display: grid; row-gap: .5rem; }
+    section { margin-top: 1rem; }
+    h2 { margin: 0; font-size: 1.1rem; }
+    form h2 { margin-bottom: .25rem; }
+    label { color: #475569; font-size: .875rem; }
+    input, button { min-height: 2.75rem; font: inherit; padding: .5rem .75rem; border-radius: .5rem; }
+    input { width: 100%; min-width: 0; border: 1px solid #94a3b8; }
+    form button { margin-top: .25rem; }
+    button { border: 1px solid #2447a5; background: #2447a5; color: white; cursor: pointer; }
+    button:hover:not(:disabled) { background: #1b367e; }
+    button:disabled { opacity: .6; cursor: wait; }
+    :focus-visible { outline: 2px solid #2447a5; outline-offset: 2px; }
+    .section-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; }
+    #refresh { background: white; color: #2447a5; }
+    #refresh:hover:not(:disabled) { background: #edf2ff; }
+    .response { margin: .75rem 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>스터디 참가 신청</h1>
+    <div class="actions">
+      <form action="/study/participants" method="post">
+        <h2>참가 신청</h2>
+        <label for="name">이름</label>
+        <input id="name" name="name">
+        <button type="submit">신청하기</button>
+      </form>
+      <form action="/study/cancel" method="post">
+        <h2>신청 취소</h2>
+        <label for="memberId">참가자 ID</label>
+        <input id="memberId" name="memberId" inputmode="numeric">
+        <button type="submit">취소하기</button>
+      </form>
+      <form action="/study/capacity" method="post">
+        <h2>정원 변경</h2>
+        <label for="capacity">새 정원 (1~10명)</label>
+        <input id="capacity" name="capacity" inputmode="numeric">
+        <button type="submit">변경하기</button>
+      </form>
+    </div>
+
+    <section aria-labelledby="result-title">
+      <h2 id="result-title">처리 결과</h2>
+      <p id="result" class="response" role="status">신청·취소·정원 변경 결과가 여기에 표시됩니다.</p>
+    </section>
+
+    <section aria-labelledby="members-title">
+      <div class="section-heading">
+        <h2 id="members-title">참가 명단</h2>
+        <button id="refresh" type="button">명단 조회</button>
+      </div>
+      <p id="members" class="response" role="status"></p>
+    </section>
+  </main>
+
+  <script>
+    const result = document.querySelector('#result');
+    const members = document.querySelector('#members');
+    const refreshButton = document.querySelector('#refresh');
+    const buttons = document.querySelectorAll('button');
+
+    // Validation failures can also return HTTP 200, so check the success text.
+    const successMessages = {
+      '/study/participants': /^등록: /,
+      '/study/cancel': /^취소: /,
+      '/study/capacity': /^정원을 [0-9]+명으로 변경했습니다\./
+    };
+
+    async function showResponse(output, url, options) {
+      output.textContent = '불러오는 중…';
+      try {
+        const response = await fetch(url, options);
+        const body = await response.text();
+        output.textContent = response.ok ? body : 'HTTP ' + response.status + '\n' + body;
+        return response.ok ? body : null;
+      } catch {
+        output.textContent = '서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해 주세요.';
+        return null;
+      }
+    }
+
+    function loadMembers() {
+      return showResponse(members, '/study/participants', { cache: 'no-store' });
+    }
+
+    async function runRequest(request) {
+      buttons.forEach(button => { button.disabled = true; });
+      try {
+        await request();
+      } finally {
+        buttons.forEach(button => { button.disabled = false; });
+      }
+    }
+
+    document.querySelectorAll('form').forEach(form => {
+      form.addEventListener('submit', event => {
+        event.preventDefault();
+        const path = form.getAttribute('action');
+        const body = new URLSearchParams(new FormData(form));
+        runRequest(async () => {
+          const message = await showResponse(result, path, { method: 'POST', body });
+          if (message !== null && successMessages[path].test(message)) {
+            form.reset();
+          }
+          await loadMembers();
+        });
+      });
+    });
+
+    refreshButton.addEventListener('click', () => runRequest(loadMembers));
+    runRequest(loadMembers);
+  </script>
+</body>
+</html>
