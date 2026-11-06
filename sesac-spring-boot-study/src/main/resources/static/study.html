@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>스터디 참가 관리</title>
+<style>
+    * { box-sizing: border-box; }
+    body {
+        font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+        background: #f3f4f6;
+        margin: 0;
+        padding: 24px;
+        color: #222;
+    }
+    .container { max-width: 640px; margin: 0 auto; }
+    h1 { text-align: center; margin-bottom: 24px; }
+    .card {
+        background: #fff;
+        border-radius: 10px;
+        padding: 18px 20px;
+        margin-bottom: 16px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
+    .card h2 { margin: 0 0 12px; font-size: 18px; }
+    .row { display: flex; gap: 8px; }
+    input {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 15px;
+    }
+    button {
+        padding: 10px 16px;
+        border: none;
+        border-radius: 6px;
+        background: #3b82f6;
+        color: #fff;
+        font-size: 15px;
+        cursor: pointer;
+    }
+    button:hover { background: #2563eb; }
+    button.gray { background: #6b7280; }
+    button.gray:hover { background: #4b5563; }
+    button.red { background: #ef4444; }
+    button.red:hover { background: #dc2626; }
+    #message {
+        padding: 12px 16px;
+        border-radius: 6px;
+        background: #e0f2fe;
+        color: #075985;
+        margin-bottom: 16px;
+        min-height: 20px;
+        white-space: pre-wrap;
+    }
+    #list {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: 12px;
+        min-height: 60px;
+        white-space: pre-wrap;
+        line-height: 1.6;
+        margin: 0;
+        font-family: inherit;
+    }
+    .header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+    .header-row h2 { margin: 0; }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>스터디 참가 관리</h1>
+
+    <div id="message">결과 메시지가 여기에 표시됩니다.</div>
+
+    <div class="card">
+        <h2>참가 신청</h2>
+        <div class="row">
+            <input type="text" id="nameInput" placeholder="이름을 입력하세요">
+            <button onclick="apply()">신청</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>참가 취소</h2>
+        <div class="row">
+            <input type="text" id="memberIdInput" placeholder="취소할 id를 입력하세요">
+            <button class="red" onclick="cancelMember()">취소</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>정원 변경</h2>
+        <div class="row">
+            <input type="text" id="capacityInput" placeholder="정원 (1~10)">
+            <button onclick="changeCapacity()">변경</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="header-row">
+            <h2>참가자 명단</h2>
+            <button class="gray" onclick="loadList()">새로고침</button>
+        </div>
+        <pre id="list"></pre>
+    </div>
+</div>
+
+<script>
+    const BASE_URL = "/study";
+
+    function showMessage(text) {
+        document.getElementById("message").textContent = text;
+    }
+
+    // POST 요청 공통 함수 (application/x-www-form-urlencoded)
+    async function postForm(path, key, value) {
+        const params = new URLSearchParams();
+        params.append(key, value);
+
+        const response = await fetch(BASE_URL + path, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: params
+        });
+        return await response.text();
+    }
+
+    // 참가 신청
+    async function apply() {
+        const input = document.getElementById("nameInput");
+        try {
+            const result = await postForm("/participants", "name", input.value);
+            showMessage(result);
+            input.value = "";
+            loadList();
+        } catch (e) {
+            showMessage("서버와 통신하지 못했습니다.");
+        }
+    }
+
+    // 참가 취소
+    async function cancelMember() {
+        const input = document.getElementById("memberIdInput");
+        try {
+            const result = await postForm("/cancel", "memberId", input.value);
+            showMessage(result);
+            input.value = "";
+            loadList();
+        } catch (e) {
+            showMessage("서버와 통신하지 못했습니다.");
+        }
+    }
+
+    // 정원 변경
+    async function changeCapacity() {
+        const input = document.getElementById("capacityInput");
+        try {
+            const result = await postForm("/capacity", "capacity", input.value);
+            showMessage(result);
+            input.value = "";
+            loadList();
+        } catch (e) {
+            showMessage("서버와 통신하지 못했습니다.");
+        }
+    }
+
+    // 명단 조회
+    async function loadList() {
+        try {
+            const response = await fetch(BASE_URL + "/participants");
+            const text = await response.text();
+            document.getElementById("list").textContent = text;
+        } catch (e) {
+            document.getElementById("list").textContent = "명단을 불러오지 못했습니다.";
+        }
+    }
+
+    // 엔터키로도 동작
+    document.getElementById("nameInput").addEventListener("keydown", e => {
+        if (e.key === "Enter") apply();
+    });
+    document.getElementById("memberIdInput").addEventListener("keydown", e => {
+        if (e.key === "Enter") cancelMember();
+    });
+    document.getElementById("capacityInput").addEventListener("keydown", e => {
+        if (e.key === "Enter") changeCapacity();
+    });
+
+    loadList();
+</script>
+</body>
+</html>
