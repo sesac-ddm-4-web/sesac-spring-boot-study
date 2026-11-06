@@ -1,0 +1,3 @@
+spring:
+  application:
+    name: sesac-spring-boot-study
