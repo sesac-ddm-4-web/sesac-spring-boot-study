@@ -29,4 +29,10 @@ public class StudyController {
             @RequestParam(name = "memberId", required = false) String memberId) {
         return service.cancel(memberId);
     }
+
+    @PostMapping("/study/capacity")
+    public String changeCapacity(
+            @RequestParam(name = "capacity", required = false) String capacity) {
+        return service.changeCapacity(capacity);
+    }
 }

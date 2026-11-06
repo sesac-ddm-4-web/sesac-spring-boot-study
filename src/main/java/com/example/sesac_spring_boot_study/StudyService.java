@@ -105,4 +105,41 @@ public class StudyService {
         }
         return null;
     }
+
+    public String changeCapacity(String input) {
+        if (input == null || input.strip().isEmpty()) {
+            return "정원 변경 실패: 정원을 입력해 주세요. (현재 정원: " + capacity + "명)";
+        }
+
+        int newCapacity;
+        try {
+            newCapacity = Integer.parseInt(input.strip());
+        } catch (NumberFormatException e) {
+            return "정원 변경 실패: 정원은 숫자로 입력해 주세요. (현재 정원: " + capacity + "명)";
+        }
+
+        if (newCapacity < 1 || newCapacity > 10) {
+            return "정원 변경 실패: 정원은 1~10명만 가능합니다. (현재 정원: " + capacity + "명)";
+        }
+
+        if (newCapacity < countConfirmed()) {
+            return "정원 변경 실패: 현재 확정 인원(" + countConfirmed() + "명)보다 작게 줄일 수 없습니다. (현재 정원: " + capacity + "명)";
+        }
+
+        if (newCapacity == capacity) {
+            return "정원 변경 없음: 이미 정원이 " + capacity + "명입니다.";
+        }
+
+        capacity = newCapacity;
+        String result = "정원 변경 완료: 현재 정원 " + capacity + "명";
+
+        while (countConfirmed() < capacity) {
+            StudyMember promoted = promoteFirstWaiting();
+            if (promoted == null) {
+                break;
+            }
+            result += "\n승격: " + promoted.getId() + " | " + promoted.getName() + " | " + statusText(promoted);
+        }
+        return result;
+    }
 }
