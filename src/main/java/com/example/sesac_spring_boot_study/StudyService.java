@@ -60,4 +60,49 @@ public class StudyService {
         }
         return result;
     }
+
+    public String cancel(String memberId) {
+        if (memberId == null || memberId.strip().isEmpty()) {
+            return "취소 실패: 잘못된 id 입니다.";
+        }
+
+        long id;
+        try {
+            id = Long.parseLong(memberId.strip());
+        } catch (NumberFormatException e) {
+            return "취소 실패: id는 숫자로 입력해 주세요.";
+        }
+
+        StudyMember target = null;
+        for (StudyMember m : members) {
+            if (m.getId() == id) {
+                target = m;
+                break;
+            }
+        }
+        if (target == null) {
+            return "취소 실패: 해당 id의 참가자가 없습니다.";
+        }
+
+        members.remove(target);
+        String result = "취소 완료: " + target.getId() + " | " + target.getName() + " | " + statusText(target);
+
+        if (target.isConfirmed()) {
+            StudyMember promoted = promoteFirstWaiting();
+            if (promoted != null) {
+                result += "\n승격: " + promoted.getId() + " | " + promoted.getName() + " | " + statusText(promoted);
+            }
+        }
+        return result;
+    }
+
+    private StudyMember promoteFirstWaiting() {
+        for (StudyMember m : members) {
+            if (!m.isConfirmed()) {
+                m.setConfirmed();
+                return m;
+            }
+        }
+        return null;
+    }
 }

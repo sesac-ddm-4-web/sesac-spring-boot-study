@@ -24,4 +24,9 @@ public class StudyController {
         return service.getMemberList();
     }
 
+    @PostMapping("/study/cancel")
+    public String cancel (
+            @RequestParam(name = "memberId", required = false) String memberId) {
+        return service.cancel(memberId);
+    }
 }
