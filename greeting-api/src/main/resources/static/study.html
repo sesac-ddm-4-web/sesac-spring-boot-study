@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>스터디 참가 신청</title>
+    <style>
+        :root {
+            --bg: #fbfcf8;
+            --surface: #ffffff;
+            --ink: #1a2a24;
+            --muted: #5d6d66;
+            --line: #dfe5e0;
+            --accent: #0b7d5a;
+            --accent-dark: #086347;
+            --accent-soft: #e7f3ee;
+            --wait: #8a5a00;
+            --wait-soft: #fbf1dc;
+            --fail: #b3261e;
+            --fail-soft: #fbeae8;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink);
+            font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+            line-height: 1.5;
+        }
+
+        main {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 40px 16px 64px;
+        }
+
+        h1 {
+            margin: 0 0 4px;
+            font-size: 28px;
+        }
+
+        h2 {
+            margin: 0 0 12px;
+            font-size: 16px;
+        }
+
+        .intro {
+            margin: 0 0 28px;
+            color: var(--muted);
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 300px minmax(0, 1fr);
+            gap: 24px;
+            align-items: start;
+        }
+
+        .panel {
+            padding: 20px;
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+        }
+
+        .forms {
+            display: grid;
+            gap: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .field {
+            display: flex;
+            gap: 8px;
+        }
+
+        input {
+            flex: 1;
+            min-width: 0;
+            padding: 8px 10px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            font: inherit;
+        }
+
+        input:focus,
+        button:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 1px;
+        }
+
+        button {
+            padding: 8px 14px;
+            background: var(--accent);
+            color: #ffffff;
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            font: inherit;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: var(--accent-dark);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: default;
+        }
+
+        button.secondary {
+            background: var(--surface);
+            color: var(--ink);
+            border-color: var(--line);
+        }
+
+        button.secondary:hover {
+            background: var(--bg);
+        }
+
+        button.small {
+            padding: 4px 10px;
+            font-size: 14px;
+        }
+
+        .result {
+            margin-bottom: 16px;
+            padding: 12px 14px;
+            background: var(--bg);
+            border-left: 4px solid var(--line);
+            border-radius: 4px;
+            white-space: pre-line;
+            overflow-wrap: anywhere;
+        }
+
+        .result.success {
+            background: var(--accent-soft);
+            border-left-color: var(--accent);
+        }
+
+        .result.failure {
+            background: var(--fail-soft);
+            border-left-color: var(--fail);
+            color: var(--fail);
+        }
+
+        .list-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .list-head h2 {
+            margin: 0;
+        }
+
+        .summary {
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 400;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--line);
+            text-align: left;
+        }
+
+        th {
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        td.name {
+            overflow-wrap: anywhere;
+        }
+
+        .action {
+            width: 1%;
+            text-align: right;
+        }
+
+        .state {
+            display: inline-block;
+            padding: 1px 8px;
+            border-radius: 999px;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .state.confirmed {
+            background: var(--accent-soft);
+            color: var(--accent-dark);
+        }
+
+        .state.waiting {
+            background: var(--wait-soft);
+            color: var(--wait);
+        }
+
+        .empty {
+            margin: 0;
+            padding: 24px 0;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        @media (max-width: 720px) {
+            main {
+                padding-top: 24px;
+            }
+
+            .layout {
+                grid-template-columns: minmax(0, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+<main>
+    <h1>스터디 참가 신청</h1>
+    <p class="intro">정원 안에서는 바로 확정되고, 정원을 넘으면 신청 순서대로 대기합니다.</p>
+
+    <div class="layout">
+        <div class="forms">
+            <form class="panel" id="apply-form">
+                <h2>참가 신청</h2>
+                <label for="name">이름</label>
+                <div class="field">
+                    <input id="name" name="name" type="text" autocomplete="off">
+                    <button type="submit">신청</button>
+                </div>
+            </form>
+
+            <form class="panel" id="cancel-form">
+                <h2>신청 취소</h2>
+                <label for="member-id">취소할 id</label>
+                <div class="field">
+                    <input id="member-id" name="memberId" type="text" autocomplete="off">
+                    <button type="submit">취소</button>
+                </div>
+            </form>
+
+            <form class="panel" id="capacity-form">
+                <h2>정원 변경</h2>
+                <label for="capacity">새 정원 (1~10)</label>
+                <div class="field">
+                    <input id="capacity" name="capacity" type="text" autocomplete="off">
+                    <button type="submit">변경</button>
+                </div>
+            </form>
+        </div>
+
+        <section class="panel">
+            <div class="result" id="result" role="status" aria-live="polite">신청, 취소, 정원 변경 결과가 여기에 표시됩니다.</div>
+
+            <div class="list-head">
+                <h2>참가자 명단 <span class="summary" id="summary"></span></h2>
+                <button class="secondary small" id="refresh" type="button">명단 조회</button>
+            </div>
+            <div id="participants"></div>
+        </section>
+    </div>
+</main>
+
+<script>
+    const resultBox = document.getElementById("result");
+    const summary = document.getElementById("summary");
+    const participants = document.getElementById("participants");
+
+    function showResult(text, type) {
+        resultBox.textContent = text;
+        resultBox.className = "result " + type;
+    }
+
+    function showResponse(text) {
+        // API는 실패도 200으로 응답하므로 문구로 성공과 실패를 구분한다
+        const failed = /^(신청|취소|정원 변경) 실패/.test(text);
+        showResult(text, failed ? "failure" : "success");
+    }
+
+    async function request(url, options) {
+        const response = await fetch(url, options);
+        if (!response.ok) {
+            throw new Error("서버 오류가 발생했습니다. (상태 코드 " + response.status + ")");
+        }
+        return response.text();
+    }
+
+    function post(url, key, value) {
+        return request(url, {
+            method: "POST",
+            headers: {"Content-Type": "application/x-www-form-urlencoded"},
+            body: new URLSearchParams({[key]: value})
+        });
+    }
+
+    // "id=1, 이름=철수, 상태=확정" 한 줄을 표의 한 행으로 바꾼다
+    function parseLine(line) {
+        const match = line.match(/^id=(\d+), 이름=(.*), 상태=(확정|대기)$/);
+        if (match === null) {
+            return null;
+        }
+        return {id: match[1], name: match[2], state: match[3]};
+    }
+
+    function renderEmpty(message) {
+        summary.textContent = "";
+        const empty = document.createElement("p");
+        empty.className = "empty";
+        empty.textContent = message;
+        participants.replaceChildren(empty);
+    }
+
+    function renderRow(member) {
+        const row = document.createElement("tr");
+
+        const id = document.createElement("td");
+        id.textContent = member.id;
+
+        const name = document.createElement("td");
+        name.className = "name";
+        name.textContent = member.name;
+
+        const state = document.createElement("td");
+        const badge = document.createElement("span");
+        badge.className = "state " + (member.state === "확정" ? "confirmed" : "waiting");
+        badge.textContent = member.state;
+        state.append(badge);
+
+        const action = document.createElement("td");
+        action.className = "action";
+        const cancelButton = document.createElement("button");
+        cancelButton.type = "button";
+        cancelButton.className = "secondary small";
+        cancelButton.textContent = "취소";
+        cancelButton.setAttribute("aria-label", member.name + " 신청 취소");
+        cancelButton.addEventListener("click", function () {
+            submit(cancelButton, "/study/cancel", "memberId", member.id);
+        });
+        action.append(cancelButton);
+
+        row.append(id, name, state, action);
+        return row;
+    }
+
+    function renderParticipants(text) {
+        const lines = text.split("\n").filter(function (line) {
+            return line !== "";
+        });
+        const members = lines.map(parseLine);
+
+        // 형식이 다른 응답은 표로 바꾸지 않고 그대로 보여 준다
+        if (members.length === 0 || members.includes(null)) {
+            renderEmpty(text);
+            return;
+        }
+
+        const table = document.createElement("table");
+        const head = document.createElement("thead");
+        head.innerHTML = '<tr><th scope="col">id</th><th scope="col">이름</th><th scope="col">상태</th><th scope="col" class="action"><span hidden>취소</span></th></tr>';
+        const body = document.createElement("tbody");
+        members.forEach(function (member) {
+            body.append(renderRow(member));
+        });
+        table.append(head, body);
+        participants.replaceChildren(table);
+
+        const confirmed = members.filter(function (member) {
+            return member.state === "확정";
+        }).length;
+        summary.textContent = "확정 " + confirmed + "명 · 대기 " + (members.length - confirmed) + "명";
+    }
+
+    async function loadParticipants() {
+        const text = await request("/study/participants");
+        renderParticipants(text);
+    }
+
+    async function submit(button, url, key, value) {
+        button.disabled = true;
+        try {
+            const text = await post(url, key, value);
+            showResponse(text);
+            await loadParticipants();
+        } catch (error) {
+            showResult(error instanceof TypeError ? "서버에 연결할 수 없습니다." : error.message, "failure");
+        } finally {
+            button.disabled = false;
+        }
+    }
+
+    function connectForm(formId, url, key) {
+        const form = document.getElementById(formId);
+        const input = form.querySelector("input");
+        const button = form.querySelector("button");
+
+        form.addEventListener("submit", async function (event) {
+            event.preventDefault();
+            // 입력 검사는 서버에서 하므로 빈 값도 그대로 보낸다
+            await submit(button, url, key, input.value);
+            input.select();
+        });
+    }
+
+    connectForm("apply-form", "/study/participants", "name");
+    connectForm("cancel-form", "/study/cancel", "memberId");
+    connectForm("capacity-form", "/study/capacity", "capacity");
+
+    const refreshButton = document.getElementById("refresh");
+
+    async function refresh() {
+        refreshButton.disabled = true;
+        try {
+            await loadParticipants();
+        } catch (error) {
+            showResult(error instanceof TypeError ? "서버에 연결할 수 없습니다." : error.message, "failure");
+        } finally {
+            refreshButton.disabled = false;
+        }
+    }
+
+    refreshButton.addEventListener("click", refresh);
+    refresh();
+</script>
+</body>
+</html>
