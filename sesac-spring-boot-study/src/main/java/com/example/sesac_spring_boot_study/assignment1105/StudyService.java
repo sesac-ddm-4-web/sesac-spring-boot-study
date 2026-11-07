@@ -1,6 +1,6 @@
-package com.example.sesac_spring_boot_study.service;
+package com.example.sesac_spring_boot_study.assignment1105.service;
 
-import com.example.sesac_spring_boot_study.StudyMember;
+import com.example.sesac_spring_boot_study.assignment1105.StudyMember;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;

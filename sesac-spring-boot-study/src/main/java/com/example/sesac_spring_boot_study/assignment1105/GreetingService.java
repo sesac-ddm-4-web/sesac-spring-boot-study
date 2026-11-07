@@ -1,4 +1,4 @@
-package com.example.sesac_spring_boot_study.service;
+package com.example.sesac_spring_boot_study.assignment1105.service;
 
 import org.springframework.stereotype.Service;
 

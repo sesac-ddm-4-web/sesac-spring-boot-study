@@ -1,4 +1,4 @@
-package com.example.sesac_spring_boot_study;
+package com.example.sesac_spring_boot_study.assignment1105;
 
 public class StudyMember {
     //id·이름·확정/대기 상태

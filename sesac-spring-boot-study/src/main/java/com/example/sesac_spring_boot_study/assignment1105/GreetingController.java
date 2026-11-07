@@ -1,5 +1,5 @@
-package com.example.sesac_spring_boot_study.controller;
-import com.example.sesac_spring_boot_study.service.GreetingService;
+package com.example.sesac_spring_boot_study.assignment1105.controller;
+import com.example.sesac_spring_boot_study.assignment1105.GreetingService;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class GreetingController {
     private final GreetingService service;
 
-    public GreetingController(GreetingService service) {
+    public GreetingController(com.example.sesac_spring_boot_study.assignment1105.service.GreetingService service) {
         this.service = service;
     }
     @GetMapping("/greet")

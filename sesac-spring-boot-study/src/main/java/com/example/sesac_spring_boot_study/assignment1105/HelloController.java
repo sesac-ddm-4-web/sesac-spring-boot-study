@@ -1,4 +1,4 @@
-package com.example.sesac_spring_boot_study.controller;
+package com.example.sesac_spring_boot_study.assignment1105.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;

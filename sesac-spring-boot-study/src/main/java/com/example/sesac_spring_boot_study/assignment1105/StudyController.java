@@ -1,6 +1,6 @@
-package com.example.sesac_spring_boot_study.controller;
+package com.example.sesac_spring_boot_study.assignment1105.controller;
 
-import com.example.sesac_spring_boot_study.service.StudyService;
+import com.example.sesac_spring_boot_study.assignment1105.StudyService;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 public class StudyController {
     private final StudyService service;
 
-    public StudyController(StudyService service){
+    public StudyController(com.example.sesac_spring_boot_study.assignment1105.service.StudyService service){
         this.service  = service;
     }
 
