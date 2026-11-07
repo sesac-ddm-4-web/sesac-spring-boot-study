@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>옷 위시리스트</title>
+  <style>
+    :root {
+      --bg: #f6f4ef;
+      --surface: #ffffff;
+      --surface-2: #f1eee7;
+      --text: #1f1d1a;
+      --muted: #6b665d;
+      --line: #e2ddd2;
+      --accent: #2f5d50;
+      --accent-soft: #e3eee9;
+      --danger: #b3261e;
+      --danger-soft: #fbe9e7;
+      --radius: 12px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #161513;
+        --surface: #1f1e1b;
+        --surface-2: #282622;
+        --text: #f1eee8;
+        --muted: #a39d92;
+        --line: #36332e;
+        --accent: #7fbfa9;
+        --accent-soft: #23332d;
+        --danger: #f2b8b5;
+        --danger-soft: #3a2321;
+      }
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+      line-height: 1.5;
+    }
+    .wrap { max-width: 960px; margin: 0 auto; padding: 32px 16px 64px; }
+    header { margin-bottom: 24px; }
+    header h1 { margin: 0 0 4px; font-size: 28px; letter-spacing: -0.02em; }
+    header p { margin: 0; color: var(--muted); }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .card h2 { margin: 0 0 4px; font-size: 17px; }
+    .card .hint { margin: 0 0 16px; color: var(--muted); font-size: 13px; }
+
+    label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+    .field { margin-bottom: 12px; }
+    .row { display: flex; gap: 8px; align-items: flex-end; }
+    .row .field { flex: 1; margin-bottom: 0; }
+
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text);
+      font: inherit;
+    }
+    input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+
+    button {
+      padding: 10px 16px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .primary { background: var(--accent); color: var(--surface); }
+    .ghost { background: transparent; color: var(--text); border-color: var(--line); padding: 6px 10px; font-weight: 500; }
+    .ghost:hover { background: var(--surface-2); }
+    .danger { color: var(--danger); }
+    .danger:hover { background: var(--danger-soft); }
+
+    .message { margin-top: 12px; font-size: 14px; min-height: 21px; }
+    .message.error { color: var(--danger); }
+    .message.ok { color: var(--accent); }
+
+    .picks { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 8px; }
+    .picks li {
+      display: flex; justify-content: space-between; gap: 12px;
+      padding: 10px 12px; border-radius: 8px; background: var(--accent-soft);
+    }
+    .picks .rank { color: var(--accent); font-weight: 700; margin-right: 8px; }
+    .empty { color: var(--muted); font-size: 14px; padding: 12px 0 0; }
+
+    .list-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+    .count { color: var(--muted); font-size: 14px; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+    th { font-size: 13px; color: var(--muted); font-weight: 600; }
+    td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+    td.id { color: var(--muted); width: 56px; }
+    td.actions { width: 1%; white-space: nowrap; text-align: right; }
+    td.actions button + button { margin-left: 4px; }
+    td input { padding: 6px 8px; }
+    .price { font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>옷 위시리스트</h1>
+    <p>사고 싶은 옷을 등록하고, 예산 안에서 살 수 있는 옷을 최대 3개 추천받습니다.</p>
+  </header>
+
+  <div class="grid">
+    <section class="card">
+      <h2>옷 등록</h2>
+      <p class="hint">이름은 1~100자, 가격은 0원~1억 원입니다. 0원은 무료 아이템입니다.</p>
+      <form id="add-form">
+        <div class="field">
+          <label for="add-name">이름</label>
+          <input id="add-name" placeholder="예: 흰 티셔츠" autocomplete="off">
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="add-price">가격 (원)</label>
+            <input id="add-price" type="number" inputmode="numeric" placeholder="15000">
+          </div>
+          <button class="primary" type="submit">등록</button>
+        </div>
+      </form>
+      <div id="add-message" class="message" role="status"></div>
+    </section>
+
+    <section class="card">
+      <h2>예산 추천</h2>
+      <p class="hint">가격이 예산 이하인 옷을 싼 순서로 보여 줍니다. 같은 가격이면 먼저 등록한 옷이 앞입니다.</p>
+      <form id="recommend-form" class="row">
+        <div class="field">
+          <label for="budget">예산 (원)</label>
+          <input id="budget" type="number" inputmode="numeric" placeholder="50000">
+        </div>
+        <button class="primary" type="submit">추천받기</button>
+      </form>
+      <div id="recommend-message" class="message" role="status"></div>
+      <ul id="picks" class="picks"></ul>
+    </section>
+  </div>
+
+  <section class="card" style="margin-bottom: 16px;">
+    <h2>id로 조회</h2>
+    <form id="find-form" class="row">
+      <div class="field">
+        <label for="find-id">id</label>
+        <input id="find-id" type="number" inputmode="numeric" placeholder="1">
+      </div>
+      <button class="primary" type="submit">조회</button>
+    </form>
+    <div id="find-message" class="message" role="status"></div>
+  </section>
+
+  <section class="card">
+    <div class="list-head">
+      <h2>전체 목록</h2>
+      <span id="count" class="count"></span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+        <tr><th>id</th><th>이름</th><th class="num">가격</th><th></th></tr>
+        </thead>
+        <tbody id="items"></tbody>
+      </table>
+    </div>
+    <div id="list-empty" class="empty" hidden>아직 등록한 옷이 없습니다.</div>
+    <div id="list-message" class="message" role="status"></div>
+  </section>
+</div>
+
+<script>
+  const API = '/collectionItems';
+  const won = (price) => `${Number(price).toLocaleString('ko-KR')}원`;
+  const $ = (id) => document.getElementById(id);
+
+  function show(id, text, type) {
+    const el = $(id);
+    el.textContent = text;
+    el.className = `message ${type || ''}`;
+  }
+
+  // 빈 칸은 null, 숫자가 아니면 NaN이 되어 서버 검증 전에 걸러진다.
+  function toInt(value) {
+    if (value.trim() === '') return null;
+    const n = Number(value);
+    return Number.isInteger(n) ? n : NaN;
+  }
+
+  async function request(method, url, body) {
+    const res = await fetch(url, {
+      method,
+      headers: body ? { 'Content-Type': 'application/json' } : {},
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const text = await res.text();
+    if (!res.ok) {
+      const error = new Error(text);
+      error.status = res.status;
+      throw error;
+    }
+    return text ? JSON.parse(text) : null;
+  }
+
+  // 서버의 400 응답은 사유 없이 오므로 화면에서 규칙을 안내한다.
+  function errorText(error, invalidText) {
+    if (error.status === 400) return invalidText;
+    if (error.status === 404) return '해당 id의 옷을 찾을 수 없습니다.';
+    return '요청을 처리하지 못했습니다. 서버가 실행 중인지 확인해 주세요.';
+  }
+
+  const ITEM_RULE = '이름은 1~100자, 가격은 0원~1억 원 사이의 정수로 입력해 주세요.';
+
+  async function loadItems() {
+    try {
+      const items = await request('GET', API);
+      renderItems(items);
+    } catch (error) {
+      show('list-message', errorText(error), 'error');
+    }
+  }
+
+  function renderItems(items) {
+    const tbody = $('items');
+    tbody.replaceChildren();
+    $('count').textContent = `${items.length}개`;
+    $('list-empty').hidden = items.length > 0;
+
+    for (const item of items) {
+      const tr = document.createElement('tr');
+
+      const idCell = document.createElement('td');
+      idCell.className = 'id';
+      idCell.textContent = item.id;
+
+      const nameCell = document.createElement('td');
+      nameCell.textContent = item.name;
+
+      const priceCell = document.createElement('td');
+      priceCell.className = 'num';
+      priceCell.textContent = won(item.price);
+
+      const actions = document.createElement('td');
+      actions.className = 'actions';
+      const edit = button('수정', 'ghost', () => startEdit(tr, item));
+      const del = button('삭제', 'ghost danger', () => removeItem(item));
+      actions.append(edit, del);
+
+      tr.append(idCell, nameCell, priceCell, actions);
+      tbody.append(tr);
+    }
+  }
+
+  function button(label, className, onClick) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = className;
+    b.textContent = label;
+    b.addEventListener('click', onClick);
+    return b;
+  }
+
+  function startEdit(tr, item) {
+    const [, nameCell, priceCell, actions] = tr.children;
+
+    const nameInput = document.createElement('input');
+    nameInput.value = item.name;
+    nameInput.setAttribute('aria-label', '이름');
+    nameCell.replaceChildren(nameInput);
+
+    const priceInput = document.createElement('input');
+    priceInput.type = 'number';
+    priceInput.value = item.price;
+    priceInput.setAttribute('aria-label', '가격');
+    priceCell.replaceChildren(priceInput);
+
+    const save = button('저장', 'ghost', async () => {
+      const price = toInt(priceInput.value);
+      if (Number.isNaN(price)) {
+        show('list-message', ITEM_RULE, 'error');
+        return;
+      }
+      try {
+        await request('PUT', `${API}/${item.id}`, { name: nameInput.value, price });
+        show('list-message', `id ${item.id}을(를) 수정했습니다.`, 'ok');
+        await loadItems();
+      } catch (error) {
+        show('list-message', errorText(error, ITEM_RULE), 'error');
+      }
+    });
+    const cancel = button('취소', 'ghost', () => loadItems());
+    actions.replaceChildren(save, cancel);
+    nameInput.focus();
+  }
+
+  async function removeItem(item) {
+    if (!confirm(`'${item.name}'을(를) 삭제할까요?`)) return;
+    try {
+      await request('DELETE', `${API}/${item.id}`);
+      show('list-message', `'${item.name}'을(를) 삭제했습니다.`, 'ok');
+      await loadItems();
+    } catch (error) {
+      show('list-message', errorText(error), 'error');
+    }
+  }
+
+  $('add-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const price = toInt($('add-price').value);
+    if (Number.isNaN(price)) {
+      show('add-message', ITEM_RULE, 'error');
+      return;
+    }
+    try {
+      const saved = await request('POST', API, { name: $('add-name').value, price });
+      show('add-message', `'${saved.name}'을(를) id ${saved.id}로 등록했습니다.`, 'ok');
+      $('add-form').reset();
+      $('add-name').focus();
+      await loadItems();
+    } catch (error) {
+      show('add-message', errorText(error, ITEM_RULE), 'error');
+    }
+  });
+
+  $('recommend-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const picks = $('picks');
+    picks.replaceChildren();
+    const budget = toInt($('budget').value);
+    if (budget === null || Number.isNaN(budget)) {
+      show('recommend-message', '예산을 0 이상의 정수로 입력해 주세요.', 'error');
+      return;
+    }
+    try {
+      const items = await request('GET', `${API}/recommendations?budget=${encodeURIComponent(budget)}`);
+      if (items.length === 0) {
+        show('recommend-message', `${won(budget)} 안에서 살 수 있는 옷이 없습니다.`);
+        return;
+      }
+      show('recommend-message', `${won(budget)} 안에서 추천하는 옷입니다.`, 'ok');
+      items.forEach((item, index) => {
+        const li = document.createElement('li');
+        const name = document.createElement('span');
+        const rank = document.createElement('span');
+        rank.className = 'rank';
+        rank.textContent = index + 1;
+        name.append(rank, document.createTextNode(item.name));
+        const price = document.createElement('span');
+        price.className = 'price';
+        price.textContent = won(item.price);
+        li.append(name, price);
+        picks.append(li);
+      });
+    } catch (error) {
+      show('recommend-message', errorText(error, '예산은 0 이상이어야 합니다.'), 'error');
+    }
+  });
+
+  $('find-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const id = toInt($('find-id').value);
+    if (id === null || Number.isNaN(id)) {
+      show('find-message', 'id를 정수로 입력해 주세요.', 'error');
+      return;
+    }
+    try {
+      const item = await request('GET', `${API}/${id}`);
+      show('find-message', `id ${item.id} · ${item.name} · ${won(item.price)}`, 'ok');
+    } catch (error) {
+      show('find-message', errorText(error, 'id를 정수로 입력해 주세요.'), 'error');
+    }
+  });
+
+  loadItems();
+</script>
+</body>
+</html>
