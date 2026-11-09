@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>위시리스트</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 22'%3E%3Crect width='22' height='22' rx='6' fill='%231e3550'/%3E%3Crect x='5' y='12' width='12' height='4' rx='2' fill='%23f5d547'/%3E%3C/svg%3E">
+    <style>
+        :root {
+            --page: #fafafa;
+            --card: #ffffff;
+            --raised: #f4f4f5;
+            --text: #171717;
+            --text-2: #525252;
+            --muted: #737373;
+            --line: rgba(23, 23, 23, 0.08);
+            --line-strong: rgba(23, 23, 23, 0.16);
+            --accent: #b45309;
+            --brand: #1e3550;
+            --brand-mark: #f5d547;
+            --danger: #dc2626;
+            --ease: cubic-bezier(0.22, 1, 0.36, 1);
+            color-scheme: light;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--page);
+            color: var(--text);
+            font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
+            font-size: 14px;
+            line-height: 20px;
+            word-break: keep-all;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        button,
+        input {
+            font: inherit;
+            color: inherit;
+        }
+
+        :focus-visible {
+            outline: 2px solid var(--text);
+            outline-offset: 2px;
+        }
+
+        .topbar {
+            border-bottom: 1px solid var(--line);
+        }
+
+        .topbar-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--brand);
+        }
+
+        .logo {
+            position: relative;
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            background: var(--brand);
+        }
+
+        .logo::after {
+            content: "";
+            position: absolute;
+            left: 5px;
+            right: 5px;
+            bottom: 6px;
+            height: 4px;
+            border-radius: 2px;
+            background: var(--brand-mark);
+        }
+
+        .page {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 32px 64px;
+        }
+
+        .page-head {
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 32px;
+            line-height: 1.2;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .page-meta {
+            margin: 8px 0 0;
+            color: var(--muted);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .columns {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 320px;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .add-form {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 160px auto;
+            gap: 8px;
+            padding: 16px 20px 0;
+        }
+
+        .control {
+            display: flex;
+            align-items: center;
+            height: 40px;
+            padding: 0 12px;
+            background: var(--card);
+            border: 1px solid var(--line-strong);
+            border-radius: 8px;
+            transition: border-color 150ms var(--ease), box-shadow 150ms var(--ease);
+        }
+
+        .control:focus-within {
+            border-color: var(--text);
+            box-shadow: 0 0 0 3px var(--line);
+        }
+
+        .control input {
+            flex: 1;
+            min-width: 0;
+            height: 100%;
+            padding: 0;
+            border: 0;
+            outline: none;
+            background: transparent;
+        }
+
+        .control input::placeholder {
+            color: #a3a3a3;
+        }
+
+        .control .unit {
+            margin-left: 8px;
+            color: var(--muted);
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+            font-variant-numeric: tabular-nums;
+        }
+
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .btn {
+            height: 40px;
+            padding: 0 16px;
+            border: 0;
+            border-radius: 8px;
+            background: var(--text);
+            color: #fff;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background-color 150ms var(--ease), transform 150ms var(--ease);
+        }
+
+        .btn:hover {
+            background: #333333;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn:disabled {
+            background: var(--muted);
+            cursor: default;
+        }
+
+        .form-note {
+            min-height: 20px;
+            margin: 8px 20px 12px;
+            font-size: 13px;
+            color: var(--text-2);
+        }
+
+        .form-note.is-error {
+            color: var(--danger);
+        }
+
+        .items {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .items th {
+            padding: 8px 20px;
+            border-top: 1px solid var(--line);
+            border-bottom: 1px solid var(--line);
+            background: var(--raised);
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 16px;
+            font-weight: 400;
+            text-align: left;
+        }
+
+        .items th.price,
+        .items td.price {
+            width: 140px;
+            text-align: right;
+        }
+
+        .items td {
+            height: 44px;
+            padding: 0 20px;
+            border-bottom: 1px solid var(--line);
+            overflow-wrap: anywhere;
+        }
+
+        .items tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .items td.price {
+            font-weight: 500;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .items td.price.is-free {
+            color: var(--muted);
+            font-weight: 400;
+        }
+
+        .name-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dot {
+            flex-shrink: 0;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: transparent;
+        }
+
+        .is-picked .dot,
+        .pick .dot {
+            background: var(--accent);
+        }
+
+        .items td.empty {
+            height: auto;
+            padding: 32px 20px;
+            color: var(--muted);
+        }
+
+        .budget {
+            position: sticky;
+            top: 24px;
+            padding: 20px;
+        }
+
+        .budget h2 {
+            margin: 0;
+            font-size: 15px;
+            line-height: 22px;
+            font-weight: 500;
+        }
+
+        .budget-desc {
+            margin: 4px 0 16px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .budget .btn {
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .budget-error {
+            margin: 8px 0 0;
+            font-size: 13px;
+            color: var(--danger);
+        }
+
+        .budget-error:empty {
+            display: none;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--line);
+        }
+
+        .result-head {
+            margin: 0 0 8px;
+            font-size: 12px;
+            line-height: 16px;
+            color: var(--muted);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .result ol {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .pick {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 36px;
+        }
+
+        .pick-name {
+            flex: 1;
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .pick-price {
+            flex-shrink: 0;
+            font-weight: 500;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .result-empty {
+            margin: 0;
+            color: var(--muted);
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            white-space: nowrap;
+        }
+
+        @media (max-width: 840px) {
+            .topbar-inner {
+                padding: 14px 16px;
+            }
+
+            .page {
+                padding: 24px 16px 48px;
+            }
+
+            h1 {
+                font-size: 28px;
+            }
+
+            .columns {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 16px;
+            }
+
+            .budget {
+                position: static;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .add-form {
+                grid-template-columns: minmax(0, 1fr) auto;
+                padding: 16px 16px 0;
+            }
+
+            .add-form .name-field {
+                grid-column: 1 / -1;
+            }
+
+            .form-note {
+                margin: 8px 16px 12px;
+            }
+
+            .items th,
+            .items td {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+
+            .items th.price,
+            .items td.price {
+                width: 112px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                transition: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+<header class="topbar">
+    <div class="topbar-inner">
+        <span class="logo" aria-hidden="true"></span>
+        취미 위시리스트
+    </div>
+</header>
+
+<div class="page">
+    <div class="page-head">
+        <h1>위시리스트</h1>
+        <p class="page-meta" id="pageMeta">불러오는 중</p>
+    </div>
+
+    <div class="columns">
+        <section class="card" aria-label="담은 물건">
+            <form class="add-form" id="addForm" novalidate>
+                <label class="control name-field">
+                    <input id="itemName" type="text" autocomplete="off" placeholder="물건 이름" aria-label="물건 이름">
+                </label>
+                <label class="control">
+                    <input id="itemPrice" type="number" inputmode="numeric" min="0" step="1" placeholder="가격" aria-label="가격">
+                    <span class="unit">원</span>
+                </label>
+                <button class="btn" type="submit" id="addButton">추가</button>
+            </form>
+            <p class="form-note" id="formNote" role="status" aria-live="polite"></p>
+
+            <table class="items">
+                <thead>
+                <tr>
+                    <th scope="col">이름</th>
+                    <th scope="col" class="price">가격</th>
+                </tr>
+                </thead>
+                <tbody id="itemRows"></tbody>
+            </table>
+        </section>
+
+        <aside class="card budget" aria-labelledby="budgetTitle">
+            <h2 id="budgetTitle">예산 안에서 고르기</h2>
+            <p class="budget-desc">하나만 산다고 할 때 예산 안에 드는 물건을 싼 순서로 3개까지 보여줘요. 여러 개를 함께 산 합계는 따지지 않아요.</p>
+
+            <form id="budgetForm" novalidate>
+                <label class="control">
+                    <input id="budget" type="number" inputmode="numeric" min="0" step="1" placeholder="예산" aria-label="예산">
+                    <span class="unit">원</span>
+                </label>
+                <button class="btn" type="submit" id="budgetButton">추천 보기</button>
+            </form>
+            <p class="budget-error" id="budgetError" role="alert"></p>
+
+            <div class="result" id="result" aria-live="polite">
+                <p class="result-empty">예산을 입력하면 살 수 있는 물건이 여기 표시돼요</p>
+            </div>
+        </aside>
+    </div>
+</div>
+
+<script>
+    const addForm = document.getElementById("addForm");
+    const nameInput = document.getElementById("itemName");
+    const priceInput = document.getElementById("itemPrice");
+    const addButton = document.getElementById("addButton");
+    const formNote = document.getElementById("formNote");
+    const itemRows = document.getElementById("itemRows");
+    const pageMeta = document.getElementById("pageMeta");
+
+    const budgetForm = document.getElementById("budgetForm");
+    const budgetInput = document.getElementById("budget");
+    const budgetButton = document.getElementById("budgetButton");
+    const budgetError = document.getElementById("budgetError");
+    const resultBox = document.getElementById("result");
+
+    let items = [];
+    let pickedIds = new Set();
+    let lastBudget = null;
+
+    const won = (value) => value.toLocaleString("ko-KR") + "원";
+
+    function withObjectParticle(word) {
+        const code = word.charCodeAt(word.length - 1);
+        if (code < 0xac00 || code > 0xd7a3) {
+            return word + "을(를)";
+        }
+        return word + ((code - 0xac00) % 28 === 0 ? "를" : "을");
+    }
+
+    async function request(url, options) {
+        let response;
+        try {
+            response = await fetch(url, options);
+        } catch (e) {
+            throw new Error("서버에 연결하지 못했어요. 서버가 실행 중인지 확인해 주세요.");
+        }
+        const body = await response.text();
+        if (!response.ok) {
+            throw new Error(body || "요청을 처리하지 못했어요 (" + response.status + ")");
+        }
+        return body ? JSON.parse(body) : null;
+    }
+
+    function setNote(text, isError) {
+        formNote.textContent = text;
+        formNote.classList.toggle("is-error", Boolean(isError));
+    }
+
+    function renderItems() {
+        itemRows.replaceChildren();
+
+        if (items.length === 0) {
+            const tr = document.createElement("tr");
+            const td = document.createElement("td");
+            td.colSpan = 2;
+            td.className = "empty";
+            td.textContent = "아직 담은 물건이 없어요. 위에서 이름과 가격을 입력해 추가하세요.";
+            tr.append(td);
+            itemRows.append(tr);
+            pageMeta.textContent = "담은 물건 0개";
+            return;
+        }
+
+        for (const item of items) {
+            const tr = document.createElement("tr");
+            if (pickedIds.has(item.id)) {
+                tr.className = "is-picked";
+            }
+
+            const nameTd = document.createElement("td");
+            const nameCell = document.createElement("div");
+            nameCell.className = "name-cell";
+            const dot = document.createElement("span");
+            dot.className = "dot";
+            dot.setAttribute("aria-hidden", "true");
+            const name = document.createElement("span");
+            name.textContent = item.name;
+            nameCell.append(dot, name);
+            if (pickedIds.has(item.id)) {
+                const sr = document.createElement("span");
+                sr.className = "sr-only";
+                sr.textContent = "(추천됨)";
+                nameCell.append(sr);
+            }
+            nameTd.append(nameCell);
+
+            const priceTd = document.createElement("td");
+            priceTd.className = "price";
+            if (item.price === 0) {
+                priceTd.classList.add("is-free");
+                priceTd.textContent = "무료";
+            } else {
+                priceTd.textContent = won(item.price);
+            }
+
+            tr.append(nameTd, priceTd);
+            itemRows.append(tr);
+        }
+
+        const sum = items.reduce((acc, item) => acc + item.price, 0);
+        pageMeta.textContent = "담은 물건 " + items.length + "개, 합계 " + won(sum);
+    }
+
+    function renderResult(picks, budget) {
+        resultBox.replaceChildren();
+
+        if (picks.length === 0) {
+            const p = document.createElement("p");
+            p.className = "result-empty";
+            p.textContent = won(budget) + " 이하인 물건이 없어요";
+            resultBox.append(p);
+            return;
+        }
+
+        const head = document.createElement("p");
+        head.className = "result-head";
+        head.textContent = "각각 " + won(budget) + " 이하인 후보 " + picks.length + "개";
+
+        const ol = document.createElement("ol");
+        for (const item of picks) {
+            const li = document.createElement("li");
+            li.className = "pick";
+
+            const dot = document.createElement("span");
+            dot.className = "dot";
+            dot.setAttribute("aria-hidden", "true");
+
+            const name = document.createElement("span");
+            name.className = "pick-name";
+            name.textContent = item.name;
+
+            const price = document.createElement("span");
+            price.className = "pick-price";
+            price.textContent = item.price === 0 ? "무료" : won(item.price);
+
+            li.append(dot, name, price);
+            ol.append(li);
+        }
+
+        resultBox.append(head, ol);
+    }
+
+    async function loadItems() {
+        try {
+            items = await request("/wish/items");
+            renderItems();
+        } catch (e) {
+            pageMeta.textContent = "";
+            setNote(e.message, true);
+        }
+    }
+
+    async function recommend(budget) {
+        const picks = await request("/wish/recommendations?budget=" + encodeURIComponent(budget));
+        lastBudget = budget;
+        pickedIds = new Set(picks.map((item) => item.id));
+        renderResult(picks, budget);
+        renderItems();
+    }
+
+    addForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        addButton.disabled = true;
+        setNote("");
+
+        try {
+            const saved = await request("/wish/items", {
+                method: "POST",
+                body: new URLSearchParams({name: nameInput.value, price: priceInput.value})
+            });
+            items.push(saved);
+            setNote(withObjectParticle(saved.name) + " 추가했어요");
+            nameInput.value = "";
+            priceInput.value = "";
+            nameInput.focus();
+
+            if (lastBudget !== null) {
+                await recommend(lastBudget);
+            } else {
+                renderItems();
+            }
+        } catch (e) {
+            setNote(e.message, true);
+        } finally {
+            addButton.disabled = false;
+        }
+    });
+
+    budgetForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        budgetButton.disabled = true;
+        budgetError.textContent = "";
+
+        const raw = budgetInput.value.trim();
+        try {
+            if (raw === "") {
+                await request("/wish/recommendations");
+            }
+            await recommend(Number(raw));
+        } catch (e) {
+            budgetError.textContent = e.message;
+        } finally {
+            budgetButton.disabled = false;
+        }
+    });
+
+    loadItems();
+</script>
+</body>
+</html>
