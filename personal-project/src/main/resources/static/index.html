@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>취미 위시리스트</title>
+<style>
+:root {
+  --accent: #6a9bcc;
+  --accent-strong: #4f82b5;
+  --accent-soft: #e8f0f8;
+  --bg: #f6f8fa;
+  --surface: #ffffff;
+  --ink: #1d2733;
+  --muted: #66727f;
+  --line: #dde3ea;
+  --danger: #c0392b;
+  --ok: #2e7d5b;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --accent-strong: #8db6dd;
+    --accent-soft: #223244;
+    --bg: #12171d;
+    --surface: #1a212a;
+    --ink: #e6ebf0;
+    --muted: #94a0ad;
+    --line: #2b3541;
+    --danger: #ef7d6f;
+    --ok: #66c29a;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  line-height: 1.5;
+}
+header {
+  background: var(--accent);
+  color: #fff;
+  padding: 28px 16px 24px;
+}
+.wrap { max-width: 960px; margin: 0 auto; padding: 0 16px; }
+header .wrap { padding: 0; }
+h1 { margin: 0 0 4px; font-size: 26px; letter-spacing: -0.5px; }
+header p { margin: 0; opacity: .92; font-size: 15px; }
+.mode {
+  display: inline-block; margin-top: 12px; padding: 3px 10px; border-radius: 99px;
+  background: rgba(255,255,255,.22); font-size: 13px;
+}
+main { padding: 24px 0 48px; display: grid; gap: 20px; grid-template-columns: 1fr 1fr; }
+@media (max-width: 720px) { main { grid-template-columns: 1fr; } }
+section {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px;
+}
+section.full { grid-column: 1 / -1; }
+h2 { margin: 0 0 14px; font-size: 18px; border-left: 4px solid var(--accent); padding-left: 10px; }
+label { display: block; font-size: 14px; color: var(--muted); margin-bottom: 4px; }
+input {
+  width: 100%; padding: 10px 12px; font: inherit; color: var(--ink);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 6px;
+}
+input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+.field { margin-bottom: 12px; }
+button {
+  font: inherit; cursor: pointer; border: 0; border-radius: 6px; padding: 10px 18px;
+  background: var(--accent); color: #fff; font-weight: 600;
+}
+button:hover { background: var(--accent-strong); }
+button:focus-visible { outline: 3px solid var(--accent-strong); outline-offset: 2px; }
+#add-form button[type="submit"] { display: block; margin-left: auto; }
+button.ghost { background: var(--accent-soft); color: var(--accent-strong); }
+.msg { min-height: 20px; margin-top: 10px; font-size: 14px; }
+.msg.err { color: var(--danger); }
+.msg.ok { color: var(--ok); }
+table { width: 100%; border-collapse: collapse; font-size: 15px; }
+th { text-align: left; color: var(--muted); font-weight: 600; font-size: 13px; padding: 6px 8px; }
+td { padding: 10px 8px; border-top: 1px solid var(--line); }
+th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.empty { color: var(--muted); padding: 14px 0 4px; font-size: 14px; }
+.row { display: flex; gap: 8px; }
+.row input { flex: 1; }
+ol.rec { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 8px; }
+ol.rec li {
+  display: flex; justify-content: space-between; gap: 12px; padding: 10px 14px;
+  background: var(--accent-soft); border-radius: 6px;
+}
+ol.rec .price { font-weight: 700; color: var(--accent-strong); font-variant-numeric: tabular-nums; }
+.hint { color: var(--muted); font-size: 13px; margin: 8px 0 0; }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>취미 위시리스트</h1>
+    <p>사고 싶은 물건을 등록하고, 예산 안에서 살 수 있는 후보를 추천받아 보세요.</p>
+    <span class="mode" id="mode">서버 확인 중…</span>
+  </div>
+</header>
+
+<div class="wrap">
+<main>
+  <section aria-labelledby="h-add">
+    <h2 id="h-add">아이템 등록</h2>
+    <form id="add-form" novalidate>
+      <div class="field">
+        <label for="name">이름</label>
+        <input id="name" autocomplete="off" placeholder="예: 캠핑 의자">
+      </div>
+      <div class="field">
+        <label for="price">가격 (원)</label>
+        <input id="price" type="number" min="0" step="100" inputmode="numeric" placeholder="0 이상의 정수">
+      </div>
+      <button type="submit">등록</button>
+      <div class="msg" id="add-msg" role="status"></div>
+    </form>
+  </section>
+
+  <section aria-labelledby="h-rec">
+    <h2 id="h-rec">예산별 추천</h2>
+    <form id="rec-form" novalidate>
+      <label for="budget">예산 (원)</label>
+      <div class="row">
+        <input id="budget" type="number" min="0" step="100" inputmode="numeric" placeholder="예: 5000">
+        <button type="submit">추천 받기</button>
+      </div>
+      <p class="hint">가격이 예산 이하인 아이템을 가격 낮은 순으로 최대 3개 보여줍니다.</p>
+      <div class="msg" id="rec-msg" role="status"></div>
+    </form>
+    <ol class="rec" id="rec-list"></ol>
+  </section>
+
+  <section class="full" aria-labelledby="h-list">
+    <h2 id="h-list">전체 목록</h2>
+    <table>
+      <thead><tr><th>ID</th><th>이름</th><th class="num">가격</th></tr></thead>
+      <tbody id="list-body"></tbody>
+    </table>
+    <div class="empty" id="list-empty" hidden>아직 등록된 아이템이 없습니다.</div>
+  </section>
+</main>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var API = '/wishlist';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var won = function (n) { return Number(n).toLocaleString('ko-KR') + '원'; };
+
+  function setMsg(el, text, kind) {
+    el.textContent = text || '';
+    el.className = 'msg' + (kind ? ' ' + kind : '');
+  }
+
+  /* ---------- 서버 API ---------- */
+  async function request(url, options) {
+    var res = await fetch(url, options);
+    if (!res.ok) {
+      var text = '';
+      try { text = await res.text(); } catch (e) {}
+      var message = text;
+      try { var j = JSON.parse(text); message = j.message || j.error || text; } catch (e) {}
+      throw new Error('[' + res.status + '] ' + (message || res.statusText || '요청에 실패했습니다.'));
+    }
+    return res.json();
+  }
+  var serverApi = {
+    add: function (name, price) {
+      return request(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name, price: price })
+      });
+    },
+    all: function () { return request(API); },
+    recommend: function (budget) { return request(API + '?budget=' + encodeURIComponent(budget)); }
+  };
+
+  /* ---------- 화면 ---------- */
+  function renderList(items) {
+    var body = $('list-body');
+    body.replaceChildren();
+    items.forEach(function (it) {
+      var tr = document.createElement('tr');
+      [it.id, it.name, won(it.price)].forEach(function (v, i) {
+        var td = document.createElement('td');
+        td.textContent = v;
+        if (i === 2) td.className = 'num';
+        tr.appendChild(td);
+      });
+      body.appendChild(tr);
+    });
+    $('list-empty').hidden = items.length > 0;
+  }
+
+  function renderRecommend(items) {
+    var ol = $('rec-list');
+    ol.replaceChildren();
+    items.forEach(function (it) {
+      var li = document.createElement('li');
+      var n = document.createElement('span');
+      n.textContent = it.name;
+      var p = document.createElement('span');
+      p.className = 'price';
+      p.textContent = won(it.price);
+      li.append(n, p);
+      ol.appendChild(li);
+    });
+  }
+
+  async function refresh() {
+    renderList(await serverApi.all());
+  }
+
+  $('add-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var msg = $('add-msg');
+    var name = $('name').value;
+    var raw = $('price').value;
+    var price = raw === '' ? NaN : Number(raw);
+    try {
+      var saved = await serverApi.add(name, price);
+      setMsg(msg, '"' + saved.name + '" 등록 완료 (id ' + saved.id + ')', 'ok');
+      $('name').value = '';
+      $('price').value = '';
+      $('name').focus();
+      await refresh();
+    } catch (err) {
+      setMsg(msg, err.message, 'err');
+    }
+  });
+
+  $('rec-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var msg = $('rec-msg');
+    var raw = $('budget').value;
+    var budget = raw === '' ? NaN : Number(raw);
+    try {
+      var items = await serverApi.recommend(budget);
+      renderRecommend(items);
+      setMsg(msg, items.length ? items.length + '개를 추천합니다.' : '예산 안에서 살 수 있는 아이템이 없습니다.',
+        items.length ? 'ok' : '');
+    } catch (err) {
+      renderRecommend([]);
+      setMsg(msg, err.message, 'err');
+    }
+  });
+
+  /* ---------- 시작: 서버에서 목록을 불러온다 ---------- */
+  (async function init() {
+    var mode = $('mode');
+    try {
+      renderList(await serverApi.all());
+      mode.textContent = '서버 연결됨';
+    } catch (e) {
+      mode.textContent = '서버에 연결할 수 없습니다';
+      $('list-empty').textContent = '서버에서 목록을 불러오지 못했습니다. 서버 실행 상태를 확인해 주세요.';
+      $('list-empty').hidden = false;
+    }
+  })();
+})();
+</script>
+</body>
+</html>
