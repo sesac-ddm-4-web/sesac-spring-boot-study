@@ -1,8 +1,11 @@
 package com.example.hobby_wishlist.application;
 
+import com.example.hobby_wishlist.domain.ExternalProduct;
+import com.example.hobby_wishlist.domain.ExternalProductProvider;
 import com.example.hobby_wishlist.domain.WishlistItem;
 import com.example.hobby_wishlist.domain.WishlistRepository;
-import com.example.hobby_wishlist.presentation.WishlistItemDto;
+import com.example.hobby_wishlist.dto.CreateWishlistItemRequest;
+import com.example.hobby_wishlist.dto.WishlistItemResponse;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,34 +13,42 @@ import java.util.List;
 @Service
 public class WishlistService {
     private final WishlistRepository wishlistRepository;
+    private final ExternalProductProvider externalProductProvider;
 
-    public WishlistService(WishlistRepository wishlistRepository) {
+    public WishlistService(WishlistRepository wishlistRepository, ExternalProductProvider externalProductProvider) {
         this.wishlistRepository = wishlistRepository;
+        this.externalProductProvider = externalProductProvider;
     }
 
-    public WishlistItemDto add(WishlistItemDto itemDto) {
+    public WishlistItemResponse add(CreateWishlistItemRequest itemDto) {
         WishlistItem addedItem = wishlistRepository.add(itemDto.toEntity());
-        return WishlistItemDto.create(addedItem);
+        return WishlistItemResponse.from(addedItem);
     }
 
-    public List<WishlistItemDto> getAll() {
+    public List<WishlistItemResponse> getAll() {
         return wishlistRepository.getAll().stream()
-                .map(WishlistItemDto::create)
+                .map(WishlistItemResponse::from)
                 .toList();
     }
 
-    public WishlistItemDto findById(Long id) {
+    public WishlistItemResponse findById(Long id) {
         WishlistItem item = wishlistRepository.findById(id);
-        return WishlistItemDto.create(item);
+        return WishlistItemResponse.from(item);
     }
 
-    public List<WishlistItemDto> recommend(Integer budget) {
+    public List<WishlistItemResponse> recommend(Integer budget) {
         if (budget < 0) {
             throw new IllegalArgumentException("예산은 0 이상이어야 합니다.");
         }
 
         return wishlistRepository.recommend(budget).stream()
-                .map(WishlistItemDto::create)
+                .map(WishlistItemResponse::from)
                 .toList();
+    }
+
+    public WishlistItemResponse importExternal(Long externalId) {
+        ExternalProduct externalProduct = externalProductProvider.findById(externalId);
+        WishlistItem addedItem = wishlistRepository.add(WishlistItem.fromExternal(externalProduct));
+        return WishlistItemResponse.from(addedItem);
     }
 }

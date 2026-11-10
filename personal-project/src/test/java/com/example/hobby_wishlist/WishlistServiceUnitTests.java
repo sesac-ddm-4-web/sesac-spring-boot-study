@@ -4,7 +4,8 @@ import com.example.hobby_wishlist.application.WishlistService;
 import com.example.hobby_wishlist.domain.EntityNotFoundException;
 import com.example.hobby_wishlist.domain.WishlistItem;
 import com.example.hobby_wishlist.domain.WishlistRepository;
-import com.example.hobby_wishlist.presentation.WishlistItemDto;
+import com.example.hobby_wishlist.dto.CreateWishlistItemRequest;
+import com.example.hobby_wishlist.dto.WishlistItemResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,11 +31,11 @@ public class WishlistServiceUnitTests {
     @Test
     @DisplayName("등록 시 이름의 앞뒤 공백은 제거하고 Repository가 저장한 결과를 DTO로 변환해 반환함")
     void stripNameAndSavedAsDtoTest() {
-        when(wishlistRepository.add(any())).thenReturn(WishlistItem.create(1L, "연필", 500));
+        when(wishlistRepository.add(any())).thenReturn(WishlistItem.fromManual(1L, "연필", 500));
 
-        WishlistItemDto requestDto = new WishlistItemDto(null, "  연필  ", 500);
-        WishlistItemDto responseDto = wishlistService.add(requestDto);
-        assertEquals(new WishlistItemDto(1L, "연필", 500), responseDto);
+        CreateWishlistItemRequest requestDto = new CreateWishlistItemRequest("  연필  ", 500);
+        WishlistItemResponse responseDto = wishlistService.add(requestDto);
+        assertEquals(new WishlistItemResponse(1L, "연필", 500), responseDto);
 
         verify(wishlistRepository).add(any());
     }
@@ -43,11 +44,11 @@ public class WishlistServiceUnitTests {
     @DisplayName("비정상 입력(빈 이름, 음수 가격, null 가격)은 거부하고 Repository를 호출하지 않음")
     void invalidInputTest() {
         assertThrows(IllegalArgumentException.class,
-                () -> wishlistService.add(new WishlistItemDto(null, " ", 3000)));
+                () -> wishlistService.add(new CreateWishlistItemRequest(" ", 3000)));
         assertThrows(IllegalArgumentException.class,
-                () -> wishlistService.add(new WishlistItemDto(null, "노트", -1)));
+                () -> wishlistService.add(new CreateWishlistItemRequest("노트", -1)));
         assertThrows(IllegalArgumentException.class,
-                () -> wishlistService.add(new WishlistItemDto(null, "노트", null)));
+                () -> wishlistService.add(new CreateWishlistItemRequest("노트", null)));
 
         verifyNoInteractions(wishlistRepository);
     }
@@ -56,15 +57,15 @@ public class WishlistServiceUnitTests {
     @DisplayName("전체 목록을 DTO 목록으로 변환해 반환함")
     void getAllReturnsDtosTest() {
         when(wishlistRepository.getAll()).thenReturn(List.of(
-                WishlistItem.create(1L, "연필", 500),
-                WishlistItem.create(2L, "노트", 1000),
-                WishlistItem.create(3L, "펜", 800)
+                WishlistItem.fromManual(1L, "연필", 500),
+                WishlistItem.fromManual(2L, "노트", 1000),
+                WishlistItem.fromManual(3L, "펜", 800)
         ));
 
         assertEquals(List.of(
-                        new WishlistItemDto(1L, "연필", 500),
-                        new WishlistItemDto(2L, "노트", 1000),
-                        new WishlistItemDto(3L, "펜", 800)
+                        new WishlistItemResponse(1L, "연필", 500),
+                        new WishlistItemResponse(2L, "노트", 1000),
+                        new WishlistItemResponse(3L, "펜", 800)
                 ),
                 wishlistService.getAll());
     }
@@ -73,9 +74,9 @@ public class WishlistServiceUnitTests {
     @DisplayName("id로 조회한 아이템을 DTO로 반환함")
     void findByIdReturnsDtoTest() {
         Long id = 1L;
-        when(wishlistRepository.findById(id)).thenReturn(WishlistItem.create(id, "연필", 500));
+        when(wishlistRepository.findById(id)).thenReturn(WishlistItem.fromManual(id, "연필", 500));
 
-        assertEquals(new WishlistItemDto(id, "연필", 500), wishlistService.findById(id));
+        assertEquals(new WishlistItemResponse(id, "연필", 500), wishlistService.findById(id));
     }
 
     @Test
@@ -98,11 +99,11 @@ public class WishlistServiceUnitTests {
     @DisplayName("추천 결과를 DTO로 반환함")
     void recommendTest() {
         when(wishlistRepository.recommend(1000))
-                .thenReturn(List.of(WishlistItem.create(1L, "연필", 500)));
+                .thenReturn(List.of(WishlistItem.fromManual(1L, "연필", 500)));
         when(wishlistRepository.recommend(300))
                 .thenReturn(List.of());
 
-        assertEquals(List.of(new WishlistItemDto(1L, "연필", 500)), wishlistService.recommend(1000));
+        assertEquals(List.of(new WishlistItemResponse(1L, "연필", 500)), wishlistService.recommend(1000));
         assertEquals(List.of(), wishlistService.recommend(300));
     }
 }

@@ -1,7 +1,8 @@
 package com.example.hobby_wishlist;
 
 import com.example.hobby_wishlist.application.WishlistService;
-import com.example.hobby_wishlist.presentation.WishlistItemDto;
+import com.example.hobby_wishlist.dto.CreateWishlistItemRequest;
+import com.example.hobby_wishlist.dto.WishlistItemResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -125,13 +126,13 @@ class HobbyWishlistApplicationTests {
         assertEquals(before, after);
     }
 
-    private List<WishlistItemDto> createValidItems() {
-        wishlistService.add(new WishlistItemDto(null, "항목1", 500));
-        wishlistService.add(new WishlistItemDto(null, "항목2", 2000));
-        wishlistService.add(new WishlistItemDto(null, "항목3", 300));
-        wishlistService.add(new WishlistItemDto(null, "항목4", 500));
-        wishlistService.add(new WishlistItemDto(null, "항목5", 1000));
-        wishlistService.add(new WishlistItemDto(null, "항목6", 7000));
+    private List<WishlistItemResponse> createValidItems() {
+        wishlistService.add(new CreateWishlistItemRequest("항목1", 500));
+        wishlistService.add(new CreateWishlistItemRequest("항목2", 2000));
+        wishlistService.add(new CreateWishlistItemRequest("항목3", 300));
+        wishlistService.add(new CreateWishlistItemRequest("항목4", 500));
+        wishlistService.add(new CreateWishlistItemRequest("항목5", 1000));
+        wishlistService.add(new CreateWishlistItemRequest("항목6", 7000));
         return wishlistService.getAll();
     }
 }

@@ -1,4 +1,4 @@
-package com.example.hobby_wishlist.infrastructure;
+package com.example.hobby_wishlist.infrastructure.repository.inmemory;
 
 import com.example.hobby_wishlist.domain.WishlistItem;
 import com.example.hobby_wishlist.domain.EntityNotFoundException;
