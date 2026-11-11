@@ -6,263 +6,835 @@
 <title>취미 위시리스트</title>
 <style>
 :root {
-  --accent: #6a9bcc;
-  --accent-strong: #4f82b5;
-  --accent-soft: #e8f0f8;
-  --bg: #f6f8fa;
+  --accent: #3b73a8;
+  --accent-strong: #2c5b8a;
+  --accent-soft: #e6eff8;
+  --on-accent: #ffffff;
+  --bg: #f4f6f9;
   --surface: #ffffff;
-  --ink: #1d2733;
-  --muted: #66727f;
-  --line: #dde3ea;
-  --danger: #c0392b;
-  --ok: #2e7d5b;
+  --surface-2: #f8fafc;
+  --ink: #1b2531;
+  --muted: #5f6b79;
+  --line: #dbe2ea;
+  --danger: #b83227;
+  --danger-soft: #fbeceb;
+  --ok: #217a55;
+  --ok-soft: #e5f4ec;
+  --shadow: 0 1px 2px rgba(20,32,48,.06), 0 4px 14px rgba(20,32,48,.06);
+  --radius: 12px;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --accent-strong: #8db6dd;
-    --accent-soft: #223244;
-    --bg: #12171d;
-    --surface: #1a212a;
-    --ink: #e6ebf0;
-    --muted: #94a0ad;
-    --line: #2b3541;
-    --danger: #ef7d6f;
-    --ok: #66c29a;
+    --accent: #7fb2e0;
+    --accent-strong: #a3c8ee;
+    --accent-soft: #1f3044;
+    --on-accent: #0f1a26;
+    --bg: #0f141a;
+    --surface: #18202a;
+    --surface-2: #141b23;
+    --ink: #e7ecf1;
+    --muted: #9aa6b3;
+    --line: #2a3541;
+    --danger: #f0867a;
+    --danger-soft: #3a1f1c;
+    --ok: #6fcaa0;
+    --ok-soft: #173126;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 4px 14px rgba(0,0,0,.3);
   }
 }
 * { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--ink);
+  margin: 0; background: var(--bg); color: var(--ink); line-height: 1.55;
   font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
-  line-height: 1.5;
+  word-break: keep-all;
 }
-header {
-  background: var(--accent);
-  color: #fff;
-  padding: 28px 16px 24px;
+[hidden] { display: none !important; }
+h1, h2, h3, p { margin: 0; }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- 헤더 ---------- */
+.top { background: var(--accent); color: var(--on-accent); }
+.top-inner { max-width: 1400px; margin: 0 auto; padding: 22px 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.top h1 { font-size: 24px; letter-spacing: -.5px; }
+.top p { font-size: 14px; opacity: .92; margin-top: 2px; }
+.status { display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px; border-radius: 99px; background: rgba(255,255,255,.2); font-size: 13px; }
+@media (prefers-color-scheme: dark) { .status { background: rgba(0,0,0,.25); } }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: #f5c542; }
+.status.on .dot { background: #4ade80; }
+.status.off .dot { background: #ff6b5e; }
+
+/* ---------- 레이아웃 ---------- */
+.layout { display: flex; gap: 20px; align-items: flex-start; max-width: 1400px; margin: 0 auto; padding: 20px 16px 48px; }
+.content-col { flex: 1; min-width: 0; }
+.side { width: 460px; flex-shrink: 0; position: sticky; top: 12px; display: flex; flex-direction: column; gap: 12px; max-height: calc(100vh - 24px); overflow: auto; padding: 2px; }
+#wish-panel { order: 1; } /* 위시리스트는 항상 장바구니보다 위 */
+#cart-panel { order: 2; }
+@media (max-width: 960px) {
+  .layout { flex-direction: column-reverse; }
+  .side { position: static; width: 100%; max-height: none; overflow: visible; }
 }
-.wrap { max-width: 960px; margin: 0 auto; padding: 0 16px; }
-header .wrap { padding: 0; }
-h1 { margin: 0 0 4px; font-size: 26px; letter-spacing: -0.5px; }
-header p { margin: 0; opacity: .92; font-size: 15px; }
-.mode {
-  display: inline-block; margin-top: 12px; padding: 3px 10px; border-radius: 99px;
-  background: rgba(255,255,255,.22); font-size: 13px;
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+.card-body { padding: 20px; }
+
+/* ---------- 폼 요소 ---------- */
+label, .label { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+input, select {
+  width: 100%; min-height: 42px; padding: 9px 12px; background: var(--surface-2);
+  border: 1px solid var(--line); border-radius: 8px;
 }
-main { padding: 24px 0 48px; display: grid; gap: 20px; grid-template-columns: 1fr 1fr; }
-@media (max-width: 720px) { main { grid-template-columns: 1fr; } }
-section {
-  background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px;
+input:focus, select:focus { border-color: var(--accent); }
+input::placeholder { color: var(--muted); opacity: .7; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 42px; padding: 0 18px;
+  border: 0; border-radius: 8px; background: var(--accent); color: var(--on-accent); font-weight: 700; cursor: pointer;
+  white-space: nowrap; transition: background .12s, transform .05s;
 }
-section.full { grid-column: 1 / -1; }
-h2 { margin: 0 0 14px; font-size: 18px; border-left: 4px solid var(--accent); padding-left: 10px; }
-label { display: block; font-size: 14px; color: var(--muted); margin-bottom: 4px; }
-input {
-  width: 100%; padding: 10px 12px; font: inherit; color: var(--ink);
-  background: var(--bg); border: 1px solid var(--line); border-radius: 6px;
-}
-input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
-.field { margin-bottom: 12px; }
-button {
-  font: inherit; cursor: pointer; border: 0; border-radius: 6px; padding: 10px 18px;
-  background: var(--accent); color: #fff; font-weight: 600;
-}
-button:hover { background: var(--accent-strong); }
-button:focus-visible { outline: 3px solid var(--accent-strong); outline-offset: 2px; }
-#add-form button[type="submit"] { display: block; margin-left: auto; }
-button.ghost { background: var(--accent-soft); color: var(--accent-strong); }
+.btn:hover { background: var(--accent-strong); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.btn.ghost { background: var(--accent-soft); color: var(--accent-strong); }
+.btn.ghost:hover { filter: brightness(.96); }
+.btn.danger { background: var(--danger-soft); color: var(--danger); }
+.btn.sm { min-height: 34px; padding: 0 12px; font-size: 13px; }
+.row { display: flex; gap: 8px; align-items: flex-end; }
+.row > .grow { flex: 1; min-width: 0; }
+.field { margin-bottom: 14px; }
+.hint { font-size: 13px; color: var(--muted); margin-top: 6px; }
 .msg { min-height: 20px; margin-top: 10px; font-size: 14px; }
 .msg.err { color: var(--danger); }
 .msg.ok { color: var(--ok); }
-table { width: 100%; border-collapse: collapse; font-size: 15px; }
-th { text-align: left; color: var(--muted); font-weight: 600; font-size: 13px; padding: 6px 8px; }
-td { padding: 10px 8px; border-top: 1px solid var(--line); }
-th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
-.empty { color: var(--muted); padding: 14px 0 4px; font-size: 14px; }
-.row { display: flex; gap: 8px; }
-.row input { flex: 1; }
-ol.rec { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 8px; }
-ol.rec li {
-  display: flex; justify-content: space-between; gap: 12px; padding: 10px 14px;
-  background: var(--accent-soft); border-radius: 6px;
+
+/* ---------- 탭 ---------- */
+.tabs { display: flex; gap: 4px; padding: 8px 8px 0; border-bottom: 1px solid var(--line); }
+.tab {
+  flex: 1; max-width: 240px; min-height: 44px; border: 0; background: transparent; color: var(--muted); font-weight: 700;
+  border-radius: 8px 8px 0 0; border-bottom: 3px solid transparent; cursor: pointer;
 }
-ol.rec .price { font-weight: 700; color: var(--accent-strong); font-variant-numeric: tabular-nums; }
-.hint { color: var(--muted); font-size: 13px; margin: 8px 0 0; }
+.tab:hover { background: var(--accent-soft); }
+.tab[aria-selected="true"] { color: var(--accent-strong); border-bottom-color: var(--accent); background: var(--accent-soft); }
+.panel-head { margin-bottom: 16px; }
+.panel-head h2 { font-size: 18px; }
+.panel-head p { font-size: 14px; color: var(--muted); margin-top: 2px; }
+.form-grid { display: grid; grid-template-columns: 1fr 200px auto; gap: 12px; align-items: end; }
+.form-grid .field { margin: 0; }
+@media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } }
+
+/* ---------- 외부 상품 ---------- */
+.search-bar { display: grid; grid-template-columns: 1fr 130px auto; gap: 10px; align-items: end; }
+@media (max-width: 640px) { .search-bar { grid-template-columns: 1fr 1fr; } .search-bar .grow { grid-column: 1 / -1; } }
+.ext-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); margin-top: 18px; }
+.ext-card { border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); display: flex; flex-direction: column; overflow: hidden; }
+.ext-card .thumb { aspect-ratio: 4 / 3; width: 100%; object-fit: contain; background: #fff; border-bottom: 1px solid var(--line); }
+.ext-card .body { padding: 12px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.ext-card .title { font-weight: 700; font-size: 15px; line-height: 1.35; }
+.ext-card .meta { font-size: 12px; color: var(--muted); }
+.price-main { font-weight: 800; font-size: 17px; color: var(--accent-strong); font-variant-numeric: tabular-nums; }
+.price-sub { font-size: 12px; color: var(--muted); }
+.ext-card .actions { display: flex; gap: 6px; margin-top: auto; padding-top: 10px; }
+.ext-card .actions .btn { flex: 1; padding: 0 8px; }
+.tag { display: inline-block; padding: 1px 8px; border-radius: 99px; font-size: 11px; font-weight: 700; background: var(--accent-soft); color: var(--accent-strong); vertical-align: middle; }
+.tag.warn { background: var(--danger-soft); color: var(--danger); }
+.tag.ok { background: var(--ok-soft); color: var(--ok); }
+.pager { display: flex; gap: 10px; align-items: center; justify-content: center; margin-top: 18px; font-size: 14px; color: var(--muted); }
+.empty-state { text-align: center; color: var(--muted); padding: 28px 8px; font-size: 14px; }
+.empty-state .big { font-size: 30px; display: block; margin-bottom: 6px; }
+.skeleton { height: 220px; border-radius: 10px; background: linear-gradient(90deg, var(--surface-2), var(--line), var(--surface-2)); background-size: 200% 100%; animation: shimmer 1.2s infinite; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+details.tools { margin-top: 20px; border: 1px dashed var(--line); border-radius: 10px; padding: 10px 14px; background: var(--surface-2); }
+details.tools summary { cursor: pointer; font-size: 13px; font-weight: 700; color: var(--muted); }
+details.tools .tools-body { margin-top: 12px; display: grid; gap: 12px; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+#api-log { margin: 0; padding: 10px; list-style: none; font: 12px/1.6 Consolas, "SFMono-Regular", monospace; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; max-height: 150px; overflow: auto; }
+#api-log .bad { color: var(--danger); }
+#api-log .good { color: var(--ok); }
+
+/* ---------- 오른쪽 패널(위시리스트·장바구니) ---------- */
+aside.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); flex-shrink: 0; overflow: hidden; }
+.panel-toggle {
+  width: 100%; min-height: 52px; display: flex; align-items: center; gap: 10px; padding: 0 16px; border: 0; cursor: pointer;
+  background: var(--accent-soft); color: var(--accent-strong); font-weight: 800; font-size: 16px; text-align: left;
+}
+.panel-toggle:hover { filter: brightness(.97); }
+.panel-toggle .sub { font-size: 12px; font-weight: 500; color: var(--muted); }
+.panel-toggle .titles { display: flex; flex-direction: column; line-height: 1.25; }
+.chev { transition: transform .15s; font-size: 12px; }
+.panel-toggle[aria-expanded="true"] .chev { transform: rotate(90deg); }
+.badge { margin-left: auto; background: var(--accent); color: var(--on-accent); border-radius: 99px; padding: 0 9px; min-width: 24px; text-align: center; font-size: 13px; font-weight: 700; }
+.panel-inner { padding: 14px 16px 16px; }
+
+.budget-box { background: var(--accent-soft); border-radius: 10px; padding: 12px; margin-bottom: 12px; }
+.budget-box .label { color: var(--accent-strong); margin-bottom: 8px; }
+.budget-box .row input { min-height: 40px; }
+.budget-box .btn { min-height: 40px; }
+.filter-note { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; font-weight: 700; color: var(--accent-strong); margin-bottom: 8px; }
+
+.items { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.items.scroll { max-height: 300px; overflow: auto; padding-right: 2px; }
+.item { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--surface-2); display: grid; gap: 8px; }
+.item.flash { animation: flash 1.6s ease-out; }
+@keyframes flash { from { background: var(--ok-soft); border-color: var(--ok); } }
+.item-top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.item-name { font-weight: 700; overflow-wrap: anywhere; }
+.item-price { font-weight: 800; color: var(--accent-strong); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.item-meta { font-size: 12px; color: var(--muted); }
+.item-bottom { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.stepper { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.stepper button { width: 34px; height: 34px; border: 0; background: transparent; font-size: 18px; cursor: pointer; color: var(--accent-strong); }
+.stepper button:hover:not(:disabled) { background: var(--accent-soft); }
+.stepper button:disabled { opacity: .35; cursor: not-allowed; }
+.stepper output { min-width: 32px; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.coupon { margin-bottom: 12px; }
+.totals { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: baseline; }
+.totals .sum { font-size: 22px; font-weight: 800; color: var(--accent-strong); font-variant-numeric: tabular-nums; }
+
+/* ---------- 상세 다이얼로그 ---------- */
+dialog { width: min(560px, calc(100vw - 32px)); border: 1px solid var(--line); border-radius: var(--radius); padding: 0; background: var(--surface); color: var(--ink); box-shadow: 0 20px 50px rgba(0,0,0,.35); }
+dialog::backdrop { background: rgba(10,18,28,.55); }
+.dlg-body { padding: 20px; display: grid; gap: 14px; }
+.dlg-body img { width: 100%; max-height: 240px; object-fit: contain; background: #fff; border-radius: 8px; border: 1px solid var(--line); }
+.dlg-body h2 { font-size: 20px; }
+dl.kv { display: grid; grid-template-columns: 90px 1fr; gap: 6px 12px; margin: 0; font-size: 14px; }
+dl.kv dt { color: var(--muted); }
+dl.kv dd { margin: 0; font-variant-numeric: tabular-nums; }
+.dlg-body pre { margin: 0; padding: 10px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; font-size: 12px; overflow: auto; max-height: 180px; }
+.dlg-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+/* ---------- 토스트 ---------- */
+#toasts { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); display: grid; gap: 8px; z-index: 50; width: min(440px, calc(100vw - 32px)); pointer-events: none; }
+.toast { pointer-events: auto; padding: 11px 16px; border-radius: 10px; font-size: 14px; font-weight: 600; background: var(--ink); color: var(--bg); box-shadow: 0 6px 20px rgba(0,0,0,.3); animation: pop .2s ease-out; }
+.toast.ok { background: var(--ok); color: #fff; }
+.toast.err { background: var(--danger); color: #fff; }
+@keyframes pop { from { opacity: 0; transform: translateY(8px); } }
+
+.banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; background: var(--danger-soft); color: var(--danger); border: 1px solid var(--danger); border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; font-weight: 600; font-size: 14px; }
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } html { scroll-behavior: auto; } }
 </style>
 </head>
 <body>
-<header>
-  <div class="wrap">
-    <h1>취미 위시리스트</h1>
-    <p>사고 싶은 물건을 등록하고, 예산 안에서 살 수 있는 후보를 추천받아 보세요.</p>
-    <span class="mode" id="mode">서버 확인 중…</span>
+
+<header class="top">
+  <div class="top-inner">
+    <div>
+      <h1>🎯 취미 위시리스트</h1>
+      <p>갖고 싶은 물건을 모으고, 예산에 맞는 후보를 골라 장바구니에 담아 보세요.</p>
+    </div>
+    <span class="status" id="status" role="status"><span class="dot"></span><span id="status-text">서버 확인 중…</span></span>
   </div>
 </header>
 
-<div class="wrap">
-<main>
-  <section aria-labelledby="h-add">
-    <h2 id="h-add">아이템 등록</h2>
-    <form id="add-form" novalidate>
-      <div class="field">
-        <label for="name">이름</label>
-        <input id="name" autocomplete="off" placeholder="예: 캠핑 의자">
-      </div>
-      <div class="field">
-        <label for="price">가격 (원)</label>
-        <input id="price" type="number" min="0" step="100" inputmode="numeric" placeholder="0 이상의 정수">
-      </div>
-      <button type="submit">등록</button>
-      <div class="msg" id="add-msg" role="status"></div>
-    </form>
-  </section>
+<div class="layout">
+  <div class="content-col">
+    <div class="banner" id="offline" hidden>
+      <span>서버에 연결할 수 없어요. 서버가 실행 중인지 확인해 주세요.</span>
+      <button type="button" class="btn sm" id="retry">다시 시도</button>
+    </div>
 
-  <section aria-labelledby="h-rec">
-    <h2 id="h-rec">예산별 추천</h2>
-    <form id="rec-form" novalidate>
-      <label for="budget">예산 (원)</label>
-      <div class="row">
-        <input id="budget" type="number" min="0" step="100" inputmode="numeric" placeholder="예: 5000">
-        <button type="submit">추천 받기</button>
+    <section class="card" aria-label="위시리스트에 추가">
+      <div class="tabs" role="tablist" aria-label="위시리스트 추가 방식">
+        <button type="button" role="tab" id="tab-manual" class="tab" aria-selected="true" aria-controls="panel-manual">✏️ 직접 추가</button>
+        <button type="button" role="tab" id="tab-ext" class="tab" aria-selected="false" aria-controls="panel-ext" tabindex="-1">🔎 외부 상품에서 가져오기</button>
       </div>
-      <p class="hint">가격이 예산 이하인 아이템을 가격 낮은 순으로 최대 3개 보여줍니다.</p>
-      <div class="msg" id="rec-msg" role="status"></div>
-    </form>
-    <ol class="rec" id="rec-list"></ol>
-  </section>
 
-  <section class="full" aria-labelledby="h-list">
-    <h2 id="h-list">전체 목록</h2>
-    <table>
-      <thead><tr><th>ID</th><th>이름</th><th class="num">가격</th></tr></thead>
-      <tbody id="list-body"></tbody>
-    </table>
-    <div class="empty" id="list-empty" hidden>아직 등록된 아이템이 없습니다.</div>
-  </section>
-</main>
+      <div id="panel-manual" class="card-body" role="tabpanel" aria-labelledby="tab-manual">
+        <div class="panel-head">
+          <h2>직접 추가</h2>
+          <p>상품 이름과 가격을 입력해 위시리스트에 등록해요.</p>
+        </div>
+        <form id="add-form" novalidate>
+          <div class="form-grid">
+            <div class="field">
+              <label for="name">상품 이름</label>
+              <input id="name" autocomplete="off" placeholder="예: 캠핑 의자">
+            </div>
+            <div class="field">
+              <label for="price">가격 (원)</label>
+              <input id="price" type="number" min="0" step="100" inputmode="numeric" placeholder="예: 25000">
+            </div>
+            <button type="submit" class="btn">등록하기</button>
+          </div>
+          <div class="msg err" id="add-msg" role="alert"></div>
+        </form>
+      </div>
+
+      <div id="panel-ext" class="card-body" role="tabpanel" aria-labelledby="tab-ext" hidden>
+        <div class="panel-head">
+          <h2>외부 상품에서 가져오기</h2>
+          <p>DummyJSON 상품을 검색해 내 위시리스트로 가져와요. 가격은 외부 가격 1단위를 1,000원으로 환산해요.</p>
+        </div>
+        <form id="ext-form" novalidate>
+          <div class="search-bar">
+            <div class="grow">
+              <label for="ext-q">검색어</label>
+              <input id="ext-q" type="search" autocomplete="off" placeholder="비워 두면 전체 상품을 보여줘요 (예: phone)">
+            </div>
+            <div>
+              <label for="ext-limit">한 번에 보기</label>
+              <select id="ext-limit">
+                <option value="10" selected>10개씩</option>
+                <option value="20">20개씩</option>
+              </select>
+            </div>
+            <button type="submit" class="btn">검색</button>
+          </div>
+          <div class="msg" id="ext-msg" role="status"></div>
+        </form>
+        <div class="ext-grid" id="ext-grid"></div>
+        <div class="pager" id="ext-pager" hidden>
+          <button type="button" class="btn ghost sm" id="ext-prev">← 이전</button>
+          <span id="ext-page"></span>
+          <button type="button" class="btn ghost sm" id="ext-next">다음 →</button>
+        </div>
+
+        <details class="tools">
+          <summary>🧪 개발·테스트 도구</summary>
+          <div class="tools-body">
+            <div>
+              <label for="ext-id">상품 id로 직접 요청</label>
+              <div class="row">
+                <input id="ext-id" class="grow" type="number" placeholder="예: 1">
+                <button type="button" class="btn ghost" id="ext-detail-btn">상세 조회</button>
+                <button type="button" class="btn" id="ext-import-btn">가져오기</button>
+              </div>
+              <p class="hint">같은 상품을 두 번 가져오면 중복 오류(409)를 확인할 수 있어요. 비워 두고 가져오기를 누르면 id 누락 오류를 확인할 수 있어요.</p>
+            </div>
+            <div>
+              <span class="label">잘못된 요청 보내기</span>
+              <div class="btn-row">
+                <button type="button" class="btn ghost sm" id="bad-blank">공백 검색어</button>
+                <button type="button" class="btn ghost sm" id="bad-limit">limit=21</button>
+                <button type="button" class="btn ghost sm" id="bad-skip">skip=-1</button>
+                <button type="button" class="btn ghost sm" id="bad-id">없는 상품 id(999999)</button>
+              </div>
+            </div>
+            <div>
+              <span class="label">최근 API 호출</span>
+              <ul id="api-log" aria-live="off"><li>아직 호출이 없어요.</li></ul>
+            </div>
+          </div>
+        </details>
+      </div>
+    </section>
+  </div>
+
+  <div class="side">
+    <aside id="wish-panel" class="panel" aria-labelledby="h-wish">
+      <button type="button" id="wish-toggle" class="panel-toggle" aria-expanded="false" aria-controls="wish-body-wrap">
+        <span class="chev" aria-hidden="true">▶</span>
+        <span class="titles"><span id="h-wish">내 위시리스트</span><span class="sub">예산별 추천으로 골라볼 수 있어요</span></span>
+        <span class="badge" id="wish-count" aria-label="위시리스트 항목 수">0</span>
+      </button>
+      <div id="wish-body-wrap" class="panel-inner" hidden>
+        <form id="rec-form" class="budget-box" novalidate>
+          <span class="label" id="rec-label">💰 예산별 추천</span>
+          <div class="row">
+            <input id="budget" class="grow" type="number" min="0" step="1000" inputmode="numeric" placeholder="예산(원) 예: 30000" aria-labelledby="rec-label">
+            <button type="submit" class="btn">추천받기</button>
+          </div>
+          <p class="hint">예산 이하 상품을 가격 낮은 순으로 최대 3개 보여줘요.</p>
+          <div class="msg err" id="rec-msg" role="alert"></div>
+        </form>
+        <div class="filter-note" id="filter-note" hidden>
+          <span id="filter-text"></span>
+          <button type="button" class="btn ghost sm" id="rec-reset">전체 목록 보기</button>
+        </div>
+        <ul class="items scroll" id="list-body"></ul>
+        <div class="empty-state" id="list-empty" hidden></div>
+      </div>
+    </aside>
+
+    <aside id="cart-panel" class="panel" aria-labelledby="h-cart">
+      <button type="button" id="cart-toggle" class="panel-toggle" aria-expanded="false" aria-controls="cart-body-wrap">
+        <span class="chev" aria-hidden="true">▶</span>
+        <span class="titles"><span id="h-cart">장바구니</span><span class="sub">수량을 조절하고 합계를 확인해요</span></span>
+        <span class="badge" id="cart-count" aria-label="장바구니 항목 수">0</span>
+      </button>
+      <div id="cart-body-wrap" class="panel-inner" hidden>
+        <!-- 쿠폰·배송비 미리보기 API가 구현되면 hidden을 제거하고 refreshCart가 쿠폰 값을 보내도록 연결 -->
+        <form id="cart-form" class="coupon" novalidate hidden>
+          <label for="coupon">쿠폰 코드</label>
+          <div class="row">
+            <input id="coupon" class="grow" value="NONE" autocomplete="off" placeholder="쿠폰 없음: NONE">
+            <button type="submit" class="btn ghost">적용</button>
+          </div>
+        </form>
+        <ul class="items scroll" id="cart-body"></ul>
+        <div class="empty-state" id="cart-empty"></div>
+        <div class="totals" id="cart-total" hidden>
+          <span>상품 합계</span>
+          <span class="sum" id="cart-sum"></span>
+        </div>
+        <p class="hint" id="cart-hint" hidden>표시 금액은 단가 × 수량의 합계예요(쿠폰·배송비 제외). 같은 상품은 합쳐서 최대 5개, 외부 상품은 재고까지, 종류는 20개까지 담을 수 있어요.</p>
+      </div>
+    </aside>
+  </div>
 </div>
+
+<dialog id="detail-dialog" aria-labelledby="dlg-title">
+  <div class="dlg-body" id="dlg-body"></div>
+</dialog>
+<div id="toasts" aria-live="polite" aria-atomic="false"></div>
 
 <script>
 (function () {
   'use strict';
-  var API = '/wishlist';
+  const API = '/wishlist';
+  const $ = (id) => document.getElementById(id);
+  const won = (n) => Number(n).toLocaleString('ko-KR') + '원';
+  const toWon = (externalPrice) => Math.round(Number(externalPrice) * 1000); // 수업 규칙: 1단위 = 1,000원
 
-  var $ = function (id) { return document.getElementById(id); };
-  var won = function (n) { return Number(n).toLocaleString('ko-KR') + '원'; };
-
-  function setMsg(el, text, kind) {
-    el.textContent = text || '';
-    el.className = 'msg' + (kind ? ' ' + kind : '');
+  /** 작은 DOM 헬퍼 */
+  function el(tag, props, ...kids) {
+    const node = document.createElement(tag);
+    Object.entries(props || {}).forEach(([k, v]) => {
+      if (v == null) return;
+      if (k === 'class') node.className = v;
+      else if (k === 'text') node.textContent = v;
+      else if (k.startsWith('on')) node.addEventListener(k.slice(2), v);
+      else node.setAttribute(k, v);
+    });
+    kids.flat().forEach((c) => c != null && node.append(c));
+    return node;
   }
 
-  /* ---------- 서버 API ---------- */
+  function setMsg(node, text, kind) {
+    node.textContent = text || '';
+    node.className = 'msg' + (kind ? ' ' + kind : '');
+  }
+
+  function toast(text, kind) {
+    const t = el('div', { class: 'toast' + (kind ? ' ' + kind : ''), text });
+    $('toasts').appendChild(t);
+    setTimeout(() => t.remove(), kind === 'err' ? 5000 : 2800);
+  }
+
+  async function busy(btn, fn) {
+    if (btn) btn.disabled = true;
+    try { return await fn(); } finally { if (btn) btn.disabled = false; }
+  }
+
+  /* ---------- API 호출 + 최근 호출 로그 ---------- */
+  function logCall(method, url, status) {
+    const ul = $('api-log');
+    if (ul.firstElementChild && !ul.firstElementChild.dataset.entry) ul.replaceChildren();
+    const li = el('li', { class: typeof status === 'number' && status < 400 ? 'good' : 'bad', 'data-entry': '1',
+      text: method + ' ' + decodeURIComponent(url) + ' → ' + status });
+    ul.prepend(li);
+    while (ul.children.length > 8) ul.lastElementChild.remove();
+  }
+
   async function request(url, options) {
-    var res = await fetch(url, options);
-    if (!res.ok) {
-      var text = '';
-      try { text = await res.text(); } catch (e) {}
-      var message = text;
-      try { var j = JSON.parse(text); message = j.message || j.error || text; } catch (e) {}
-      throw new Error('[' + res.status + '] ' + (message || res.statusText || '요청에 실패했습니다.'));
+    const method = (options && options.method) || 'GET';
+    let res;
+    try {
+      res = await fetch(url, options);
+    } catch (e) {
+      logCall(method, url, '연결 실패');
+      throw new Error('서버에 연결할 수 없어요.');
     }
+    logCall(method, url, res.status);
+    if (!res.ok) {
+      let text = '';
+      try { text = await res.text(); } catch (e) {}
+      let message = text;
+      try { const j = JSON.parse(text); message = j.detail || j.message || j.title || j.error || text; } catch (e) {}
+      throw new Error('[' + res.status + '] ' + (message || res.statusText || '요청에 실패했어요.'));
+    }
+    if (res.status === 204) return null;
     return res.json();
   }
-  var serverApi = {
-    add: function (name, price) {
-      return request(API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name, price: price })
-      });
-    },
-    all: function () { return request(API); },
-    recommend: function (budget) { return request(API + '?budget=' + encodeURIComponent(budget)); }
+  const json = (method, body) => ({ method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+
+  const wishApi = {
+    add: (name, price) => request(API, json('POST', { name, price })),
+    all: () => request(API),
+    recommend: (budget) => request(API + '?budget=' + encodeURIComponent(budget)),
+    importExternal: (id) => request(API + '/import', json('POST', { id }))
   };
+  const extApi = {
+    // GET /products?q=&limit=&skip= (q를 생략하면 전체 목록, limit 1~20, skip 0 이상)
+    list: (q, limit, skip) => {
+      let qs = 'limit=' + encodeURIComponent(limit) + '&skip=' + encodeURIComponent(skip);
+      if (q !== null) qs = 'q=' + encodeURIComponent(q) + '&' + qs;
+      return request('/products?' + qs);
+    },
+    one: (id) => request('/products/' + encodeURIComponent(id))
+  };
+  const cartApi = {
+    add: (wishlistId, quantity) => request('/cart', json('POST', { wishlistId, quantity })),
+    change: (cartItemId, quantity) => request('/cart/' + encodeURIComponent(cartItemId), json('PATCH', { quantity })),
+    remove: (id) => request('/cart/' + encodeURIComponent(id), { method: 'DELETE' }),
+    all: () => request('/cart')
+  };
+  // 외부 상품 재고가 있으면 재고까지, 수동 상품(재고 null)은 5개까지
+  const maxQty = (stock) => (stock == null ? 5 : Math.max(0, Math.min(5, stock)));
 
-  /* ---------- 화면 ---------- */
-  function renderList(items) {
-    var body = $('list-body');
-    body.replaceChildren();
-    items.forEach(function (it) {
-      var tr = document.createElement('tr');
-      [it.id, it.name, won(it.price)].forEach(function (v, i) {
-        var td = document.createElement('td');
-        td.textContent = v;
-        if (i === 2) td.className = 'num';
-        tr.appendChild(td);
-      });
-      body.appendChild(tr);
+  /* ---------- 접이식 패널 ---------- */
+  function setPanelOpen(bodyId, toggleId, open) {
+    $(bodyId).hidden = !open;
+    $(toggleId).setAttribute('aria-expanded', String(open));
+  }
+  const setWishOpen = (open) => setPanelOpen('wish-body-wrap', 'wish-toggle', open);
+  const setCartOpen = (open) => setPanelOpen('cart-body-wrap', 'cart-toggle', open);
+  $('wish-toggle').addEventListener('click', () => setWishOpen($('wish-body-wrap').hidden));
+  $('cart-toggle').addEventListener('click', () => setCartOpen($('cart-body-wrap').hidden));
+
+  function emptyState(node, icon, title, sub) {
+    node.replaceChildren(el('span', { class: 'big', text: icon, 'aria-hidden': 'true' }), el('strong', { text: title }),
+      el('br'), document.createTextNode(sub));
+  }
+
+  function stepper(value, min, max, onChange) {
+    let v = value;
+    const out = el('output', { text: String(v) });
+    const minus = el('button', { type: 'button', 'aria-label': '수량 줄이기', text: '−' });
+    const plus = el('button', { type: 'button', 'aria-label': '수량 늘리기', text: '+' });
+    const sync = () => { out.textContent = v; minus.disabled = v <= min; plus.disabled = v >= max; };
+    minus.addEventListener('click', () => { v = Math.max(min, v - 1); sync(); onChange && onChange(v); });
+    plus.addEventListener('click', () => { v = Math.min(max, v + 1); sync(); onChange && onChange(v); });
+    sync();
+    const box = el('div', { class: 'stepper' }, minus, out, plus);
+    box.value = () => v;
+    return box;
+  }
+
+  /* ---------- 위시리스트 ---------- */
+  let wishCount = 0;
+  let allWish = [];
+  let budgetFilter = null; // null이면 전체 목록, 숫자면 해당 예산의 추천 목록
+
+  function renderList(items, total, flashId) {
+    const ul = $('list-body');
+    ul.replaceChildren();
+    items.forEach((it) => {
+      const soldOut = it.stock === 0;
+      const qty = stepper(1, 1, Math.max(1, maxQty(it.stock)));
+      const addBtn = el('button', { type: 'button', class: 'btn sm', text: soldOut ? '품절' : '🛒 담기' });
+      if (soldOut) addBtn.disabled = true;
+      addBtn.addEventListener('click', () => busy(addBtn, () => addToCart(it.id, qty.value())));
+      const tags = [];
+      if (it.sourceType) tags.push(el('span', { class: 'tag', text: it.sourceType === 'EXTERNAL' ? '외부 상품' : '직접 등록' }));
+      if (soldOut) tags.push(el('span', { class: 'tag warn', text: '품절' }));
+      const li = el('li', { class: 'item' + (it.id === flashId ? ' flash' : '') },
+        el('div', { class: 'item-top' },
+          el('span', { class: 'item-name', text: it.name }),
+          el('span', { class: 'item-price', text: won(it.price) })),
+        el('div', { class: 'item-bottom' },
+          el('span', { class: 'item-meta', text: '#' + it.id }, ...(tags.length ? [' '] : []), ...tags),
+          el('div', { class: 'row', style: 'align-items:center' }, qty, addBtn)));
+      ul.appendChild(li);
     });
-    $('list-empty').hidden = items.length > 0;
+
+    const empty = $('list-empty');
+    empty.hidden = items.length > 0;
+    if (!items.length) {
+      if (budgetFilter !== null) emptyState(empty, '🔍', '예산 안에서 살 수 있는 상품이 없어요', '예산을 조금 늘려 보세요.');
+      else emptyState(empty, '🎁', '아직 위시리스트가 비어 있어요', '왼쪽에서 직접 추가하거나 외부 상품을 가져와 보세요.');
+    }
+
+    $('wish-count').textContent = total;
+    // 전체 기준으로: 비면 접고, 처음 생기면(0→n) 연다. 그 외에는 사용자의 수동 상태를 유지.
+    if (total === 0) setWishOpen(false);
+    else if (flashId != null || wishCount === 0) setWishOpen(true);
+    wishCount = total;
   }
 
-  function renderRecommend(items) {
-    var ol = $('rec-list');
-    ol.replaceChildren();
-    items.forEach(function (it) {
-      var li = document.createElement('li');
-      var n = document.createElement('span');
-      n.textContent = it.name;
-      var p = document.createElement('span');
-      p.className = 'price';
-      p.textContent = won(it.price);
-      li.append(n, p);
-      ol.appendChild(li);
-    });
+  function updateFilterUi() {
+    const on = budgetFilter !== null;
+    $('filter-note').hidden = !on;
+    $('filter-text').textContent = on ? '예산 ' + won(budgetFilter) + ' 이하 추천 결과만 보는 중' : '';
   }
 
-  async function refresh() {
-    renderList(await serverApi.all());
+  /** 서버에서 위시리스트를 다시 읽어 그린다. flashId가 있으면 그 항목을 강조하고 패널을 연다. */
+  async function refresh(flashId) {
+    const all = await wishApi.all(); // 배지·자동 열림 판단은 항상 전체 기준
+    allWish = all;
+    const shown = budgetFilter === null ? all : await wishApi.recommend(budgetFilter);
+    updateFilterUi();
+    renderList(shown, all.length, flashId);
+    if (extItems) renderExternal(extItems); // '담김' 표시 갱신
   }
 
-  $('add-form').addEventListener('submit', async function (e) {
+  $('add-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    var msg = $('add-msg');
-    var name = $('name').value;
-    var raw = $('price').value;
-    var price = raw === '' ? NaN : Number(raw);
+    const msg = $('add-msg');
+    const raw = $('price').value;
+    const price = raw === '' ? NaN : Number(raw);
+    await busy(e.submitter, async () => {
+      try {
+        const saved = await wishApi.add($('name').value, price);
+        setMsg(msg, '');
+        toast('"' + saved.name + '"을(를) 위시리스트에 등록했어요.', 'ok');
+        $('name').value = '';
+        $('price').value = '';
+        $('name').focus();
+        await refresh(saved.id);
+      } catch (err) {
+        setMsg(msg, err.message, 'err');
+      }
+    });
+  });
+
+  $('rec-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = $('rec-msg');
+    const raw = $('budget').value;
+    const budget = raw === '' ? NaN : Number(raw);
+    await busy(e.submitter, async () => {
+      try {
+        const items = await wishApi.recommend(budget);
+        budgetFilter = budget;
+        setMsg(msg, '');
+        await refresh();
+        toast(items.length ? items.length + '개를 추천해요.' : '예산 안에서 살 수 있는 상품이 없어요.', items.length ? 'ok' : '');
+      } catch (err) {
+        setMsg(msg, err.message, 'err'); // 실패하면 기존 목록(필터 상태)을 그대로 유지
+      }
+    });
+  });
+  $('rec-reset').addEventListener('click', async () => {
+    budgetFilter = null;
+    $('budget').value = '';
+    setMsg($('rec-msg'), '');
+    try { await refresh(); toast('전체 목록으로 돌아왔어요.'); } catch (err) { toast(err.message, 'err'); }
+  });
+
+  /* ---------- 장바구니 ---------- */
+  let cartCount = 0;
+
+  function renderCart(items, flashId) {
+    const ul = $('cart-body');
+    ul.replaceChildren();
+    let total = 0;
+    items.forEach((c) => {
+      const sub = c.price * c.quantity;
+      total += sub;
+      const qty = stepper(c.quantity, 1, Math.max(c.quantity, maxQty(c.stock)));
+      const minus = qty.children[0], plus = qty.children[2];
+      [minus, plus].forEach((b) => b.addEventListener('click', () => changeQty(c.id, qty.value(), qty)));
+      const del = el('button', { type: 'button', class: 'btn danger sm', text: '삭제', 'aria-label': c.name + ' 삭제' });
+      del.addEventListener('click', () => busy(del, () => removeItem(c.id, c.name)));
+      ul.appendChild(el('li', { class: 'item' + (c.id === flashId ? ' flash' : '') },
+        el('div', { class: 'item-top' },
+          el('span', { class: 'item-name', text: c.name }),
+          el('span', { class: 'item-price', text: won(sub) })),
+        el('div', { class: 'item-meta', text: '단가 ' + won(c.price) + ' · ' + (c.stock == null ? '재고 제한 없음' : '재고 ' + c.stock + '개') }),
+        el('div', { class: 'item-bottom' }, qty, del)));
+    });
+    const empty = $('cart-empty');
+    empty.hidden = items.length > 0;
+    if (!items.length) emptyState(empty, '🛒', '장바구니가 비어 있어요', '위시리스트에서 "담기"를 눌러 보세요.');
+    $('cart-total').hidden = $('cart-hint').hidden = items.length === 0;
+    $('cart-sum').textContent = won(total);
+    $('cart-count').textContent = items.length;
+    // 비면 접고, 처음 생기거나(0→n) 담은 직후에는 연다. 그 외에는 사용자의 수동 상태를 유지.
+    if (items.length === 0) setCartOpen(false);
+    else if (flashId != null || cartCount === 0) setCartOpen(true);
+    cartCount = items.length;
+  }
+
+  async function refreshCart(flashId) {
+    renderCart(await cartApi.all(), flashId);
+  }
+
+  async function addToCart(wishlistId, qty) {
     try {
-      var saved = await serverApi.add(name, price);
-      setMsg(msg, '"' + saved.name + '" 등록 완료 (id ' + saved.id + ')', 'ok');
-      $('name').value = '';
-      $('price').value = '';
-      $('name').focus();
+      const r = await cartApi.add(wishlistId, qty);
+      toast('장바구니에 담았어요: ' + r.name + ' × ' + r.quantity, 'ok');
+      await refreshCart(r.id);
+    } catch (err) { toast(err.message, 'err'); }
+  }
+  async function changeQty(id, qty, stepperNode) {
+    stepperNode.querySelectorAll('button').forEach((b) => (b.disabled = true));
+    try {
+      await cartApi.change(id, qty);
+      await refreshCart();
+    } catch (err) {
+      toast(err.message, 'err');
+      try { await refreshCart(); } catch (e) {}
+    }
+  }
+  async function removeItem(id, name) {
+    try {
+      await cartApi.remove(id);
+      toast('"' + name + '"을(를) 장바구니에서 뺐어요.');
+      await refreshCart();
+    } catch (err) { toast(err.message, 'err'); }
+  }
+  $('cart-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    await busy(e.submitter, async () => {
+      try { await refreshCart(); toast('장바구니를 갱신했어요.'); } catch (err) { toast(err.message, 'err'); }
+    });
+  });
+
+  /* ---------- 외부 상품 ---------- */
+  const ext = { q: null, limit: 10, page: 1 };
+  let extItems = null;
+
+  function extMsg(text, kind) { setMsg($('ext-msg'), text, kind); }
+
+  async function importProduct(id, btn) {
+    return busy(btn, async () => {
+      try {
+        const saved = await wishApi.importExternal(id);
+        extMsg('');
+        toast('"' + saved.name + '"을(를) 위시리스트로 가져왔어요.', 'ok');
+        await refresh(saved.id);
+      } catch (err) {
+        extMsg(err.message, 'err'); // 중복이면 409 등
+        toast(err.message, 'err');
+      }
+    });
+  }
+
+  function openDetail(p) {
+    const body = $('dlg-body');
+    const close = el('button', { type: 'button', class: 'btn ghost', text: '닫기' });
+    close.addEventListener('click', () => $('detail-dialog').close());
+    const imp = el('button', { type: 'button', class: 'btn', text: '위시리스트로 가져오기' });
+    imp.addEventListener('click', async () => { await importProduct(p.id, imp); $('detail-dialog').close(); });
+    body.replaceChildren(
+      p.thumbnail ? el('img', { src: p.thumbnail, alt: p.title }) : null,
+      el('h2', { id: 'dlg-title', text: p.title }),
+      el('dl', { class: 'kv' },
+        el('dt', { text: '상품 id' }), el('dd', { text: String(p.id) }),
+        el('dt', { text: '카테고리' }), el('dd', { text: p.category || '-' }),
+        el('dt', { text: '외부 가격' }), el('dd', { text: String(p.price) }),
+        el('dt', { text: '환산 가격' }), el('dd', { text: won(toWon(p.price)) }),
+        el('dt', { text: '재고' }), el('dd', { text: p.stock === 0 ? '품절 (위시리스트에는 담을 수 있어요)' : p.stock + '개' })),
+      el('details', {}, el('summary', { text: '응답 JSON 보기' }), el('pre', { text: JSON.stringify(p, null, 2) })),
+      el('div', { class: 'dlg-actions' }, close, imp));
+    $('detail-dialog').showModal();
+  }
+  $('detail-dialog').addEventListener('click', (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); });
+
+  async function showDetail(id, btn) {
+    return busy(btn, async () => {
+      try { openDetail(await extApi.one(id)); extMsg(''); }
+      catch (err) { extMsg(err.message, 'err'); toast(err.message, 'err'); }
+    });
+  }
+
+  function renderExternal(items) {
+    extItems = items;
+    const grid = $('ext-grid');
+    grid.replaceChildren();
+    const imported = new Set(allWish.filter((w) => w.externalId != null).map((w) => Number(w.externalId)));
+    items.forEach((p) => {
+      const detailBtn = el('button', { type: 'button', class: 'btn ghost sm', text: '상세' });
+      detailBtn.addEventListener('click', () => showDetail(p.id, detailBtn));
+      const importBtn = el('button', { type: 'button', class: 'btn sm', text: '가져오기' });
+      importBtn.addEventListener('click', () => importProduct(p.id, importBtn));
+      const stock = p.stock === 0 ? el('span', { class: 'tag warn', text: '품절' }) : el('span', { class: 'meta', text: '재고 ' + p.stock + '개' });
+      grid.appendChild(el('article', { class: 'ext-card' },
+        p.thumbnail ? el('img', { class: 'thumb', src: p.thumbnail, alt: p.title, loading: 'lazy' }) : null,
+        el('div', { class: 'body' },
+          el('div', { class: 'title', text: p.title }),
+          el('div', { class: 'meta', text: (p.category || '기타') + ' · #' + p.id }),
+          el('div', { class: 'price-main', text: '약 ' + won(toWon(p.price)) }),
+          el('div', { class: 'price-sub', text: '외부 가격 ' + p.price }),
+          el('div', {}, stock, imported.has(p.id) ? ' ' : null, imported.has(p.id) ? el('span', { class: 'tag ok', text: '담김' }) : null),
+          el('div', { class: 'actions' }, detailBtn, importBtn))));
+    });
+    if (!items.length) {
+      const e = el('div', { class: 'empty-state', style: 'grid-column:1/-1' });
+      emptyState(e, '🔍', '검색 결과가 없어요', '다른 검색어로 다시 찾아보세요.');
+      grid.appendChild(e);
+    }
+  }
+
+  async function loadExternal(rawParams) {
+    const p = rawParams || { q: ext.q, limit: ext.limit, skip: (ext.page - 1) * ext.limit };
+    const grid = $('ext-grid');
+    if (!rawParams) { grid.replaceChildren(el('div', { class: 'skeleton' }), el('div', { class: 'skeleton' }), el('div', { class: 'skeleton' })); }
+    try {
+      const items = await extApi.list(p.q, p.limit, p.skip);
+      if (rawParams) { extMsg('오류 없이 처리됐어요 (' + items.length + '건). 서버가 이 값을 허용한다는 뜻이에요.', 'ok'); return; }
+      renderExternal(items);
+      const label = ext.q === null ? '전체 상품' : '"' + ext.q + '" 검색 결과';
+      extMsg(items.length ? label + ' ' + items.length + '건' : '', items.length ? 'ok' : '');
+      $('ext-pager').hidden = false;
+      $('ext-page').textContent = ext.page + ' 페이지';
+      $('ext-prev').disabled = ext.page <= 1;
+      $('ext-next').disabled = items.length < ext.limit;
+    } catch (err) {
+      if (!rawParams) renderExternal([]);
+      extMsg(err.message, 'err');
+      toast(err.message, 'err');
+    }
+  }
+
+  function readExtForm() {
+    const q = $('ext-q').value;
+    ext.q = q.trim() === '' ? null : q;
+    ext.limit = Number($('ext-limit').value);
+  }
+  $('ext-form').addEventListener('submit', (e) => { e.preventDefault(); readExtForm(); ext.page = 1; loadExternal(); });
+  $('ext-prev').addEventListener('click', () => { ext.page = Math.max(1, ext.page - 1); loadExternal(); $('ext-grid').scrollIntoView({ block: 'nearest' }); });
+  $('ext-next').addEventListener('click', () => { ext.page += 1; loadExternal(); $('ext-grid').scrollIntoView({ block: 'nearest' }); });
+
+  // 테스트 도구
+  $('ext-detail-btn').addEventListener('click', (e) => showDetail($('ext-id').value, e.currentTarget));
+  $('ext-import-btn').addEventListener('click', (e) => {
+    const v = $('ext-id').value;
+    importProduct(v === '' ? null : Number(v), e.currentTarget);
+  });
+  $('bad-blank').addEventListener('click', () => loadExternal({ q: '   ', limit: 10, skip: 0 }));
+  $('bad-limit').addEventListener('click', () => loadExternal({ q: null, limit: 21, skip: 0 }));
+  $('bad-skip').addEventListener('click', () => loadExternal({ q: null, limit: 10, skip: -1 }));
+  $('bad-id').addEventListener('click', () => showDetail(999999, null));
+
+  /* ---------- 탭 ---------- */
+  function selectTab(which) {
+    const isExt = which === 'ext';
+    [['manual', !isExt], ['ext', isExt]].forEach(([name, active]) => {
+      const t = $('tab-' + name);
+      t.setAttribute('aria-selected', String(active));
+      t.tabIndex = active ? 0 : -1;
+      $('panel-' + name).hidden = !active;
+    });
+    if (isExt && extItems === null) loadExternal();
+  }
+  $('tab-manual').addEventListener('click', () => selectTab('manual'));
+  $('tab-ext').addEventListener('click', () => selectTab('ext'));
+  ['tab-manual', 'tab-ext'].forEach((id) => $(id).addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    const next = id === 'tab-manual' ? 'ext' : 'manual';
+    selectTab(next);
+    $('tab-' + next).focus();
+  }));
+
+  /* ---------- 시작 ---------- */
+  function setStatus(state, text) {
+    $('status').className = 'status ' + state;
+    $('status-text').textContent = text;
+    $('offline').hidden = state !== 'off';
+  }
+
+  async function boot() {
+    setStatus('', '서버 확인 중…');
+    // 장바구니는 위시리스트 로딩 성공 여부와 무관하게 항상 불러온다.
+    refreshCart().catch((e) => {
+      emptyState($('cart-empty'), '⚠️', '장바구니를 불러오지 못했어요', e.message);
+      $('cart-empty').hidden = false;
+      setCartOpen(true); // 오류 내용을 볼 수 있도록 연다
+    });
+    try {
       await refresh();
-    } catch (err) {
-      setMsg(msg, err.message, 'err');
-    }
-  });
-
-  $('rec-form').addEventListener('submit', async function (e) {
-    e.preventDefault();
-    var msg = $('rec-msg');
-    var raw = $('budget').value;
-    var budget = raw === '' ? NaN : Number(raw);
-    try {
-      var items = await serverApi.recommend(budget);
-      renderRecommend(items);
-      setMsg(msg, items.length ? items.length + '개를 추천합니다.' : '예산 안에서 살 수 있는 아이템이 없습니다.',
-        items.length ? 'ok' : '');
-    } catch (err) {
-      renderRecommend([]);
-      setMsg(msg, err.message, 'err');
-    }
-  });
-
-  /* ---------- 시작: 서버에서 목록을 불러온다 ---------- */
-  (async function init() {
-    var mode = $('mode');
-    try {
-      renderList(await serverApi.all());
-      mode.textContent = '서버 연결됨';
+      setStatus('on', '서버 연결됨');
     } catch (e) {
-      mode.textContent = '서버에 연결할 수 없습니다';
-      $('list-empty').textContent = '서버에서 목록을 불러오지 못했습니다. 서버 실행 상태를 확인해 주세요.';
-      $('list-empty').hidden = false;
+      setStatus('off', '서버 연결 안 됨');
     }
-  })();
+  }
+  $('retry').addEventListener('click', boot);
+  emptyState($('cart-empty'), '🛒', '장바구니가 비어 있어요', '위시리스트에서 "담기"를 눌러 보세요.');
+  boot();
 })();
 </script>
 </body>
