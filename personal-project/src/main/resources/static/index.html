@@ -3,31 +3,36 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>옷 위시리스트</title>
+  <title>위시리스트와 장바구니</title>
   <style>
     :root {
-      --bg: #f6f4ef;
+      --bg: #f3f6fb;
       --surface: #ffffff;
-      --surface-2: #f1eee7;
-      --text: #1f1d1a;
-      --muted: #6b665d;
-      --line: #e2ddd2;
-      --accent: #2f5d50;
-      --accent-soft: #e3eee9;
+      --surface-2: #e9eff8;
+      --text: #172033;
+      --muted: #5d6a80;
+      --line: #d9e1ee;
+      --accent: #2563c9;
+      --accent-soft: #e3edfc;
+      --warn: #8a5a00;
+      --warn-soft: #fbf0d9;
       --danger: #b3261e;
       --danger-soft: #fbe9e7;
       --radius: 12px;
+      color-scheme: light dark;
     }
     @media (prefers-color-scheme: dark) {
       :root {
-        --bg: #161513;
-        --surface: #1f1e1b;
-        --surface-2: #282622;
-        --text: #f1eee8;
-        --muted: #a39d92;
-        --line: #36332e;
-        --accent: #7fbfa9;
-        --accent-soft: #23332d;
+        --bg: #0f1522;
+        --surface: #172030;
+        --surface-2: #1f2a3d;
+        --text: #e8eef8;
+        --muted: #97a4ba;
+        --line: #2b3850;
+        --accent: #7aaaf5;
+        --accent-soft: #1d2e4a;
+        --warn: #f0c36a;
+        --warn-soft: #3a2f17;
         --danger: #f2b8b5;
         --danger-soft: #3a2321;
       }
@@ -41,29 +46,43 @@
       font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
       line-height: 1.5;
     }
-    .wrap { max-width: 960px; margin: 0 auto; padding: 32px 16px 64px; }
-    header { margin-bottom: 24px; }
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 32px 16px 64px; }
+    header { margin-bottom: 20px; }
     header h1 { margin: 0 0 4px; font-size: 28px; letter-spacing: -0.02em; }
     header p { margin: 0; color: var(--muted); }
 
+    .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 20px; overflow-x: auto; scrollbar-width: none; }
+    .tab {
+      background: none; border: none; border-bottom: 2px solid transparent; border-radius: 0;
+      padding: 10px 14px; color: var(--muted); font-weight: 600;
+    }
+    .tab[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
+    .tab .badge { margin-left: 6px; }
+    .panel[hidden] { display: none; }
+
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-    @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+    .grid.cart { grid-template-columns: 1fr 320px; align-items: start; }
+    .grid > * { min-width: 0; }
+    @media (max-width: 760px) { .grid, .grid.cart { grid-template-columns: 1fr; } }
+    @media (max-width: 480px) { .tab { padding: 10px 8px; } .card { padding: 16px; } }
 
     .card {
       background: var(--surface);
       border: 1px solid var(--line);
       border-radius: var(--radius);
       padding: 20px;
+      margin-bottom: 16px;
     }
+    .grid > .card { margin-bottom: 0; }
     .card h2 { margin: 0 0 4px; font-size: 17px; }
     .card .hint { margin: 0 0 16px; color: var(--muted); font-size: 13px; }
 
     label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
     .field { margin-bottom: 12px; }
-    .row { display: flex; gap: 8px; align-items: flex-end; }
-    .row .field { flex: 1; margin-bottom: 0; }
+    .row { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
+    .row .field { flex: 1; min-width: 140px; margin-bottom: 0; }
 
-    input {
+    input, select {
       width: 100%;
       padding: 10px 12px;
       border: 1px solid var(--line);
@@ -72,7 +91,8 @@
       color: var(--text);
       font: inherit;
     }
-    input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+    select.qty { width: auto; padding: 6px 8px; }
+    input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
 
     button {
       padding: 10px 16px;
@@ -83,15 +103,38 @@
       cursor: pointer;
       white-space: nowrap;
     }
+    button:disabled { cursor: not-allowed; opacity: 0.45; }
     .primary { background: var(--accent); color: var(--surface); }
     .ghost { background: transparent; color: var(--text); border-color: var(--line); padding: 6px 10px; font-weight: 500; }
-    .ghost:hover { background: var(--surface-2); }
+    .ghost:hover:not(:disabled) { background: var(--surface-2); }
     .danger { color: var(--danger); }
-    .danger:hover { background: var(--danger-soft); }
+    .danger:hover:not(:disabled) { background: var(--danger-soft); }
 
     .message { margin-top: 12px; font-size: 14px; min-height: 21px; }
     .message.error { color: var(--danger); }
     .message.ok { color: var(--accent); }
+
+    .badge {
+      display: inline-block; padding: 1px 8px; border-radius: 999px;
+      font-size: 12px; font-weight: 600; background: var(--surface-2); color: var(--muted);
+    }
+    .badge.external { background: var(--accent-soft); color: var(--accent); }
+    .badge.soldout { background: var(--danger-soft); color: var(--danger); }
+    .badge.low { background: var(--warn-soft); color: var(--warn); }
+
+    .products { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+    .product {
+      display: flex; flex-direction: column; gap: 8px;
+      border: 1px solid var(--line); border-radius: 10px; padding: 12px; background: var(--surface);
+    }
+    .product img {
+      width: 100%; aspect-ratio: 1; object-fit: contain;
+      border-radius: 8px; background: var(--surface-2);
+    }
+    .product .title { font-weight: 600; font-size: 14px; line-height: 1.35; }
+    .product .meta { color: var(--muted); font-size: 13px; display: flex; justify-content: space-between; gap: 8px; }
+    .product button { margin-top: auto; }
+    .pager { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; color: var(--muted); font-size: 14px; }
 
     .picks { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 8px; }
     .picks li {
@@ -108,89 +151,164 @@
     th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
     th { font-size: 13px; color: var(--muted); font-weight: 600; }
     td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
-    td.id { color: var(--muted); width: 56px; }
+    td.id { color: var(--muted); width: 48px; }
     td.actions { width: 1%; white-space: nowrap; text-align: right; }
-    td.actions button + button { margin-left: 4px; }
+    td.actions > * + * { margin-left: 4px; }
     td input { padding: 6px 8px; }
-    .price { font-variant-numeric: tabular-nums; }
+    .sub { color: var(--muted); font-size: 12px; }
+
+    .summary { display: grid; gap: 8px; margin: 0; }
+    .summary div { display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; }
+    .summary dt { color: var(--muted); }
+    .summary dd { margin: 0; }
+    .summary .total { border-top: 1px solid var(--line); padding-top: 10px; margin-top: 4px; font-size: 18px; font-weight: 700; }
+    .summary .discount dd { color: var(--accent); }
+    .coupons { display: grid; gap: 6px; margin-bottom: 16px; }
+    .coupons label {
+      display: flex; align-items: center; gap: 8px; margin: 0; padding: 8px 10px;
+      border: 1px solid var(--line); border-radius: 8px; color: var(--text); font-size: 14px; cursor: pointer;
+    }
+    .coupons label:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+    .coupons input { width: auto; margin: 0; }
+    .coupons .sub { margin-left: auto; }
   </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>옷 위시리스트</h1>
-    <p>사고 싶은 옷을 등록하고, 예산 안에서 살 수 있는 옷을 최대 3개 추천받습니다.</p>
+    <h1>위시리스트와 장바구니</h1>
+    <p>외부 상품을 찾아 위시리스트로 가져오고, 장바구니에 담아 쿠폰별 결제 금액을 미리 봅니다.</p>
   </header>
 
-  <div class="grid">
-    <section class="card">
-      <h2>옷 등록</h2>
-      <p class="hint">이름은 1~100자, 가격은 0원~1억 원입니다. 0원은 무료 아이템입니다.</p>
-      <form id="add-form">
-        <div class="field">
-          <label for="add-name">이름</label>
-          <input id="add-name" placeholder="예: 흰 티셔츠" autocomplete="off">
-        </div>
-        <div class="row">
-          <div class="field">
-            <label for="add-price">가격 (원)</label>
-            <input id="add-price" type="number" inputmode="numeric" placeholder="15000">
-          </div>
-          <button class="primary" type="submit">등록</button>
-        </div>
-      </form>
-      <div id="add-message" class="message" role="status"></div>
-    </section>
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="external" aria-selected="true">외부 상품</button>
+    <button class="tab" role="tab" data-tab="wishlist" aria-selected="false">위시리스트 <span id="wish-count" class="badge">0</span></button>
+    <button class="tab" role="tab" data-tab="cart" aria-selected="false">장바구니 <span id="cart-count" class="badge">0</span></button>
+  </nav>
 
-    <section class="card">
-      <h2>예산 추천</h2>
-      <p class="hint">가격이 예산 이하인 옷을 싼 순서로 보여 줍니다. 같은 가격이면 먼저 등록한 옷이 앞입니다.</p>
-      <form id="recommend-form" class="row">
+  <section id="panel-external" class="panel" role="tabpanel">
+    <div class="card">
+      <h2>외부 상품 검색</h2>
+      <p class="hint">DummyJSON 상품을 내 서버를 통해 조회합니다. 가져오면 가격이 원화(1단위 = 1,000원)로 환산되어 저장됩니다.</p>
+      <form id="search-form" class="row">
         <div class="field">
-          <label for="budget">예산 (원)</label>
-          <input id="budget" type="number" inputmode="numeric" placeholder="50000">
+          <label for="search-q">검색어 (비우면 전체 목록)</label>
+          <input id="search-q" placeholder="예: phone" autocomplete="off">
         </div>
-        <button class="primary" type="submit">추천받기</button>
+        <button class="primary" type="submit">검색</button>
       </form>
-      <div id="recommend-message" class="message" role="status"></div>
-      <ul id="picks" class="picks"></ul>
-    </section>
-  </div>
-
-  <section class="card" style="margin-bottom: 16px;">
-    <h2>id로 조회</h2>
-    <form id="find-form" class="row">
-      <div class="field">
-        <label for="find-id">id</label>
-        <input id="find-id" type="number" inputmode="numeric" placeholder="1">
+      <div id="external-message" class="message" role="status"></div>
+      <div id="products" class="products"></div>
+      <div id="products-empty" class="empty" hidden>검색 결과가 없습니다.</div>
+      <div class="pager">
+        <button id="prev-page" class="ghost" type="button">이전</button>
+        <span id="page-info"></span>
+        <button id="next-page" class="ghost" type="button">다음</button>
       </div>
-      <button class="primary" type="submit">조회</button>
-    </form>
-    <div id="find-message" class="message" role="status"></div>
+    </div>
   </section>
 
-  <section class="card">
-    <div class="list-head">
-      <h2>전체 목록</h2>
-      <span id="count" class="count"></span>
+  <section id="panel-wishlist" class="panel" role="tabpanel" hidden>
+    <div class="grid">
+      <section class="card">
+        <h2>직접 등록</h2>
+        <p class="hint">이름은 1~100자, 가격은 0원~1억 원입니다.</p>
+        <form id="add-form">
+          <div class="field">
+            <label for="add-name">이름</label>
+            <input id="add-name" placeholder="예: 흰 티셔츠" autocomplete="off">
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="add-price">가격 (원)</label>
+              <input id="add-price" type="number" inputmode="numeric" placeholder="15000">
+            </div>
+            <button class="primary" type="submit">등록</button>
+          </div>
+        </form>
+        <div id="add-message" class="message" role="status"></div>
+      </section>
+
+      <section class="card">
+        <h2>예산 추천</h2>
+        <p class="hint">가격이 예산 이하인 상품을 싼 순서로 최대 3개 보여 줍니다.</p>
+        <form id="recommend-form" class="row">
+          <div class="field">
+            <label for="budget">예산 (원)</label>
+            <input id="budget" type="number" inputmode="numeric" placeholder="50000">
+          </div>
+          <button class="primary" type="submit">추천받기</button>
+        </form>
+        <div id="recommend-message" class="message" role="status"></div>
+        <ul id="picks" class="picks"></ul>
+      </section>
     </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-        <tr><th>id</th><th>이름</th><th class="num">가격</th><th></th></tr>
-        </thead>
-        <tbody id="items"></tbody>
-      </table>
+
+    <section class="card">
+      <div class="list-head">
+        <h2>위시리스트</h2>
+        <span id="count" class="count"></span>
+      </div>
+      <p class="hint">외부에서 가져온 상품은 이름·가격을 수정할 수 없습니다. 품절 상품은 저장만 되고 장바구니에는 담을 수 없습니다.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+          <tr><th>id</th><th>이름</th><th class="num">가격</th><th class="num">재고</th><th></th></tr>
+          </thead>
+          <tbody id="items"></tbody>
+        </table>
+      </div>
+      <div id="list-empty" class="empty" hidden>아직 위시리스트가 비어 있습니다. 직접 등록하거나 외부 상품을 가져오세요.</div>
+      <div id="list-message" class="message" role="status"></div>
+    </section>
+  </section>
+
+  <section id="panel-cart" class="panel" role="tabpanel" hidden>
+    <div class="grid cart">
+      <section class="card">
+        <div class="list-head">
+          <h2>장바구니</h2>
+          <span id="cart-kinds" class="count"></span>
+        </div>
+        <p class="hint">담을 때의 이름·가격·재고가 복사됩니다. 한 상품은 최대 5개, 최대 20종까지 담을 수 있습니다.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+            <tr><th>상품</th><th class="num">단가</th><th class="num">수량</th><th class="num">합계</th><th></th></tr>
+            </thead>
+            <tbody id="cart-items"></tbody>
+          </table>
+        </div>
+        <div id="cart-empty" class="empty" hidden>장바구니가 비어 있습니다. 위시리스트에서 담아 보세요.</div>
+        <div id="cart-message" class="message" role="status"></div>
+      </section>
+
+      <section class="card">
+        <h2>결제 금액 미리보기</h2>
+        <p class="hint">쿠폰은 하나만 적용됩니다. 할인 후 100,000원 이상이면 무료배송입니다.</p>
+        <div class="coupons" id="coupons">
+          <label><input type="radio" name="coupon" value="NONE" checked> 쿠폰 없음</label>
+          <label><input type="radio" name="coupon" value="PERCENT10"> PERCENT10 <span class="sub">10%, 최대 2만 원</span></label>
+          <label><input type="radio" name="coupon" value="FIXED15000"> FIXED15000 <span class="sub">10만 원 이상</span></label>
+        </div>
+        <dl class="summary">
+          <div><dt>상품 합계</dt><dd id="sum-subtotal">0원</dd></div>
+          <div class="discount"><dt>쿠폰 할인</dt><dd id="sum-discount">0원</dd></div>
+          <div><dt>할인 후 금액</dt><dd id="sum-discounted">0원</dd></div>
+          <div><dt>배송비</dt><dd id="sum-shipping">0원</dd></div>
+          <div class="total"><dt>최종 금액</dt><dd id="sum-final">0원</dd></div>
+        </dl>
+        <div id="preview-message" class="message" role="status"></div>
+      </section>
     </div>
-    <div id="list-empty" class="empty" hidden>아직 등록한 옷이 없습니다.</div>
-    <div id="list-message" class="message" role="status"></div>
   </section>
 </div>
 
 <script>
-  const API = '/collectionItems';
-  const won = (price) => `${Number(price).toLocaleString('ko-KR')}원`;
+  const PAGE_SIZE = 12;
   const $ = (id) => document.getElementById(id);
+  const won = (price) => `${Number(price).toLocaleString('ko-KR')}원`;
+  const state = { query: '', skip: 0, wishlist: [], cart: { items: [], subtotal: 0 } };
 
   function show(id, text, type) {
     const el = $(id);
@@ -198,7 +316,6 @@
     el.className = `message ${type || ''}`;
   }
 
-  // 빈 칸은 null, 숫자가 아니면 NaN이 되어 서버 검증 전에 걸러진다.
   function toInt(value) {
     if (value.trim() === '') return null;
     const n = Number(value);
@@ -206,137 +323,225 @@
   }
 
   async function request(method, url, body) {
-    const res = await fetch(url, {
-      method,
-      headers: body ? { 'Content-Type': 'application/json' } : {},
-      body: body ? JSON.stringify(body) : undefined,
-    });
+    let res;
+    try {
+      res = await fetch(url, {
+        method,
+        headers: body ? { 'Content-Type': 'application/json' } : {},
+        body: body ? JSON.stringify(body) : undefined,
+      });
+    } catch (e) {
+      throw new Error('서버에 연결하지 못했습니다. 서버가 실행 중인지 확인해 주세요.');
+    }
     const text = await res.text();
     if (!res.ok) {
-      const error = new Error(text);
+      const error = new Error(readable(text, res.status));
       error.status = res.status;
       throw error;
     }
     return text ? JSON.parse(text) : null;
   }
 
-  // 서버의 400 응답은 사유 없이 오므로 화면에서 규칙을 안내한다.
-  function errorText(error, invalidText) {
-    if (error.status === 400) return invalidText;
-    if (error.status === 404) return '해당 id의 옷을 찾을 수 없습니다.';
-    return '요청을 처리하지 못했습니다. 서버가 실행 중인지 확인해 주세요.';
+  function readable(text, status) {
+    if (text && !text.trim().startsWith('{')) return text;
+    if (status === 502) return '외부 상품 서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.';
+    return `요청을 처리하지 못했습니다. (${status})`;
   }
 
-  const ITEM_RULE = '이름은 1~100자, 가격은 0원~1억 원 사이의 정수로 입력해 주세요.';
-
-  async function loadItems() {
-    try {
-      const items = await request('GET', API);
-      renderItems(items);
-    } catch (error) {
-      show('list-message', errorText(error), 'error');
-    }
+  function el(tag, props, ...children) {
+    const node = document.createElement(tag);
+    Object.assign(node, props || {});
+    node.append(...children.filter((child) => child !== null && child !== undefined));
+    return node;
   }
 
-  function renderItems(items) {
-    const tbody = $('items');
-    tbody.replaceChildren();
-    $('count').textContent = `${items.length}개`;
-    $('list-empty').hidden = items.length > 0;
-
-    for (const item of items) {
-      const tr = document.createElement('tr');
-
-      const idCell = document.createElement('td');
-      idCell.className = 'id';
-      idCell.textContent = item.id;
-
-      const nameCell = document.createElement('td');
-      nameCell.textContent = item.name;
-
-      const priceCell = document.createElement('td');
-      priceCell.className = 'num';
-      priceCell.textContent = won(item.price);
-
-      const actions = document.createElement('td');
-      actions.className = 'actions';
-      const edit = button('수정', 'ghost', () => startEdit(tr, item));
-      const del = button('삭제', 'ghost danger', () => removeItem(item));
-      actions.append(edit, del);
-
-      tr.append(idCell, nameCell, priceCell, actions);
-      tbody.append(tr);
-    }
-  }
-
-  function button(label, className, onClick) {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = className;
-    b.textContent = label;
+  function button(label, className, onClick, disabled) {
+    const b = el('button', { type: 'button', className, textContent: label, disabled: Boolean(disabled) });
     b.addEventListener('click', onClick);
     return b;
   }
 
-  function startEdit(tr, item) {
-    const [, nameCell, priceCell, actions] = tr.children;
+  function badge(text, kind) {
+    return el('span', { className: `badge ${kind || ''}`, textContent: text });
+  }
 
-    const nameInput = document.createElement('input');
-    nameInput.value = item.name;
-    nameInput.setAttribute('aria-label', '이름');
-    nameCell.replaceChildren(nameInput);
+  function stockBadge(stock) {
+    if (stock === null || stock === undefined) return null;
+    if (stock === 0) return badge('품절', 'soldout');
+    if (stock <= 5) return badge(`재고 ${stock}`, 'low');
+    return null;
+  }
 
-    const priceInput = document.createElement('input');
-    priceInput.type = 'number';
-    priceInput.value = item.price;
-    priceInput.setAttribute('aria-label', '가격');
-    priceCell.replaceChildren(priceInput);
+  function quantitySelect(max, selected) {
+    const select = el('select', { className: 'qty' });
+    for (let q = 1; q <= max; q++) {
+      select.append(el('option', { value: q, textContent: q, selected: q === selected }));
+    }
+    return select;
+  }
 
-    const save = button('저장', 'ghost', async () => {
-      const price = toInt(priceInput.value);
-      if (Number.isNaN(price)) {
-        show('list-message', ITEM_RULE, 'error');
-        return;
-      }
-      try {
-        await request('PUT', `${API}/${item.id}`, { name: nameInput.value, price });
-        show('list-message', `id ${item.id}을(를) 수정했습니다.`, 'ok');
-        await loadItems();
-      } catch (error) {
-        show('list-message', errorText(error, ITEM_RULE), 'error');
-      }
+  function selectTab(name) {
+    document.querySelectorAll('.tab').forEach((tab) => {
+      tab.setAttribute('aria-selected', String(tab.dataset.tab === name));
     });
-    const cancel = button('취소', 'ghost', () => loadItems());
-    actions.replaceChildren(save, cancel);
+    document.querySelectorAll('.panel').forEach((panel) => {
+      panel.hidden = panel.id !== `panel-${name}`;
+    });
+  }
+
+  document.querySelectorAll('.tab').forEach((tab) => {
+    tab.addEventListener('click', () => selectTab(tab.dataset.tab));
+  });
+
+  async function loadProducts() {
+    const params = new URLSearchParams({ limit: PAGE_SIZE, skip: state.skip });
+    const url = state.query
+      ? `/external-products/search?${new URLSearchParams({ q: state.query, limit: PAGE_SIZE, skip: state.skip })}`
+      : `/external-products?${params}`;
+    show('external-message', '불러오는 중...');
+    try {
+      const products = await request('GET', url);
+      renderProducts(products);
+      show('external-message', '');
+    } catch (error) {
+      $('products').replaceChildren();
+      show('external-message', error.message, 'error');
+    }
+  }
+
+  function renderProducts(products) {
+    const importedIds = new Set(state.wishlist.filter((item) => item.externalId !== null).map((item) => item.externalId));
+    $('products').replaceChildren(...products.map((product) => {
+      const imported = importedIds.has(product.id);
+      const meta = el('div', { className: 'meta' },
+        el('span', { textContent: `$${product.price}` }),
+        stockBadge(product.stock) || el('span', { textContent: `재고 ${product.stock}` }));
+      return el('article', { className: 'product' },
+        el('img', { src: product.thumbnail, alt: product.title, loading: 'lazy' }),
+        el('div', { className: 'title', textContent: product.title }),
+        el('div', { className: 'sub', textContent: `외부 #${product.id} · ${product.category}` }),
+        meta,
+        button(imported ? '가져옴' : '위시리스트로 가져오기', imported ? 'ghost' : 'primary',
+          () => importProduct(product), imported));
+    }));
+    $('products-empty').hidden = products.length > 0;
+    $('prev-page').disabled = state.skip === 0;
+    $('next-page').disabled = products.length < PAGE_SIZE;
+    $('page-info').textContent = products.length ? `${state.skip + 1}–${state.skip + products.length}번째` : '';
+  }
+
+  async function importProduct(product) {
+    try {
+      const saved = await request('POST', '/collectionItems/import', { externalId: product.id });
+      show('external-message', `'${saved.name}'을(를) ${won(saved.price)}으로 위시리스트에 저장했습니다. (내 id ${saved.id})`, 'ok');
+      await loadWishlist();
+      await loadProducts();
+    } catch (error) {
+      show('external-message', error.message, 'error');
+    }
+  }
+
+  $('search-form').addEventListener('submit', (event) => {
+    event.preventDefault();
+    state.query = $('search-q').value.trim();
+    state.skip = 0;
+    loadProducts();
+  });
+  $('prev-page').addEventListener('click', () => { state.skip = Math.max(0, state.skip - PAGE_SIZE); loadProducts(); });
+  $('next-page').addEventListener('click', () => { state.skip += PAGE_SIZE; loadProducts(); });
+
+  async function loadWishlist() {
+    try {
+      state.wishlist = await request('GET', '/collectionItems');
+      renderWishlist();
+    } catch (error) {
+      show('list-message', error.message, 'error');
+    }
+  }
+
+  function renderWishlist() {
+    const items = state.wishlist;
+    $('count').textContent = `${items.length}개`;
+    $('wish-count').textContent = items.length;
+    $('list-empty').hidden = items.length > 0;
+    $('items').replaceChildren(...items.map((item) => {
+      const external = item.sourceType === 'EXTERNAL';
+      const tr = el('tr');
+      const nameCell = el('td', {},
+        el('div', { textContent: item.name }),
+        el('div', { className: 'sub' }, external ? badge(`외부 #${item.externalId}`, 'external') : badge('직접 등록')));
+      const priceCell = el('td', { className: 'num', textContent: won(item.price) });
+      const stockCell = el('td', { className: 'num' }, external ? (stockBadge(item.stock) || `${item.stock}`) : '—');
+      const soldOut = external && item.stock === 0;
+      const maxQuantity = external ? Math.min(5, item.stock) : 5;
+      const qty = soldOut ? null : quantitySelect(maxQuantity, 1);
+      const actions = el('td', { className: 'actions' },
+        qty,
+        button('담기', 'ghost', () => addToCart(item, Number(qty.value)), soldOut),
+        external ? null : button('수정', 'ghost', () => startEdit(tr, item)),
+        button('삭제', 'ghost danger', () => removeItem(item)));
+      tr.append(el('td', { className: 'id', textContent: item.id }), nameCell, priceCell, stockCell, actions);
+      return tr;
+    }));
+  }
+
+  function startEdit(tr, item) {
+    const [, nameCell, priceCell, , actions] = tr.children;
+    const nameInput = el('input', { value: item.name, ariaLabel: '이름' });
+    const priceInput = el('input', { type: 'number', value: item.price, ariaLabel: '가격' });
+    nameCell.replaceChildren(nameInput);
+    priceCell.replaceChildren(priceInput);
+    actions.replaceChildren(
+      button('저장', 'ghost', async () => {
+        const price = toInt(priceInput.value);
+        try {
+          await request('PUT', `/collectionItems/${item.id}`, { name: nameInput.value, price: Number.isNaN(price) ? null : price });
+          show('list-message', `id ${item.id}을(를) 수정했습니다. 이미 장바구니에 담긴 값은 바뀌지 않습니다.`, 'ok');
+          await loadWishlist();
+        } catch (error) {
+          show('list-message', error.message, 'error');
+        }
+      }),
+      button('취소', 'ghost', () => renderWishlist()));
     nameInput.focus();
   }
 
   async function removeItem(item) {
-    if (!confirm(`'${item.name}'을(를) 삭제할까요?`)) return;
+    if (!confirm(`'${item.name}'을(를) 위시리스트에서 삭제할까요?`)) return;
     try {
-      await request('DELETE', `${API}/${item.id}`);
-      show('list-message', `'${item.name}'을(를) 삭제했습니다.`, 'ok');
-      await loadItems();
+      await request('DELETE', `/collectionItems/${item.id}`);
+      show('list-message', `'${item.name}'을(를) 삭제했습니다. 장바구니에 담긴 줄은 그대로 남습니다.`, 'ok');
+      await loadWishlist();
+      if (!$('panel-external').hidden) await loadProducts();
     } catch (error) {
-      show('list-message', errorText(error), 'error');
+      show('list-message', error.message, 'error');
+    }
+  }
+
+  async function addToCart(item, quantity) {
+    try {
+      state.cart = await request('POST', '/cart/items', { itemId: item.id, quantity });
+      renderCart();
+      show('list-message', `'${item.name}' ${quantity}개를 장바구니에 담았습니다.`, 'ok');
+    } catch (error) {
+      show('list-message', error.message, 'error');
     }
   }
 
   $('add-form').addEventListener('submit', async (event) => {
     event.preventDefault();
     const price = toInt($('add-price').value);
-    if (Number.isNaN(price)) {
-      show('add-message', ITEM_RULE, 'error');
-      return;
-    }
     try {
-      const saved = await request('POST', API, { name: $('add-name').value, price });
+      const saved = await request('POST', '/collectionItems', {
+        name: $('add-name').value,
+        price: Number.isNaN(price) ? null : price,
+      });
       show('add-message', `'${saved.name}'을(를) id ${saved.id}로 등록했습니다.`, 'ok');
       $('add-form').reset();
       $('add-name').focus();
-      await loadItems();
+      await loadWishlist();
     } catch (error) {
-      show('add-message', errorText(error, ITEM_RULE), 'error');
+      show('add-message', error.message, 'error');
     }
   });
 
@@ -350,46 +555,96 @@
       return;
     }
     try {
-      const items = await request('GET', `${API}/recommendations?budget=${encodeURIComponent(budget)}`);
+      const items = await request('GET', `/collectionItems/recommendations?budget=${encodeURIComponent(budget)}`);
       if (items.length === 0) {
-        show('recommend-message', `${won(budget)} 안에서 살 수 있는 옷이 없습니다.`);
+        show('recommend-message', `${won(budget)} 안에서 살 수 있는 상품이 없습니다.`);
         return;
       }
-      show('recommend-message', `${won(budget)} 안에서 추천하는 옷입니다.`, 'ok');
-      items.forEach((item, index) => {
-        const li = document.createElement('li');
-        const name = document.createElement('span');
-        const rank = document.createElement('span');
-        rank.className = 'rank';
-        rank.textContent = index + 1;
-        name.append(rank, document.createTextNode(item.name));
-        const price = document.createElement('span');
-        price.className = 'price';
-        price.textContent = won(item.price);
-        li.append(name, price);
-        picks.append(li);
-      });
+      show('recommend-message', `${won(budget)} 안에서 추천하는 상품입니다.`, 'ok');
+      picks.append(...items.map((item, index) => el('li', {},
+        el('span', {}, el('span', { className: 'rank', textContent: index + 1 }), item.name),
+        el('span', { textContent: won(item.price) }))));
     } catch (error) {
-      show('recommend-message', errorText(error, '예산은 0 이상이어야 합니다.'), 'error');
+      show('recommend-message', error.message, 'error');
     }
   });
 
-  $('find-form').addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const id = toInt($('find-id').value);
-    if (id === null || Number.isNaN(id)) {
-      show('find-message', 'id를 정수로 입력해 주세요.', 'error');
-      return;
-    }
+  async function loadCart() {
     try {
-      const item = await request('GET', `${API}/${id}`);
-      show('find-message', `id ${item.id} · ${item.name} · ${won(item.price)}`, 'ok');
+      state.cart = await request('GET', '/cart');
+      renderCart();
     } catch (error) {
-      show('find-message', errorText(error, 'id를 정수로 입력해 주세요.'), 'error');
+      show('cart-message', error.message, 'error');
     }
-  });
+  }
 
-  loadItems();
+  function renderCart() {
+    const { items } = state.cart;
+    $('cart-count').textContent = items.length;
+    $('cart-kinds').textContent = `${items.length}종 / 20종`;
+    $('cart-empty').hidden = items.length > 0;
+    $('cart-items').replaceChildren(...items.map((line) => {
+      const max = line.stock === null ? 5 : Math.min(5, line.stock);
+      const qty = quantitySelect(Math.max(max, line.quantity), line.quantity);
+      qty.addEventListener('change', () => changeQuantity(line, Number(qty.value)));
+      return el('tr', {},
+        el('td', {},
+          el('div', { textContent: line.name }),
+          el('div', { className: 'sub', textContent: `행 #${line.id} · 위시리스트 id ${line.itemId}${line.stock === null ? '' : ` · 재고 ${line.stock}`}` })),
+        el('td', { className: 'num', textContent: won(line.unitPrice) }),
+        el('td', { className: 'num' }, qty),
+        el('td', { className: 'num', textContent: won(line.lineTotal) }),
+        el('td', { className: 'actions' }, button('삭제', 'ghost danger', () => removeLine(line))));
+    }));
+    refreshPreview();
+  }
+
+  async function changeQuantity(line, quantity) {
+    try {
+      state.cart = await request('PATCH', `/cart/items/${line.id}`, { quantity });
+      show('cart-message', `'${line.name}' 수량을 ${quantity}개로 바꿨습니다.`, 'ok');
+    } catch (error) {
+      show('cart-message', error.message, 'error');
+    }
+    renderCart();
+  }
+
+  async function removeLine(line) {
+    try {
+      await request('DELETE', `/cart/items/${line.id}`);
+      show('cart-message', `'${line.name}'을(를) 장바구니에서 뺐습니다.`, 'ok');
+      await loadCart();
+    } catch (error) {
+      show('cart-message', error.message, 'error');
+    }
+  }
+
+  function selectedCoupon() {
+    return document.querySelector('input[name="coupon"]:checked').value;
+  }
+
+  async function refreshPreview() {
+    const coupon = selectedCoupon();
+    try {
+      const preview = await request('GET', `/cart/preview?couponCode=${encodeURIComponent(coupon)}`);
+      $('sum-subtotal').textContent = won(preview.subtotal);
+      $('sum-discount').textContent = preview.discount ? `-${won(preview.discount)}` : won(0);
+      $('sum-discounted').textContent = won(preview.discountedSubtotal);
+      $('sum-shipping').textContent = preview.shipping ? won(preview.shipping) : (preview.subtotal ? '무료' : won(0));
+      $('sum-final').textContent = won(preview.finalAmount);
+      show('preview-message', '');
+    } catch (error) {
+      ['sum-subtotal', 'sum-discount', 'sum-discounted', 'sum-shipping', 'sum-final'].forEach((id) => { $(id).textContent = '—'; });
+      show('preview-message', error.message, 'error');
+    }
+  }
+
+  $('coupons').addEventListener('change', refreshPreview);
+
+  (async () => {
+    await loadWishlist();
+    await Promise.all([loadProducts(), loadCart()]);
+  })();
 </script>
 </body>
 </html>
