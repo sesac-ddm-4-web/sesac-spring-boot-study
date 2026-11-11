@@ -1,8 +1,9 @@
-package com.example.demo.application;
+package com.example.demo.item.service;
 
-import com.example.demo.domain.CollectionItem;
-import com.example.demo.domain.CollectionItemRepository;
-import com.example.demo.presentation.CollectionItemDto;
+import com.example.demo.item.domain.CollectionItem;
+import com.example.demo.item.repository.CollectionItemRepository;
+import com.example.demo.item.dto.req.CollectionItemReq;
+import com.example.demo.item.dto.res.CollectionItemRes;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,21 +41,21 @@ public class SimpleCollectionItemServiceUnitTest {
         ));
     }
 
-    private List<String> names(List<CollectionItemDto> collectionItemDtos) {
-        return collectionItemDtos.stream().map(CollectionItemDto::name).toList();
+    private List<String> names(List<CollectionItemRes> collectionItemDtos) {
+        return collectionItemDtos.stream().map(CollectionItemRes::name).toList();
     }
 
     @Test
     @DisplayName("아이템 추가 후에는 추가된 아이템이 반환되어야 한다.")
     void collectionItemAddTest() {
-        CollectionItemDto collectionItemDto = new CollectionItemDto(null, "청바지", 50000);
+        CollectionItemReq collectionItemDto = new CollectionItemReq("청바지", 50000);
         Long COLLECTION_ITEM_ID = 1L;
 
-        CollectionItem collectionItem = CollectionItemDto.toEntity(collectionItemDto);
+        CollectionItem collectionItem = collectionItemDto.toEntity(null);
         collectionItem.setId(COLLECTION_ITEM_ID);
         when(collectionItemRepository.add(any())).thenReturn(collectionItem);
 
-        CollectionItemDto savedCollectionItemDto = simpleCollectionItemService.add(collectionItemDto);
+        CollectionItemRes savedCollectionItemDto = simpleCollectionItemService.add(collectionItemDto);
 
         assertTrue(savedCollectionItemDto.id().equals(COLLECTION_ITEM_ID));
         assertTrue(savedCollectionItemDto.name().equals(collectionItemDto.name()));
@@ -80,7 +81,7 @@ public class SimpleCollectionItemServiceUnitTest {
                 new CollectionItem(4L, "줄무늬 티셔츠", 15000)
         ));
 
-        List<CollectionItemDto> recommended = simpleCollectionItemService.recommend(15000);
+        List<CollectionItemRes> recommended = simpleCollectionItemService.recommend(15000);
 
         assertEquals(List.of("증정 양말", "흰 티셔츠", "줄무늬 티셔츠"), names(recommended));
     }
@@ -90,7 +91,7 @@ public class SimpleCollectionItemServiceUnitTest {
     void recommendMaxThreeTest() {
         when(collectionItemRepository.findAll()).thenReturn(sampleItems());
 
-        List<CollectionItemDto> recommended = simpleCollectionItemService.recommend(1000000);
+        List<CollectionItemRes> recommended = simpleCollectionItemService.recommend(1000000);
 
         assertEquals(3, recommended.size());
         assertEquals(List.of("증정 양말", "흰 티셔츠", "줄무늬 티셔츠"), names(recommended));
@@ -104,7 +105,7 @@ public class SimpleCollectionItemServiceUnitTest {
                 new CollectionItem(2L, "청바지", 50000)
         ));
 
-        List<CollectionItemDto> recommended = simpleCollectionItemService.recommend(10000);
+        List<CollectionItemRes> recommended = simpleCollectionItemService.recommend(10000);
 
         assertTrue(recommended.isEmpty());
     }

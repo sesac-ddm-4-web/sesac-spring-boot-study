@@ -1,7 +1,8 @@
-package com.example.demo.application;
+package com.example.demo.item.service;
 
-import com.example.demo.domain.EntityNotFoundException;
-import com.example.demo.presentation.CollectionItemDto;
+import com.example.demo.global.exception.EntityNotFoundException;
+import com.example.demo.item.dto.req.CollectionItemReq;
+import com.example.demo.item.dto.res.CollectionItemRes;
 import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,22 +24,22 @@ class SimpleCollectionItemServiceTest {
     SimpleCollectionItemService simpleCollectionItemService;
 
     private void addSampleItems() {
-        simpleCollectionItemService.add(new CollectionItemDto(null, "코트", 120000));
-        simpleCollectionItemService.add(new CollectionItemDto(null, "증정 양말", 0));
-        simpleCollectionItemService.add(new CollectionItemDto(null, "흰 티셔츠", 15000));
-        simpleCollectionItemService.add(new CollectionItemDto(null, "줄무늬 티셔츠", 15000));
-        simpleCollectionItemService.add(new CollectionItemDto(null, "청바지", 50000));
+        simpleCollectionItemService.add(new CollectionItemReq("코트", 120000));
+        simpleCollectionItemService.add(new CollectionItemReq("증정 양말", 0));
+        simpleCollectionItemService.add(new CollectionItemReq("흰 티셔츠", 15000));
+        simpleCollectionItemService.add(new CollectionItemReq("줄무늬 티셔츠", 15000));
+        simpleCollectionItemService.add(new CollectionItemReq("청바지", 50000));
     }
 
     @Test
     @DisplayName("아이템을 추가한 후 id로 조회하면 해당 아이템이 조회되어야 한다.")
     void collectionItemAddAndFindByIdTest() {
-        CollectionItemDto collectionItemDto = new CollectionItemDto(null, "청바지", 50000);
+        CollectionItemReq collectionItemDto = new CollectionItemReq("청바지", 50000);
 
-        CollectionItemDto savedCollectionItemDto = simpleCollectionItemService.add(collectionItemDto);
+        CollectionItemRes savedCollectionItemDto = simpleCollectionItemService.add(collectionItemDto);
         Long savedCollectionItemId = savedCollectionItemDto.id();
 
-        CollectionItemDto foundCollectionItemDto = simpleCollectionItemService.findById(savedCollectionItemId);
+        CollectionItemRes foundCollectionItemDto = simpleCollectionItemService.findById(savedCollectionItemId);
 
         assertNotNull(savedCollectionItemId);
         assertEquals(savedCollectionItemDto.id(), foundCollectionItemDto.id());
@@ -51,11 +52,11 @@ class SimpleCollectionItemServiceTest {
     void findAllTest() {
         addSampleItems();
 
-        List<CollectionItemDto> collectionItemDtos = simpleCollectionItemService.findAll();
+        List<CollectionItemRes> collectionItemDtos = simpleCollectionItemService.findAll();
 
         assertEquals(
                 List.of("코트", "증정 양말", "흰 티셔츠", "줄무늬 티셔츠", "청바지"),
-                collectionItemDtos.stream().map(CollectionItemDto::name).toList()
+                collectionItemDtos.stream().map(CollectionItemRes::name).toList()
         );
     }
 
@@ -72,7 +73,7 @@ class SimpleCollectionItemServiceTest {
     @Test
     @DisplayName("이름의 앞뒤 공백은 제거되어 저장되어야 한다.")
     void nameStripTest() {
-        CollectionItemDto savedCollectionItemDto = simpleCollectionItemService.add(new CollectionItemDto(null, "  흰 티셔츠  ", 15000));
+        CollectionItemRes savedCollectionItemDto = simpleCollectionItemService.add(new CollectionItemReq("  흰 티셔츠  ", 15000));
 
         assertEquals("흰 티셔츠", savedCollectionItemDto.name());
     }
@@ -80,16 +81,16 @@ class SimpleCollectionItemServiceTest {
     @Test
     @DisplayName("빈 이름, 공백만 있는 이름, null 이름은 등록할 수 없고 기존 목록은 바뀌지 않아야 한다.")
     void blankNameTest() {
-        simpleCollectionItemService.add(new CollectionItemDto(null, "코트", 120000));
+        simpleCollectionItemService.add(new CollectionItemReq("코트", 120000));
 
         assertThrows(ConstraintViolationException.class, () -> {
-            simpleCollectionItemService.add(new CollectionItemDto(null, "", 1000));
+            simpleCollectionItemService.add(new CollectionItemReq("", 1000));
         });
         assertThrows(ConstraintViolationException.class, () -> {
-            simpleCollectionItemService.add(new CollectionItemDto(null, "   ", 1000));
+            simpleCollectionItemService.add(new CollectionItemReq("   ", 1000));
         });
         assertThrows(ConstraintViolationException.class, () -> {
-            simpleCollectionItemService.add(new CollectionItemDto(null, null, 1000));
+            simpleCollectionItemService.add(new CollectionItemReq(null, 1000));
         });
 
         assertEquals(1, simpleCollectionItemService.findAll().size());
@@ -98,10 +99,10 @@ class SimpleCollectionItemServiceTest {
     @Test
     @DisplayName("음수 가격은 등록할 수 없고 기존 목록은 바뀌지 않아야 한다.")
     void negativePriceTest() {
-        simpleCollectionItemService.add(new CollectionItemDto(null, "코트", 120000));
+        simpleCollectionItemService.add(new CollectionItemReq("코트", 120000));
 
         assertThrows(ConstraintViolationException.class, () -> {
-            simpleCollectionItemService.add(new CollectionItemDto(null, "청바지", -1));
+            simpleCollectionItemService.add(new CollectionItemReq("청바지", -1));
         });
 
         assertEquals(1, simpleCollectionItemService.findAll().size());
@@ -110,7 +111,7 @@ class SimpleCollectionItemServiceTest {
     @Test
     @DisplayName("가격이 0원인 무료 아이템은 등록할 수 있어야 한다.")
     void zeroPriceTest() {
-        CollectionItemDto savedCollectionItemDto = simpleCollectionItemService.add(new CollectionItemDto(null, "증정 양말", 0));
+        CollectionItemRes savedCollectionItemDto = simpleCollectionItemService.add(new CollectionItemReq("증정 양말", 0));
 
         assertEquals(0, savedCollectionItemDto.price());
     }
@@ -128,11 +129,11 @@ class SimpleCollectionItemServiceTest {
     void recommendTest() {
         addSampleItems();
 
-        List<CollectionItemDto> recommended = simpleCollectionItemService.recommend(15000);
+        List<CollectionItemRes> recommended = simpleCollectionItemService.recommend(15000);
 
         assertEquals(
                 List.of("증정 양말", "흰 티셔츠", "줄무늬 티셔츠"),
-                recommended.stream().map(CollectionItemDto::name).toList()
+                recommended.stream().map(CollectionItemRes::name).toList()
         );
     }
 
@@ -141,16 +142,16 @@ class SimpleCollectionItemServiceTest {
     void zeroBudgetTest() {
         addSampleItems();
 
-        List<CollectionItemDto> recommended = simpleCollectionItemService.recommend(0);
+        List<CollectionItemRes> recommended = simpleCollectionItemService.recommend(0);
 
-        assertEquals(List.of("증정 양말"), recommended.stream().map(CollectionItemDto::name).toList());
+        assertEquals(List.of("증정 양말"), recommended.stream().map(CollectionItemRes::name).toList());
     }
 
     @Test
     @DisplayName("추천을 조회해도 원본 목록의 순서와 내용은 바뀌지 않아야 한다.")
     void recommendKeepsOriginalListTest() {
         addSampleItems();
-        List<CollectionItemDto> before = simpleCollectionItemService.findAll();
+        List<CollectionItemRes> before = simpleCollectionItemService.findAll();
 
         simpleCollectionItemService.recommend(15000);
 
@@ -160,11 +161,11 @@ class SimpleCollectionItemServiceTest {
     @Test
     @DisplayName("아이템을 수정하면 같은 id로 수정된 값이 조회되어야 한다.")
     void updateTest() {
-        CollectionItemDto saved = simpleCollectionItemService.add(new CollectionItemDto(null, "코트", 120000));
+        CollectionItemRes saved = simpleCollectionItemService.add(new CollectionItemReq("코트", 120000));
 
-        simpleCollectionItemService.update(new CollectionItemDto(saved.id(), "롱코트", 150000));
+        simpleCollectionItemService.update(saved.id(), new CollectionItemReq("롱코트", 150000));
 
-        CollectionItemDto found = simpleCollectionItemService.findById(saved.id());
+        CollectionItemRes found = simpleCollectionItemService.findById(saved.id());
         assertEquals("롱코트", found.name());
         assertEquals(150000, found.price());
     }
@@ -172,13 +173,13 @@ class SimpleCollectionItemServiceTest {
     @Test
     @DisplayName("잘못된 값으로 수정하면 거부되고 기존 값은 유지되어야 한다.")
     void updateInvalidTest() {
-        CollectionItemDto saved = simpleCollectionItemService.add(new CollectionItemDto(null, "코트", 120000));
+        CollectionItemRes saved = simpleCollectionItemService.add(new CollectionItemReq("코트", 120000));
 
         assertThrows(ConstraintViolationException.class, () -> {
-            simpleCollectionItemService.update(new CollectionItemDto(saved.id(), " ", -1));
+            simpleCollectionItemService.update(saved.id(), new CollectionItemReq(" ", -1));
         });
 
-        CollectionItemDto found = simpleCollectionItemService.findById(saved.id());
+        CollectionItemRes found = simpleCollectionItemService.findById(saved.id());
         assertEquals("코트", found.name());
         assertEquals(120000, found.price());
     }
@@ -187,14 +188,14 @@ class SimpleCollectionItemServiceTest {
     @DisplayName("존재하지 않는 아이템 id를 수정하면 EntityNotFoundException이 발생해야 한다.")
     void updateNotExistIdTest() {
         assertThrows(EntityNotFoundException.class, () -> {
-            simpleCollectionItemService.update(new CollectionItemDto(-1L, "코트", 120000));
+            simpleCollectionItemService.update(-1L, new CollectionItemReq("코트", 120000));
         });
     }
 
     @Test
     @DisplayName("아이템을 삭제하면 해당 id로 조회할 수 없어야 한다.")
     void deleteTest() {
-        CollectionItemDto saved = simpleCollectionItemService.add(new CollectionItemDto(null, "코트", 120000));
+        CollectionItemRes saved = simpleCollectionItemService.add(new CollectionItemReq("코트", 120000));
 
         simpleCollectionItemService.delete(saved.id());
 
