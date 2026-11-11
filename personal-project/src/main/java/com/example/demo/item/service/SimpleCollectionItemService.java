@@ -1,8 +1,8 @@
-package com.example.demo.application;
+package com.example.demo.service;
 
 import com.example.demo.domain.CollectionItem;
-import com.example.demo.domain.CollectionItemRepository;
-import com.example.demo.presentation.CollectionItemDto;
+import com.example.demo.repository.CollectionItemRepository;
+import com.example.demo.dto.CollectionItemDto;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Service;

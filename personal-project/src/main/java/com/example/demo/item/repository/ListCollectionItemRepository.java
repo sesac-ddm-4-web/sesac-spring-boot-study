@@ -1,8 +1,7 @@
-package com.example.demo.infrastructure;
+package com.example.demo.repository;
 
 import com.example.demo.domain.CollectionItem;
-import com.example.demo.domain.CollectionItemRepository;
-import com.example.demo.domain.EntityNotFoundException;
+import com.example.demo.global.exception.EntityNotFoundException;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

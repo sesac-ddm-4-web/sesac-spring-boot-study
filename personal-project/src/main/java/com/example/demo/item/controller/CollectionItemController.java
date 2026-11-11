@@ -1,6 +1,7 @@
-package com.example.demo.presentation;
+package com.example.demo.controller;
 
-import com.example.demo.application.SimpleCollectionItemService;
+import com.example.demo.dto.CollectionItemDto;
+import com.example.demo.service.SimpleCollectionItemService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

@@ -1,4 +1,6 @@
-package com.example.demo.domain;
+package com.example.demo.repository;
+
+import com.example.demo.domain.CollectionItem;
 
 import java.util.List;
 
