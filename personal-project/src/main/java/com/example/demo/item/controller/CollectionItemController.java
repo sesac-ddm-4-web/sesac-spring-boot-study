@@ -1,7 +1,10 @@
-package com.example.demo.controller;
+package com.example.demo.item.controller;
 
-import com.example.demo.dto.CollectionItemDto;
-import com.example.demo.service.SimpleCollectionItemService;
+import com.example.demo.item.dto.req.CollectionItemReq;
+import com.example.demo.item.dto.req.ExternalImportReq;
+import com.example.demo.item.dto.res.CollectionItemRes;
+import com.example.demo.item.service.CollectionItemImportService;
+import com.example.demo.item.service.SimpleCollectionItemService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -9,35 +12,38 @@ import java.util.List;
 @RestController
 public class CollectionItemController {
 
-    private SimpleCollectionItemService simpleCollectionItemService;
+    private final SimpleCollectionItemService simpleCollectionItemService;
+    private final CollectionItemImportService collectionItemImportService;
 
-    CollectionItemController(SimpleCollectionItemService simpleCollectionItemService){
+    CollectionItemController(SimpleCollectionItemService simpleCollectionItemService,
+                             CollectionItemImportService collectionItemImportService){
         this.simpleCollectionItemService = simpleCollectionItemService;
+        this.collectionItemImportService = collectionItemImportService;
     }
 
     @PostMapping(value = "/collectionItems")
-    public CollectionItemDto createCollectionItem(@RequestBody CollectionItemDto collectionItemDto){
-        return simpleCollectionItemService.add(collectionItemDto);
+    public CollectionItemRes createCollectionItem(@RequestBody CollectionItemReq request){
+        return simpleCollectionItemService.add(request);
+    }
+
+    @PostMapping(value = "/collectionItems/import")
+    public CollectionItemRes importExternalItem(@RequestBody ExternalImportReq request){
+        return collectionItemImportService.importExternal(request);
     }
 
     @GetMapping(value = "/collectionItems/{id}")
-    public CollectionItemDto findCollectionItemById(@PathVariable Long id){
+    public CollectionItemRes findCollectionItemById(@PathVariable Long id){
         return simpleCollectionItemService.findById(id);
     }
 
     @GetMapping(value = "/collectionItems")
-    public List<CollectionItemDto> findCollectionItems(){
+    public List<CollectionItemRes> findCollectionItems(){
         return simpleCollectionItemService.findAll();
     }
 
     @PutMapping(value = "/collectionItems/{id}")
-    public CollectionItemDto updateCollectionItem(@PathVariable Long id, @RequestBody CollectionItemDto collectionItemDto){
-        CollectionItemDto collectionItemDtoWithId = new CollectionItemDto(
-                id,
-                collectionItemDto.name(),
-                collectionItemDto.price()
-        );
-        return simpleCollectionItemService.update(collectionItemDtoWithId);
+    public CollectionItemRes updateCollectionItem(@PathVariable Long id, @RequestBody CollectionItemReq request){
+        return simpleCollectionItemService.update(id, request);
     }
 
     @DeleteMapping(value = "/collectionItems/{id}")
@@ -46,7 +52,7 @@ public class CollectionItemController {
     }
 
     @GetMapping(value = "/collectionItems/recommendations")
-    public List<CollectionItemDto> recommendCollectionItems(@RequestParam Integer budget){
+    public List<CollectionItemRes> recommendCollectionItems(@RequestParam Integer budget){
         return simpleCollectionItemService.recommend(budget);
     }
 }

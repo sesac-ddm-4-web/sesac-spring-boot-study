@@ -1,8 +1,9 @@
-package com.example.demo.service;
+package com.example.demo.item.service;
 
-import com.example.demo.domain.CollectionItem;
-import com.example.demo.repository.CollectionItemRepository;
-import com.example.demo.dto.CollectionItemDto;
+import com.example.demo.item.domain.CollectionItem;
+import com.example.demo.item.dto.req.CollectionItemReq;
+import com.example.demo.item.dto.res.CollectionItemRes;
+import com.example.demo.item.repository.CollectionItemRepository;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Service;
@@ -23,51 +24,43 @@ public class SimpleCollectionItemService {
         this.validationService = validationService;
     }
 
-    public CollectionItemDto add(CollectionItemDto collectionItemDto){
-        CollectionItem collectionItem = CollectionItemDto.toEntity(collectionItemDto);
+    public CollectionItemRes add(CollectionItemReq request){
+        CollectionItem collectionItem = request.toEntity(null);   // 등록이라 id는 null
         validationService.checkValid(collectionItem);
-
-        CollectionItem savedCollectionItem = collectionItemRepository.add(collectionItem);
-
-        CollectionItemDto savedCollectionItemDto = CollectionItemDto.toDto(savedCollectionItem);
-
-        return savedCollectionItemDto;
+        CollectionItem saved = collectionItemRepository.add(collectionItem);
+        return CollectionItemRes.from(saved);
     }
 
-    public CollectionItemDto findById(Long id){
-        CollectionItem collectionItem = collectionItemRepository.findById(id);
-        CollectionItemDto collectionItemDto = CollectionItemDto.toDto(collectionItem);
-        return collectionItemDto;
+    public CollectionItemRes findById(Long id){
+        return CollectionItemRes.from(collectionItemRepository.findById(id));
     }
 
-    public List<CollectionItemDto> findAll(){
-        List<CollectionItem> collectionItems = collectionItemRepository.findAll();
-        List<CollectionItemDto> collectionItemDtos = collectionItems.stream()
-                .map(collectionItem -> CollectionItemDto.toDto(collectionItem))
+    public List<CollectionItemRes> findAll(){
+        return collectionItemRepository.findAll().stream()
+                .map(CollectionItemRes::from)
                 .toList();
-
-        return collectionItemDtos;
     }
 
-    public CollectionItemDto update(CollectionItemDto collectionItemDto){
-        CollectionItem collectionItem = CollectionItemDto.toEntity(collectionItemDto);
-        validationService.checkValid(collectionItem);
+    public CollectionItemRes update(Long id, CollectionItemReq request){
+        CollectionItem existing = collectionItemRepository.findById(id);
+        existing.checkEditable();
 
-        CollectionItem updatedCollection = collectionItemRepository.update(collectionItem);
-        CollectionItemDto updatedCollectionDto = CollectionItemDto.toDto(collectionItem);
-        return updatedCollectionDto;
+        CollectionItem collectionItem = request.toEntity(id);
+        validationService.checkValid(collectionItem);
+        collectionItemRepository.update(collectionItem);
+        return CollectionItemRes.from(collectionItem);
     }
 
     public void delete(Long id){
         collectionItemRepository.delete(id);
     }
 
-    public List<CollectionItemDto> recommend(@NotNull @Min(0) Integer budget){
+    public List<CollectionItemRes> recommend(@NotNull @Min(0) Integer budget){
         return collectionItemRepository.findAll().stream()
                 .filter(collectionItem -> collectionItem.getPrice() <= budget)
                 .sorted(Comparator.comparing(CollectionItem::getPrice))
                 .limit(3)
-                .map(collectionItem -> CollectionItemDto.toDto(collectionItem))
+                .map(CollectionItemRes::from)
                 .toList();
     }
 }

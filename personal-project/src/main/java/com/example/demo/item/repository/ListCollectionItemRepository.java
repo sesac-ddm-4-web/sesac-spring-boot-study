@@ -1,6 +1,6 @@
-package com.example.demo.repository;
+package com.example.demo.item.repository;
 
-import com.example.demo.domain.CollectionItem;
+import com.example.demo.item.domain.CollectionItem;
 import com.example.demo.global.exception.EntityNotFoundException;
 import org.springframework.stereotype.Repository;
 
@@ -44,5 +44,11 @@ public class ListCollectionItemRepository implements CollectionItemRepository {
     public void delete(Long id){
         CollectionItem collectionItem = this.findById(id);
         items.remove(collectionItem);
+    }
+
+    @Override
+    public boolean existsByExternalId(Long externalId){
+        return items.stream()
+                .anyMatch(item -> externalId.equals(item.getExternalId()));
     }
 }

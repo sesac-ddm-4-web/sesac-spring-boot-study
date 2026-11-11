@@ -1,4 +1,4 @@
-package com.example.demo.service;
+package com.example.demo.item.service;
 
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;

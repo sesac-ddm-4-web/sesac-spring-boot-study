@@ -1,6 +1,6 @@
-package com.example.demo.repository;
+package com.example.demo.item.repository;
 
-import com.example.demo.domain.CollectionItem;
+import com.example.demo.item.domain.CollectionItem;
 
 import java.util.List;
 
@@ -10,4 +10,5 @@ public interface CollectionItemRepository {
     List<CollectionItem> findAll();
     CollectionItem update(CollectionItem collectionItem);
     void delete(Long id);
+    boolean existsByExternalId(Long externalId);
 }
