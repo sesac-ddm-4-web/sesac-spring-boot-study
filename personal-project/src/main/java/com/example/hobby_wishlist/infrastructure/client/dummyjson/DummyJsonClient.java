@@ -1,25 +1,36 @@
-package com.example.hobby_wishlist.infrastructure.external.dummyjson;
+package com.example.hobby_wishlist.infrastructure.client.dummyjson;
 
-import com.example.hobby_wishlist.domain.ExternalProduct;
-import com.example.hobby_wishlist.domain.ExternalProductProvider;
-import com.example.hobby_wishlist.infrastructure.external.dummyjson.model.DummyJsonProduct;
-import com.example.hobby_wishlist.infrastructure.external.dummyjson.model.DummyJsonProductPage;
+import com.example.hobby_wishlist.domain.externalproduct.ExternalProduct;
+import com.example.hobby_wishlist.domain.externalproduct.ExternalProductProvider;
+import com.example.hobby_wishlist.infrastructure.client.dummyjson.model.DummyJsonProduct;
+import com.example.hobby_wishlist.infrastructure.client.dummyjson.model.DummyJsonProductPage;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.net.http.HttpClient;
+import java.time.Duration;
 import java.util.List;
 
 @Component
 public class DummyJsonClient implements ExternalProductProvider {
+    private static final String REQUEST_URL = "https://dummyjson.com";
     private final RestClient restClient;
 
     public DummyJsonClient() {
-        restClient = RestClient.builder()
-                .baseUrl("https://dummyjson.com")
+        HttpClient httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(3))
+                .build();
+        JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
+        factory.setReadTimeout(Duration.ofSeconds(5));
+
+        this.restClient = RestClient.builder()
+                .baseUrl(REQUEST_URL)
+                .requestFactory(factory)
                 .build();
     }
 

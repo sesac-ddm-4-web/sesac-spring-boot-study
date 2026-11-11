@@ -1,6 +1,6 @@
 package com.example.hobby_wishlist;
 
-import com.example.hobby_wishlist.domain.WishlistItem;
+import com.example.hobby_wishlist.domain.wishlist.WishlistItem;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

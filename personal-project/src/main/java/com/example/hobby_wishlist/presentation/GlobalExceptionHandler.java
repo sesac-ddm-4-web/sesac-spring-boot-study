@@ -1,6 +1,7 @@
 package com.example.hobby_wishlist.presentation;
 
-import com.example.hobby_wishlist.domain.EntityNotFoundException;
+import com.example.hobby_wishlist.domain.ConflictException;
+import com.example.hobby_wishlist.domain.ItemNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -41,10 +42,17 @@ public class GlobalExceptionHandler {
         return pd;
     }
 
-    @ExceptionHandler(EntityNotFoundException.class)
-    public ProblemDetail handleEntityNotFoundException(EntityNotFoundException ex) {
+    @ExceptionHandler(ItemNotFoundException.class)
+    public ProblemDetail handleItemNotFoundException(ItemNotFoundException ex) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        pd.setTitle("Entity Not Found");
+        pd.setTitle("Item Not Found");
+        return pd;
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ProblemDetail handleConflictException(ConflictException ex) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        pd.setTitle("Conflict");
         return pd;
     }
 }

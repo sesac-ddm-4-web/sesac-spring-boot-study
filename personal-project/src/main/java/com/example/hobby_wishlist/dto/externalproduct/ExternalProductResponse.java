@@ -1,6 +1,6 @@
-package com.example.hobby_wishlist.dto;
+package com.example.hobby_wishlist.dto.externalproduct;
 
-import com.example.hobby_wishlist.domain.ExternalProduct;
+import com.example.hobby_wishlist.domain.externalproduct.ExternalProduct;
 
 import java.math.BigDecimal;
 

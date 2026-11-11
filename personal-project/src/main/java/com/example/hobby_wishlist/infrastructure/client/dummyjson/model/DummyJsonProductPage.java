@@ -1,7 +1,7 @@
-package com.example.hobby_wishlist.infrastructure.external.dummyjson.model;
+package com.example.hobby_wishlist.infrastructure.client.dummyjson.model;
 
 
-import com.example.hobby_wishlist.domain.ExternalProduct;
+import com.example.hobby_wishlist.domain.externalproduct.ExternalProduct;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.List;

@@ -1,8 +1,8 @@
-package com.example.hobby_wishlist.infrastructure.repository.inmemory;
+package com.example.hobby_wishlist.infrastructure.persistence.inmemory;
 
-import com.example.hobby_wishlist.domain.WishlistItem;
-import com.example.hobby_wishlist.domain.EntityNotFoundException;
-import com.example.hobby_wishlist.domain.WishlistRepository;
+import com.example.hobby_wishlist.domain.wishlist.WishlistItem;
+import com.example.hobby_wishlist.domain.wishlist.WishlistItemNotFoundException;
+import com.example.hobby_wishlist.domain.wishlist.WishlistRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Comparator;
@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @Repository
 public class InMemoryWishListRepository implements WishlistRepository {
     private final List<WishlistItem> items = new CopyOnWriteArrayList<>();
-    private final AtomicLong sequence = new AtomicLong(1L);
+    private final AtomicLong sequence = new AtomicLong(0L);
 
     @Override
     public WishlistItem add(WishlistItem item) {
@@ -30,9 +30,9 @@ public class InMemoryWishListRepository implements WishlistRepository {
     @Override
     public WishlistItem findById(Long id) {
         return items.stream()
-                .filter(item -> item.sameId(id))
+                .filter(item -> item.hasSameId(id))
                 .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException("아이템을 찾을 수 없습니다."));
+                .orElseThrow(() -> new WishlistItemNotFoundException("아이템을 찾을 수 없습니다."));
     }
 
     @Override
@@ -42,5 +42,11 @@ public class InMemoryWishListRepository implements WishlistRepository {
                 .sorted(Comparator.comparing(WishlistItem::getPrice))
                 .limit(3)
                 .toList();
+    }
+
+    @Override
+    public boolean existsByExternalId(Long externalId) {
+        return items.stream()
+                .anyMatch(item -> item.isExternal(externalId));
     }
 }

@@ -1,11 +1,12 @@
 package com.example.hobby_wishlist;
 
 import com.example.hobby_wishlist.application.WishlistService;
-import com.example.hobby_wishlist.domain.EntityNotFoundException;
-import com.example.hobby_wishlist.domain.WishlistItem;
-import com.example.hobby_wishlist.domain.WishlistRepository;
-import com.example.hobby_wishlist.dto.CreateWishlistItemRequest;
-import com.example.hobby_wishlist.dto.WishlistItemResponse;
+import com.example.hobby_wishlist.domain.wishlist.SourceType;
+import com.example.hobby_wishlist.domain.wishlist.WishlistItemNotFoundException;
+import com.example.hobby_wishlist.domain.wishlist.WishlistItem;
+import com.example.hobby_wishlist.domain.wishlist.WishlistRepository;
+import com.example.hobby_wishlist.dto.wishlist.CreateWishlistItemRequest;
+import com.example.hobby_wishlist.dto.wishlist.WishlistItemResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,7 +36,7 @@ public class WishlistServiceUnitTests {
 
         CreateWishlistItemRequest requestDto = new CreateWishlistItemRequest("  연필  ", 500);
         WishlistItemResponse responseDto = wishlistService.add(requestDto);
-        assertEquals(new WishlistItemResponse(1L, "연필", 500), responseDto);
+        assertEquals(createManualResponse(1L, "연필", 500), responseDto);
 
         verify(wishlistRepository).add(any());
     }
@@ -63,9 +64,9 @@ public class WishlistServiceUnitTests {
         ));
 
         assertEquals(List.of(
-                        new WishlistItemResponse(1L, "연필", 500),
-                        new WishlistItemResponse(2L, "노트", 1000),
-                        new WishlistItemResponse(3L, "펜", 800)
+                        createManualResponse(1L, "연필", 500),
+                        createManualResponse(2L, "노트", 1000),
+                        createManualResponse(3L, "펜", 800)
                 ),
                 wishlistService.getAll());
     }
@@ -76,15 +77,15 @@ public class WishlistServiceUnitTests {
         Long id = 1L;
         when(wishlistRepository.findById(id)).thenReturn(WishlistItem.fromManual(id, "연필", 500));
 
-        assertEquals(new WishlistItemResponse(id, "연필", 500), wishlistService.findById(id));
+        assertEquals(createManualResponse(id, "연필", 500), wishlistService.findById(id));
     }
 
     @Test
     @DisplayName("존재하지 않는 id로 조회하면 EntityNotFoundException 예외 전파")
     void findNonExistentIdTest() {
-        when(wishlistRepository.findById(any())).thenThrow(EntityNotFoundException.class);
+        when(wishlistRepository.findById(any())).thenThrow(WishlistItemNotFoundException.class);
 
-        assertThrows(EntityNotFoundException.class, () -> wishlistService.findById(99L));
+        assertThrows(WishlistItemNotFoundException.class, () -> wishlistService.findById(99L));
     }
 
     @Test
@@ -103,7 +104,11 @@ public class WishlistServiceUnitTests {
         when(wishlistRepository.recommend(300))
                 .thenReturn(List.of());
 
-        assertEquals(List.of(new WishlistItemResponse(1L, "연필", 500)), wishlistService.recommend(1000));
+        assertEquals(List.of(createManualResponse(1L, "연필", 500)), wishlistService.recommend(1000));
         assertEquals(List.of(), wishlistService.recommend(300));
+    }
+
+    private WishlistItemResponse createManualResponse(Long id, String name, Integer price) {
+        return new WishlistItemResponse(id, SourceType.MANUAL, null, name, price, null);
     }
 }

@@ -1,4 +1,4 @@
-package com.example.hobby_wishlist.domain;
+package com.example.hobby_wishlist.domain.externalproduct;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

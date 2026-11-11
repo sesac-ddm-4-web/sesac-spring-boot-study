@@ -1,9 +1,9 @@
 package com.example.hobby_wishlist.presentation;
 
 import com.example.hobby_wishlist.application.WishlistService;
-import com.example.hobby_wishlist.dto.CreateWishlistItemRequest;
-import com.example.hobby_wishlist.dto.ImportExternalProductRequest;
-import com.example.hobby_wishlist.dto.WishlistItemResponse;
+import com.example.hobby_wishlist.dto.wishlist.CreateWishlistItemRequest;
+import com.example.hobby_wishlist.dto.wishlist.ImportExternalProductRequest;
+import com.example.hobby_wishlist.dto.wishlist.WishlistItemResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.PositiveOrZero;
 import org.springframework.http.ResponseEntity;

@@ -1,8 +1,8 @@
 package com.example.hobby_wishlist;
 
 import com.example.hobby_wishlist.application.WishlistService;
-import com.example.hobby_wishlist.dto.CreateWishlistItemRequest;
-import com.example.hobby_wishlist.dto.WishlistItemResponse;
+import com.example.hobby_wishlist.dto.wishlist.CreateWishlistItemRequest;
+import com.example.hobby_wishlist.dto.wishlist.WishlistItemResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

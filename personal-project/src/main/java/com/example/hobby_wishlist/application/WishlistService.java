@@ -1,11 +1,12 @@
 package com.example.hobby_wishlist.application;
 
-import com.example.hobby_wishlist.domain.ExternalProduct;
-import com.example.hobby_wishlist.domain.ExternalProductProvider;
-import com.example.hobby_wishlist.domain.WishlistItem;
-import com.example.hobby_wishlist.domain.WishlistRepository;
-import com.example.hobby_wishlist.dto.CreateWishlistItemRequest;
-import com.example.hobby_wishlist.dto.WishlistItemResponse;
+import com.example.hobby_wishlist.domain.externalproduct.ExternalProduct;
+import com.example.hobby_wishlist.domain.externalproduct.ExternalProductProvider;
+import com.example.hobby_wishlist.domain.wishlist.DuplicateWishlistItemException;
+import com.example.hobby_wishlist.domain.wishlist.WishlistItem;
+import com.example.hobby_wishlist.domain.wishlist.WishlistRepository;
+import com.example.hobby_wishlist.dto.wishlist.CreateWishlistItemRequest;
+import com.example.hobby_wishlist.dto.wishlist.WishlistItemResponse;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -46,7 +47,10 @@ public class WishlistService {
                 .toList();
     }
 
-    public WishlistItemResponse importExternal(Long externalId) {
+    public synchronized WishlistItemResponse importExternal(Long externalId) {
+        if (wishlistRepository.existsByExternalId(externalId)) {
+            throw new DuplicateWishlistItemException("위시리스트에 이미 추가되어 있습니다.");
+        }
         ExternalProduct externalProduct = externalProductProvider.findById(externalId);
         WishlistItem addedItem = wishlistRepository.add(WishlistItem.fromExternal(externalProduct));
         return WishlistItemResponse.from(addedItem);

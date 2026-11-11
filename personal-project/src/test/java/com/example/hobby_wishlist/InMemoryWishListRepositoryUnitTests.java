@@ -1,8 +1,8 @@
 package com.example.hobby_wishlist;
 
-import com.example.hobby_wishlist.domain.EntityNotFoundException;
-import com.example.hobby_wishlist.domain.WishlistItem;
-import com.example.hobby_wishlist.infrastructure.repository.inmemory.InMemoryWishListRepository;
+import com.example.hobby_wishlist.domain.wishlist.WishlistItemNotFoundException;
+import com.example.hobby_wishlist.domain.wishlist.WishlistItem;
+import com.example.hobby_wishlist.infrastructure.persistence.inmemory.InMemoryWishListRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,7 +29,7 @@ public class InMemoryWishListRepositoryUnitTests {
         assertDoesNotThrow(() -> wishListRepository.findById(item2.getId()));
 
         Long nonExistentId = Math.max(item1.getId(), item2.getId()) + 1L;
-        assertThrows(EntityNotFoundException.class, () -> wishListRepository.findById(nonExistentId));
+        assertThrows(WishlistItemNotFoundException.class, () -> wishListRepository.findById(nonExistentId));
     }
 
     @Test

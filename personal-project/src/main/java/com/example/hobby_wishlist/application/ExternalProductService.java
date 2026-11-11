@@ -1,7 +1,7 @@
 package com.example.hobby_wishlist.application;
 
-import com.example.hobby_wishlist.domain.ExternalProductProvider;
-import com.example.hobby_wishlist.dto.ExternalProductResponse;
+import com.example.hobby_wishlist.domain.externalproduct.ExternalProductProvider;
+import com.example.hobby_wishlist.dto.externalproduct.ExternalProductResponse;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
