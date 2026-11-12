@@ -19,9 +19,11 @@ public class ProductController {
         this.simpleProductService = simpleProductService;
     }
 
+    public record CreateProductRequest(String name, int price) {}
+
     @PostMapping(value = "/products")
-    public Product createProduct(@RequestBody Product product) {
-        return simpleProductService.register(product.getName(), product.getPrice());
+    public Product createProduct(@RequestBody CreateProductRequest request) {
+        return simpleProductService.register(request.name(), request.price());
     }
 
     @GetMapping(value = "/products")

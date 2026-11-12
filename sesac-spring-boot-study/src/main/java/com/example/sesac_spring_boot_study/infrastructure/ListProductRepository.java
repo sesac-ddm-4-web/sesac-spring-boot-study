@@ -2,6 +2,7 @@ package com.example.sesac_spring_boot_study.infrastructure;
 
 import com.example.sesac_spring_boot_study.domain.Product;
 import com.example.sesac_spring_boot_study.domain.ProductRepository;
+import com.example.sesac_spring_boot_study.domain.SourceType;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -31,5 +32,14 @@ public class ListProductRepository implements ProductRepository {
     @Override
     public List<Product> findAll() {
         return products;
+    }
+
+    @Override
+    public boolean existsByExternalId(SourceType type, Long externalId){
+        return products.stream()
+                .filter(product -> product.getSourceType() == type)
+                .filter(product -> externalId.equals(product.getExternalId()))
+                .findFirst()
+                .isPresent();
     }
 }

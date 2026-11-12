@@ -8,4 +8,6 @@ public interface ProductRepository {
     Product findById(Long id);
 
     List<Product> findAll();
+
+    boolean existsByExternalId(SourceType type, Long externalId);
 }

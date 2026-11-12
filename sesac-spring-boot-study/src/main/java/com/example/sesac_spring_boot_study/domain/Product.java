@@ -4,12 +4,31 @@ public class Product {
     private Long id;
     private String name;
     private Integer price;
+    private SourceType sourceType;
+    private Long externalId;
+    private Integer stock;
 
     public Product(Long id, String name, int price) {
         this.id = id;
         this.name = name;
         this.price = price;
+        this.sourceType = SourceType.MANUAL;
     }
+
+    public Product(Long id, String name, Integer price, SourceType sourceType, Long externalId, Integer stock){
+        this.id = id;
+        this.name = name;
+        this.price = price;
+        this.sourceType = sourceType;
+        this.externalId = externalId;
+        this.stock = stock;
+    }
+
+    public SourceType getSourceType() {return sourceType;}
+
+    public Long getExternalId() {return externalId;}
+
+    public Integer getStock() {return stock;}
 
     public void setId(Long id) {
         this.id = id;
