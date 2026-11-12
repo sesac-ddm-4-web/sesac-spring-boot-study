@@ -454,7 +454,7 @@ dl.kv dd { margin: 0; font-variant-numeric: tabular-nums; }
     add: (name, price) => request(API, json('POST', { name, price })),
     all: () => request(API),
     recommend: (budget) => request(API + '?budget=' + encodeURIComponent(budget)),
-    importExternal: (id) => request(API + '/import', json('POST', { id }))
+    importExternal: (id) => request(API + '/import', json('POST', { externalId: id }))
   };
   const extApi = {
     // GET /products?q=&limit=&skip= (q를 생략하면 전체 목록, limit 1~20, skip 0 이상)
@@ -466,7 +466,7 @@ dl.kv dd { margin: 0; font-variant-numeric: tabular-nums; }
     one: (id) => request('/products/' + encodeURIComponent(id))
   };
   const cartApi = {
-    add: (wishlistId, quantity) => request('/cart', json('POST', { wishlistId, quantity })),
+    add: (wishlistItemId, quantity) => request('/cart', json('POST', { wishlistItemId, quantity })),
     change: (cartItemId, quantity) => request('/cart/' + encodeURIComponent(cartItemId), json('PATCH', { quantity })),
     remove: (id) => request('/cart/' + encodeURIComponent(id), { method: 'DELETE' }),
     // POST·PATCH·GET은 장바구니 전체({ items, subtotal })를 돌려준다. DELETE만 204(본문 없음).
@@ -517,16 +517,16 @@ dl.kv dd { margin: 0; font-variant-numeric: tabular-nums; }
       const qty = stepper(1, 1, Math.max(1, maxQty(it.stock)));
       const addBtn = el('button', { type: 'button', class: 'btn sm', text: soldOut ? '품절' : '🛒 담기' });
       if (soldOut) addBtn.disabled = true;
-      addBtn.addEventListener('click', () => busy(addBtn, () => addToCart(it.id, qty.value())));
+      addBtn.addEventListener('click', () => busy(addBtn, () => addToCart(it.wishlistItemId, qty.value())));
       const tags = [];
       if (it.sourceType) tags.push(el('span', { class: 'tag', text: it.sourceType === 'EXTERNAL' ? '외부 상품' : '직접 등록' }));
       if (soldOut) tags.push(el('span', { class: 'tag warn', text: '품절' }));
-      const li = el('li', { class: 'item' + (it.id === flashId ? ' flash' : '') },
+      const li = el('li', { class: 'item' + (it.wishlistItemId === flashId ? ' flash' : '') },
         el('div', { class: 'item-top' },
           el('span', { class: 'item-name', text: it.name }),
           el('span', { class: 'item-price', text: won(it.price) })),
         el('div', { class: 'item-bottom' },
-          el('span', { class: 'item-meta', text: '#' + it.id }, ...(tags.length ? [' '] : []), ...tags),
+          el('span', { class: 'item-meta', text: '#' + it.wishlistItemId }, ...(tags.length ? [' '] : []), ...tags),
           el('div', { class: 'row', style: 'align-items:center' }, qty, addBtn)));
       ul.appendChild(li);
     });
@@ -574,7 +574,7 @@ dl.kv dd { margin: 0; font-variant-numeric: tabular-nums; }
         $('name').value = '';
         $('price').value = '';
         $('name').focus();
-        await refresh(saved.id);
+        await refresh(saved.wishlistItemId);
       } catch (err) {
         setMsg(msg, err.message, 'err');
       }
@@ -608,8 +608,8 @@ dl.kv dd { margin: 0; font-variant-numeric: tabular-nums; }
   /* ---------- 장바구니 ---------- */
   let cartCount = 0;
 
-  /** cart: 서버의 CartResponse({ items, subtotal }). flashWishlistId: 방금 담은 상품(위시리스트 id) 강조용 */
-  function renderCart(cart, flashWishlistId) {
+  /** cart: 서버의 CartResponse({ items, subtotal }). flashWishlistItemId: 방금 담은 상품(위시리스트 항목 id) 강조용 */
+  function renderCart(cart, flashWishlistItemId) {
     const items = cart.items;
     const ul = $('cart-body');
     ul.replaceChildren();
@@ -617,10 +617,10 @@ dl.kv dd { margin: 0; font-variant-numeric: tabular-nums; }
       const sub = c.price * c.quantity;
       const qty = stepper(c.quantity, 1, Math.max(c.quantity, maxQty(c.stock)));
       const minus = qty.children[0], plus = qty.children[2];
-      [minus, plus].forEach((b) => b.addEventListener('click', () => changeQty(c.id, qty.value(), qty)));
+      [minus, plus].forEach((b) => b.addEventListener('click', () => changeQty(c.cartItemId, qty.value(), qty)));
       const del = el('button', { type: 'button', class: 'btn danger sm', text: '삭제', 'aria-label': c.name + ' 삭제' });
-      del.addEventListener('click', () => busy(del, () => removeItem(c.id, c.name)));
-      ul.appendChild(el('li', { class: 'item' + (c.wishlistId === flashWishlistId ? ' flash' : '') },
+      del.addEventListener('click', () => busy(del, () => removeItem(c.cartItemId, c.name)));
+      ul.appendChild(el('li', { class: 'item' + (c.wishlistItemId === flashWishlistItemId ? ' flash' : '') },
         el('div', { class: 'item-top' },
           el('span', { class: 'item-name', text: c.name }),
           el('span', { class: 'item-price', text: won(sub) })),
@@ -635,7 +635,7 @@ dl.kv dd { margin: 0; font-variant-numeric: tabular-nums; }
     $('cart-count').textContent = items.length;
     // 비면 접고, 처음 생기거나(0→n) 담은 직후에는 연다. 그 외에는 사용자의 수동 상태를 유지.
     if (items.length === 0) setCartOpen(false);
-    else if (flashWishlistId != null || cartCount === 0) setCartOpen(true);
+    else if (flashWishlistItemId != null || cartCount === 0) setCartOpen(true);
     cartCount = items.length;
   }
 
@@ -643,12 +643,12 @@ dl.kv dd { margin: 0; font-variant-numeric: tabular-nums; }
     renderCart(await cartApi.all());
   }
 
-  async function addToCart(wishlistId, qty) {
+  async function addToCart(wishlistItemId, qty) {
     try {
-      const cart = await cartApi.add(wishlistId, qty); // 응답이 장바구니 전체이므로 다시 조회하지 않는다.
-      const added = cart.items.find((c) => c.wishlistId === wishlistId); // 같은 상품은 한 줄로 합쳐지므로 wishlistId로 찾는다.
+      const cart = await cartApi.add(wishlistItemId, qty); // 응답이 장바구니 전체이므로 다시 조회하지 않는다.
+      const added = cart.items.find((c) => c.wishlistItemId === wishlistItemId); // 같은 상품은 한 줄로 합쳐지므로 wishlistItemId로 찾는다.
       toast('장바구니에 담았어요' + (added ? ': ' + added.name + ' × ' + added.quantity : '.'), 'ok');
-      renderCart(cart, wishlistId);
+      renderCart(cart, wishlistItemId);
     } catch (err) { toast(err.message, 'err'); }
   }
   async function changeQty(id, qty, stepperNode) {
@@ -686,7 +686,7 @@ dl.kv dd { margin: 0; font-variant-numeric: tabular-nums; }
         const saved = await wishApi.importExternal(id);
         extMsg('');
         toast('"' + saved.name + '"을(를) 위시리스트로 가져왔어요.', 'ok');
-        await refresh(saved.id);
+        await refresh(saved.wishlistItemId);
       } catch (err) {
         extMsg(err.message, 'err'); // 중복이면 409 등
         toast(err.message, 'err');
@@ -699,12 +699,12 @@ dl.kv dd { margin: 0; font-variant-numeric: tabular-nums; }
     const close = el('button', { type: 'button', class: 'btn ghost', text: '닫기' });
     close.addEventListener('click', () => $('detail-dialog').close());
     const imp = el('button', { type: 'button', class: 'btn', text: '위시리스트로 가져오기' });
-    imp.addEventListener('click', async () => { await importProduct(p.id, imp); $('detail-dialog').close(); });
+    imp.addEventListener('click', async () => { await importProduct(p.externalId, imp); $('detail-dialog').close(); });
     body.replaceChildren(
       p.thumbnail ? el('img', { src: p.thumbnail, alt: p.title }) : null,
       el('h2', { id: 'dlg-title', text: p.title }),
       el('dl', { class: 'kv' },
-        el('dt', { text: '상품 id' }), el('dd', { text: String(p.id) }),
+        el('dt', { text: '상품 id' }), el('dd', { text: String(p.externalId) }),
         el('dt', { text: '카테고리' }), el('dd', { text: p.category || '-' }),
         el('dt', { text: '외부 가격' }), el('dd', { text: String(p.price) }),
         el('dt', { text: '환산 가격' }), el('dd', { text: won(toWon(p.price)) }),
@@ -729,18 +729,18 @@ dl.kv dd { margin: 0; font-variant-numeric: tabular-nums; }
     const imported = new Set(allWish.filter((w) => w.externalId != null).map((w) => Number(w.externalId)));
     items.forEach((p) => {
       const detailBtn = el('button', { type: 'button', class: 'btn ghost sm', text: '상세' });
-      detailBtn.addEventListener('click', () => showDetail(p.id, detailBtn));
+      detailBtn.addEventListener('click', () => showDetail(p.externalId, detailBtn));
       const importBtn = el('button', { type: 'button', class: 'btn sm', text: '가져오기' });
-      importBtn.addEventListener('click', () => importProduct(p.id, importBtn));
+      importBtn.addEventListener('click', () => importProduct(p.externalId, importBtn));
       const stock = p.stock === 0 ? el('span', { class: 'tag warn', text: '품절' }) : el('span', { class: 'meta', text: '재고 ' + p.stock + '개' });
       grid.appendChild(el('article', { class: 'ext-card' },
         p.thumbnail ? el('img', { class: 'thumb', src: p.thumbnail, alt: p.title, loading: 'lazy' }) : null,
         el('div', { class: 'body' },
           el('div', { class: 'title', text: p.title }),
-          el('div', { class: 'meta', text: (p.category || '기타') + ' · #' + p.id }),
+          el('div', { class: 'meta', text: (p.category || '기타') + ' · #' + p.externalId }),
           el('div', { class: 'price-main', text: '약 ' + won(toWon(p.price)) }),
           el('div', { class: 'price-sub', text: '외부 가격 ' + p.price }),
-          el('div', {}, stock, imported.has(p.id) ? ' ' : null, imported.has(p.id) ? el('span', { class: 'tag ok', text: '담김' }) : null),
+          el('div', {}, stock, imported.has(p.externalId) ? ' ' : null, imported.has(p.externalId) ? el('span', { class: 'tag ok', text: '담김' }) : null),
           el('div', { class: 'actions' }, detailBtn, importBtn))));
     });
     if (!items.length) {

@@ -21,7 +21,7 @@ public class CartService {
 
     public synchronized CartResponse addItem(AddCartItemRequest request) {
         // 장바구니 가져오기
-        WishlistItem wishlistItem = wishlistRepository.findById(request.wishlistId());
+        WishlistItem wishlistItem = wishlistRepository.findById(request.wishlistItemId());
         Cart cart = cartRepository.getCart();
 
         // 장바구니에 상품 추가하고 장바구니 갱신하기

@@ -135,7 +135,7 @@ public class WishlistServiceUnitTests {
 
         // 외부 상품을 가져오면 외부 id와 로컬 id를 구분해 저장하고 가격을 환산함
         WishlistItemResponse wishlistItemResponse = wishlistService.importExternal(wishlistItemId);
-        assertEquals(wishlistItemId, wishlistItemResponse.id());
+        assertEquals(wishlistItemId, wishlistItemResponse.wishlistItemId());
         assertEquals(externalProductId, wishlistItemResponse.externalId());
         assertEquals(SourceType.EXTERNAL, wishlistItemResponse.sourceType());
         assertEquals(9990, wishlistItemResponse.price());
@@ -150,7 +150,7 @@ public class WishlistServiceUnitTests {
 
         when(wishlistRepository.existsByExternalId(1L)).thenReturn(true);
 
-        // 중복 id 등록 요청 시 예외를 반환
+        // 중복 cartItemId 등록 요청 시 예외를 반환
         // 외부 상품 정보를 조회하지 않아야 하고 위시리스트에 저장하지 않아야 함
         assertThrows(DuplicateWishlistItemException.class, () -> wishlistService.importExternal(1L));
         verifyNoInteractions(externalProductProvider);

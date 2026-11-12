@@ -5,7 +5,7 @@ import com.example.hobby_wishlist.domain.externalproduct.ExternalProduct;
 import java.math.BigDecimal;
 
 public record ExternalProductResponse(
-        Long id,
+        Long externalId,
         String title,
         BigDecimal price,
         String category,

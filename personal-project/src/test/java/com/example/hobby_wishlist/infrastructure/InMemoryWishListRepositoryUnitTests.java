@@ -20,7 +20,7 @@ public class InMemoryWishListRepositoryUnitTests {
     }
 
     @Test
-    @DisplayName("존재하지 않는 id 조회 시 예외 발생")
+    @DisplayName("존재하지 않는 cartItemId 조회 시 예외 발생")
     void findNonExistentId() {
         WishlistItem item1 = wishListRepository.add(WishlistItem.fromManual(null, "연필", 300));
         WishlistItem item2 = wishListRepository.add(WishlistItem.fromManual(null, "노트", 1000));

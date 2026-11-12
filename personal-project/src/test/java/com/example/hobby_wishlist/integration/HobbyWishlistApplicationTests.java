@@ -57,7 +57,7 @@ class HobbyWishlistApplicationTests {
                 .andReturn();
 
         JsonNode jsonNode = objectMapper.readTree(result.getResponse().getContentAsString());
-        Long id = jsonNode.get("id").asLong();
+        Long id = jsonNode.get("cartItemId").asLong();
 
         // 앞서 요청한 데이터의 id로 조회
         mockMvc.perform(get("/wishlist/{id}", id))

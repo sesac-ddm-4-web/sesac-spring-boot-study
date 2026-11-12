@@ -24,7 +24,7 @@ public class WishlistController {
     @PostMapping
     public ResponseEntity<WishlistItemResponse> createWishlist(@Valid @RequestBody CreateWishlistItemRequest request) {
         WishlistItemResponse response = wishlistService.add(request);
-        URI location = URI.create("/wishlist/" + response.id());
+        URI location = URI.create("/wishlist/" + response.wishlistItemId());
         return ResponseEntity.created(location).body(response);
     }
 
@@ -45,8 +45,8 @@ public class WishlistController {
 
     @PostMapping("/import")
     public ResponseEntity<WishlistItemResponse> importExternalProduct(@Valid @RequestBody ImportExternalProductRequest request) {
-        WishlistItemResponse response = wishlistService.importExternal(request.id());
-        URI location = URI.create("/wishlist/import/" + response.id());
+        WishlistItemResponse response = wishlistService.importExternal(request.externalId());
+        URI location = URI.create("/wishlist/import/" + response.wishlistItemId());
         return ResponseEntity.created(location).body(response);
     }
 }
