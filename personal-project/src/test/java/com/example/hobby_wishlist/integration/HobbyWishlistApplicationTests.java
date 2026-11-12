@@ -37,7 +37,7 @@ class HobbyWishlistApplicationTests {
     private WishlistService wishlistService;
 
     @Test
-    @DisplayName("정상 등록 및 조회 테스트")
+    @DisplayName("정상 수동 등록 및 조회 테스트")
     void validInputTest() throws Exception {
         // 정상 데이터로 요청
         String jsonInput = """
@@ -51,18 +51,18 @@ class HobbyWishlistApplicationTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonInput))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.wishlistItemId").exists())
                 .andExpect(jsonPath("$.name").value("연필"))
                 .andExpect(jsonPath("$.price").value(500))
                 .andReturn();
 
         JsonNode jsonNode = objectMapper.readTree(result.getResponse().getContentAsString());
-        Long id = jsonNode.get("cartItemId").asLong();
+        Long id = jsonNode.get("wishlistItemId").asLong();
 
         // 앞서 요청한 데이터의 id로 조회
         mockMvc.perform(get("/wishlist/{id}", id))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(id))
+                .andExpect(jsonPath("$.wishlistItemId").value(id))
                 .andExpect(jsonPath("$.name").value("연필"))
                 .andExpect(jsonPath("$.price").value(500));
 
