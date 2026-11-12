@@ -2,13 +2,11 @@ package com.example.hobby_wishlist.presentation;
 
 import com.example.hobby_wishlist.application.CartService;
 import com.example.hobby_wishlist.dto.cart.AddCartItemRequest;
-import com.example.hobby_wishlist.dto.cart.CartItemResponse;
+import com.example.hobby_wishlist.dto.cart.CartResponse;
 import com.example.hobby_wishlist.dto.cart.ChangeCartItemQuantityRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/cart")
@@ -21,12 +19,12 @@ public class CartController {
     }
 
     @PostMapping
-    public CartItemResponse addToCart(@Valid @RequestBody AddCartItemRequest request) {
+    public CartResponse addToCart(@Valid @RequestBody AddCartItemRequest request) {
         return cartService.addItem(request);
     }
 
     @PatchMapping("/{cartItemId}")
-    public CartItemResponse changeQuantity(@PathVariable Long cartItemId, @Valid @RequestBody ChangeCartItemQuantityRequest request) {
+    public CartResponse changeQuantity(@PathVariable Long cartItemId, @Valid @RequestBody ChangeCartItemQuantityRequest request) {
         return cartService.changeQuantity(cartItemId, request);
     }
 
@@ -39,7 +37,7 @@ public class CartController {
     }
 
     @GetMapping
-    public List<CartItemResponse> getCart() {
+    public CartResponse getCart() {
         return cartService.getAllItems();
     }
 }

@@ -20,7 +20,7 @@ public class WishlistItem {
         }
 
         if (sourceType == SourceType.MANUAL ^ externalId == null) {
-            throw new IllegalArgumentException("sourceType과 externalId 조합이 맞지 않습니다.");
+            throw new IllegalArgumentException("상품 타입과 외부 상품 id의 조합이 맞지 않습니다.");
         }
 
         this.sourceType = sourceType;

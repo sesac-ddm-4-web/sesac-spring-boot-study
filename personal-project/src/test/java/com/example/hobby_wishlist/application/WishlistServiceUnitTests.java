@@ -1,10 +1,8 @@
-package com.example.hobby_wishlist;
+package com.example.hobby_wishlist.application;
 
-import com.example.hobby_wishlist.application.WishlistService;
-import com.example.hobby_wishlist.domain.wishlist.SourceType;
-import com.example.hobby_wishlist.domain.wishlist.WishlistItemNotFoundException;
-import com.example.hobby_wishlist.domain.wishlist.WishlistItem;
-import com.example.hobby_wishlist.domain.wishlist.WishlistRepository;
+import com.example.hobby_wishlist.domain.externalproduct.ExternalProduct;
+import com.example.hobby_wishlist.domain.externalproduct.ExternalProductProvider;
+import com.example.hobby_wishlist.domain.wishlist.*;
 import com.example.hobby_wishlist.dto.wishlist.CreateWishlistItemRequest;
 import com.example.hobby_wishlist.dto.wishlist.WishlistItemResponse;
 import org.junit.jupiter.api.DisplayName;
@@ -13,10 +11,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -25,6 +27,9 @@ public class WishlistServiceUnitTests {
 
     @Mock
     private WishlistRepository wishlistRepository;
+
+    @Mock
+    private ExternalProductProvider externalProductProvider;
 
     @InjectMocks
     private WishlistService wishlistService;
@@ -110,5 +115,55 @@ public class WishlistServiceUnitTests {
 
     private WishlistItemResponse createManualResponse(Long id, String name, Integer price) {
         return new WishlistItemResponse(id, SourceType.MANUAL, null, name, price, null);
+    }
+
+    @Test
+    @DisplayName("외부 상품을 위시리스트로 정상적으로 가져올 수 있어야 함")
+    void importSuccessTest() {
+        Long externalProductId = 1L;
+        Long wishlistItemId = 10L;
+
+        // 외부 상품
+        ExternalProduct externalProduct = new ExternalProduct(externalProductId, "iPhone", new BigDecimal("9.99"), "smartphones", "http://img", 3);
+
+        when(wishlistRepository.existsByExternalId(any())).thenReturn(false);
+        when(externalProductProvider.findById(any())).thenReturn(externalProduct);
+
+        WishlistItem wishlistItem = WishlistItem.fromExternal(externalProduct);
+        wishlistItem.setId(wishlistItemId);
+        when(wishlistRepository.add(any())).thenReturn(wishlistItem);
+
+        // 외부 상품을 가져오면 외부 id와 로컬 id를 구분해 저장하고 가격을 환산함
+        WishlistItemResponse wishlistItemResponse = wishlistService.importExternal(wishlistItemId);
+        assertEquals(wishlistItemId, wishlistItemResponse.id());
+        assertEquals(externalProductId, wishlistItemResponse.externalId());
+        assertEquals(SourceType.EXTERNAL, wishlistItemResponse.sourceType());
+        assertEquals(9990, wishlistItemResponse.price());
+        assertEquals(3, wishlistItemResponse.stock());
+    }
+
+    @Test
+    @DisplayName("이미 가져온 외부 상품은 위시리스트에 중복 등록하지 않음")
+    void importDuplicateTest(){
+        // 외부 상품
+        ExternalProduct externalProduct = new ExternalProduct(1L, "iPhone", new BigDecimal("9.99"), "smartphones", "http://img", 3);
+
+        when(wishlistRepository.existsByExternalId(1L)).thenReturn(true);
+
+        // 중복 id 등록 요청 시 예외를 반환
+        // 외부 상품 정보를 조회하지 않아야 하고 위시리스트에 저장하지 않아야 함
+        assertThrows(DuplicateWishlistItemException.class, () -> wishlistService.importExternal(1L));
+        verifyNoInteractions(externalProductProvider);
+        verify(wishlistRepository, never()).add(any());
+    }
+
+    @Test
+    @DisplayName("외부 상품 조회가 실패하면 위시리스트에 저장하지 않음")
+    void importFailsWhenProviderFailsTest() {
+        when(wishlistRepository.existsByExternalId(any())).thenReturn(false);
+        when(externalProductProvider.findById(any())).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        assertThrows(ResponseStatusException.class, () -> wishlistService.importExternal(1L));
+        verify(wishlistRepository, never()).add(any());
     }
 }

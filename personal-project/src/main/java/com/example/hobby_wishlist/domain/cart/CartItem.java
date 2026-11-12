@@ -27,7 +27,7 @@ public class CartItem {
         return new CartItem(id, wishlistItem.getId(), wishlistItem.getName(), wishlistItem.getPrice(), wishlistItem.getStock(), quantity);
     }
 
-    public void setId(Long id) {
+    void setId(Long id) {
         this.id = id;
     }
 
@@ -79,5 +79,9 @@ public class CartItem {
     public void changeQuantity(int q) {
         validateQuantity(q);
         quantity = q;
+    }
+
+    public Long getSubtotal() {
+        return (long) price * quantity;
     }
 }

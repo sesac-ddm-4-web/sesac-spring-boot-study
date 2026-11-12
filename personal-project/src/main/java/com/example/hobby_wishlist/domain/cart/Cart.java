@@ -67,4 +67,10 @@ public class Cart {
             }
         }
     }
+
+    public Long getSubTotal(){
+        return items.stream()
+                .mapToLong(CartItem::getSubtotal)
+                .sum();
+    }
 }

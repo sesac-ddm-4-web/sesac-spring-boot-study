@@ -1,4 +1,4 @@
-package com.example.hobby_wishlist;
+package com.example.hobby_wishlist.integration;
 
 import com.example.hobby_wishlist.application.WishlistService;
 import com.example.hobby_wishlist.dto.wishlist.CreateWishlistItemRequest;

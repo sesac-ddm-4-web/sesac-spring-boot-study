@@ -1,16 +1,13 @@
 package com.example.hobby_wishlist.application;
 
 import com.example.hobby_wishlist.domain.cart.Cart;
-import com.example.hobby_wishlist.domain.cart.CartItem;
 import com.example.hobby_wishlist.domain.cart.CartRepository;
 import com.example.hobby_wishlist.domain.wishlist.WishlistItem;
 import com.example.hobby_wishlist.domain.wishlist.WishlistRepository;
 import com.example.hobby_wishlist.dto.cart.AddCartItemRequest;
-import com.example.hobby_wishlist.dto.cart.CartItemResponse;
+import com.example.hobby_wishlist.dto.cart.CartResponse;
 import com.example.hobby_wishlist.dto.cart.ChangeCartItemQuantityRequest;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class CartService {
@@ -22,38 +19,39 @@ public class CartService {
         this.wishlistRepository = wishlistRepository;
     }
 
-    public synchronized CartItemResponse addItem(AddCartItemRequest request) {
+    public synchronized CartResponse addItem(AddCartItemRequest request) {
         // 장바구니 가져오기
         WishlistItem wishlistItem = wishlistRepository.findById(request.wishlistId());
         Cart cart = cartRepository.getCart();
 
         // 장바구니에 상품 추가하고 장바구니 갱신하기
-        CartItem addedCartItem = cart.add(wishlistItem, request.quantity());
+        cart.add(wishlistItem, request.quantity());
         cartRepository.saveChanges(cart);
 
-        return CartItemResponse.from(addedCartItem);
+        Cart updatedCart = cartRepository.saveChanges(cart);
+        return CartResponse.from(updatedCart);
     }
 
-    public synchronized List<CartItemResponse> getAllItems() {
-        Cart cart = cartRepository.getCart();
-        return cart.getItems().stream()
-                .map(CartItemResponse::from)
-                .toList();
+    public synchronized CartResponse getAllItems() {
+        return CartResponse.from(cartRepository.getCart());
     }
 
-    public synchronized CartItemResponse changeQuantity(Long cartItemId, ChangeCartItemQuantityRequest request) {
+    public synchronized CartResponse changeQuantity(Long cartItemId, ChangeCartItemQuantityRequest request) {
         // 장바구니에 있는 상품 수량 변경하고 장바구니 갱신하기
         Cart cart = cartRepository.getCart();
-        CartItem updatedCartItem = cart.changeQuantity(cartItemId , request.quantity());
+        cart.changeQuantity(cartItemId , request.quantity());
         cartRepository.saveChanges(cart);
 
-        return CartItemResponse.from(updatedCartItem);
+        Cart updatedCart = cartRepository.saveChanges(cart);
+        return CartResponse.from(updatedCart);
     }
 
-    public synchronized void removeItem(Long cartItemId) {
+    public synchronized CartResponse removeItem(Long cartItemId) {
         // 장바구니에서 항목 삭제하고 장바구니 갱신하기
         Cart cart = cartRepository.getCart();
         cart.remove(cartItemId);
-        cartRepository.saveChanges(cart);
+
+        Cart updatedCart = cartRepository.saveChanges(cart);
+        return CartResponse.from(updatedCart);
     }
 }

@@ -1,4 +1,4 @@
-package com.example.hobby_wishlist;
+package com.example.hobby_wishlist.infrastructure;
 
 import com.example.hobby_wishlist.domain.wishlist.WishlistItemNotFoundException;
 import com.example.hobby_wishlist.domain.wishlist.WishlistItem;
