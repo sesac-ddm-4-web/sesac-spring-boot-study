@@ -26,7 +26,6 @@ public class CartService {
 
         // 장바구니에 상품 추가하고 장바구니 갱신하기
         cart.add(wishlistItem, request.quantity());
-        cartRepository.saveChanges(cart);
 
         Cart updatedCart = cartRepository.saveChanges(cart);
         return CartResponse.from(updatedCart);
@@ -40,7 +39,6 @@ public class CartService {
         // 장바구니에 있는 상품 수량 변경하고 장바구니 갱신하기
         Cart cart = cartRepository.getCart();
         cart.changeQuantity(cartItemId , request.quantity());
-        cartRepository.saveChanges(cart);
 
         Cart updatedCart = cartRepository.saveChanges(cart);
         return CartResponse.from(updatedCart);
