@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @Repository
 public class InMemoryCartRepository implements CartRepository {
     private Cart cart = new Cart();
-    private final AtomicLong sequence = new AtomicLong();
+    private final AtomicLong sequence = new AtomicLong(0L);
 
     @Override
     public Cart getCart() {
