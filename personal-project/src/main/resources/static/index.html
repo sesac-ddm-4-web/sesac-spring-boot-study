@@ -70,7 +70,13 @@ button, input, select { font: inherit; color: inherit; }
 .content-col { flex: 1; min-width: 0; }
 .side { width: 460px; flex-shrink: 0; position: sticky; top: 12px; display: flex; flex-direction: column; gap: 12px; max-height: calc(100vh - 24px); overflow: auto; padding: 2px; }
 #wish-panel { order: 1; } /* 위시리스트는 항상 장바구니보다 위 */
-#cart-panel { order: 2; }
+#cart-panel { order: 2; flex-shrink: 1; min-height: 0; display: flex; flex-direction: column; }
+/* 장바구니 목록은 오른쪽 영역이 스크롤되지 않는 한계까지 늘어나고, 그보다 길어지면 목록 안에서만 스크롤 */
+#cart-panel .panel-toggle { flex-shrink: 0; }
+#cart-body-wrap:not([hidden]) { display: flex; flex-direction: column; min-height: 0; }
+#cart-body { flex: 0 1 auto; max-height: none; min-height: 0; }
+#cart-body:not(:empty) { min-height: 120px; }
+#cart-body-wrap > :not(#cart-body) { flex-shrink: 0; }
 @media (max-width: 960px) {
   .layout { flex-direction: column-reverse; }
   .side { position: static; width: 100%; max-height: none; overflow: visible; }
@@ -95,6 +101,7 @@ input::placeholder { color: var(--muted); opacity: .7; }
 .btn:hover { background: var(--accent-strong); }
 .btn:active { transform: translateY(1px); }
 .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.btn.locked { opacity: .5; cursor: not-allowed; transform: none; }
 .btn.ghost { background: var(--accent-soft); color: var(--accent-strong); }
 .btn.ghost:hover { filter: brightness(.96); }
 .btn.danger { background: var(--danger-soft); color: var(--danger); }
@@ -167,12 +174,14 @@ aside.panel { background: var(--surface); border: 1px solid var(--line); border-
 .panel-inner { padding: 14px 16px 16px; }
 
 .budget-box { background: var(--accent-soft); border-radius: 10px; padding: 12px; margin-bottom: 12px; }
-.budget-box .label { color: var(--accent-strong); margin-bottom: 8px; }
+.budget-box summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--accent-strong); }
+.budget-box form { margin-top: 8px; }
 .budget-box .row input { min-height: 40px; }
 .budget-box .btn { min-height: 40px; }
 .filter-note { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; font-weight: 700; color: var(--accent-strong); margin-bottom: 8px; }
 
 .items { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+/* 항목 1개 ≈ 91px, 간격 8px → 3개(≈289px)까지는 높이가 늘어나고 4개부터 스크롤 */
 .items.scroll { max-height: 300px; overflow: auto; padding-right: 2px; }
 .item { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--surface-2); display: grid; gap: 8px; }
 .item.flash { animation: flash 1.6s ease-out; }
@@ -330,15 +339,17 @@ dl.kv dd { margin: 0; font-variant-numeric: tabular-nums; }
         <span class="badge" id="wish-count" aria-label="위시리스트 항목 수">0</span>
       </button>
       <div id="wish-body-wrap" class="panel-inner" hidden>
-        <form id="rec-form" class="budget-box" novalidate>
-          <span class="label" id="rec-label">💰 예산별 추천</span>
-          <div class="row">
-            <input id="budget" class="grow" type="number" min="0" step="1000" inputmode="numeric" placeholder="예산(원) 예: 30000" aria-labelledby="rec-label">
-            <button type="submit" class="btn">추천받기</button>
-          </div>
-          <p class="hint">예산 이하 상품을 가격 낮은 순으로 최대 3개 보여줘요.</p>
-          <div class="msg err" id="rec-msg" role="alert"></div>
-        </form>
+        <details class="budget-box">
+          <summary id="rec-label">💰 예산별 추천</summary>
+          <form id="rec-form" novalidate>
+            <div class="row">
+              <input id="budget" class="grow" type="number" min="0" step="1000" inputmode="numeric" placeholder="예산(원) 예: 30000" aria-labelledby="rec-label">
+              <button type="submit" class="btn">추천받기</button>
+            </div>
+            <p class="hint">예산 이하 상품을 가격 낮은 순으로 최대 3개 보여줘요.</p>
+            <div class="msg err" id="rec-msg" role="alert"></div>
+          </form>
+        </details>
         <div class="filter-note" id="filter-note" hidden>
           <span id="filter-text"></span>
           <button type="button" class="btn ghost sm" id="rec-reset">전체 목록 보기</button>
@@ -355,21 +366,28 @@ dl.kv dd { margin: 0; font-variant-numeric: tabular-nums; }
         <span class="badge" id="cart-count" aria-label="장바구니 항목 수">0</span>
       </button>
       <div id="cart-body-wrap" class="panel-inner" hidden>
-        <!-- 쿠폰·배송비 미리보기 API가 구현되면 hidden을 제거하고 refreshCart가 쿠폰 값을 보내도록 연결 -->
-        <form id="cart-form" class="coupon" novalidate hidden>
+        <form id="cart-form" class="coupon" novalidate>
           <label for="coupon">쿠폰 코드</label>
           <div class="row">
-            <input id="coupon" class="grow" value="NONE" autocomplete="off" placeholder="쿠폰 없음: NONE">
+            <input id="coupon" class="grow" value="NONE" autocomplete="off" list="coupon-list" placeholder="쿠폰 없음: NONE">
+            <datalist id="coupon-list"><option value="NONE"></option><option value="PERCENT10"></option><option value="FIXED15000"></option></datalist>
             <button type="submit" class="btn ghost">적용</button>
           </div>
         </form>
         <ul class="items scroll" id="cart-body"></ul>
         <div class="empty-state" id="cart-empty"></div>
-        <div class="totals" id="cart-total" hidden>
-          <span>상품 합계</span>
-          <span class="sum" id="cart-sum"></span>
+        <div class="totals" id="cart-total" hidden style="display:block">
+          <dl class="kv" style="grid-template-columns:1fr auto;margin-bottom:8px">
+            <dt>상품 합계</dt><dd id="cart-items-sum" style="text-align:right"></dd>
+            <dt id="cart-coupon-label">쿠폰 할인</dt><dd id="cart-discount" style="text-align:right"></dd>
+            <dt>배송비</dt><dd id="cart-shipping" style="text-align:right"></dd>
+          </dl>
+          <div style="display:flex;justify-content:space-between;align-items:baseline">
+            <span>결제 예상 금액</span>
+            <span class="sum" id="cart-sum"></span>
+          </div>
         </div>
-        <p class="hint" id="cart-hint" hidden>표시 금액은 단가 × 수량의 합계예요(쿠폰·배송비 제외). 같은 상품은 합쳐서 최대 5개, 외부 상품은 재고까지, 종류는 20개까지 담을 수 있어요.</p>
+        <p class="hint" id="cart-hint" hidden></p>
       </div>
     </aside>
   </div>
@@ -445,7 +463,7 @@ dl.kv dd { margin: 0; font-variant-numeric: tabular-nums; }
       try { const j = JSON.parse(text); message = j.detail || j.message || j.title || j.error || text; } catch (e) {}
       throw new Error('[' + res.status + '] ' + (message || res.statusText || '요청에 실패했어요.'));
     }
-    if (res.status === 204) return null;
+    if (res.status === 204) return null; // 삭제 등 본문 없는 응답
     return res.json();
   }
   const json = (method, body) => ({ method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -454,7 +472,9 @@ dl.kv dd { margin: 0; font-variant-numeric: tabular-nums; }
     add: (name, price) => request(API, json('POST', { name, price })),
     all: () => request(API),
     recommend: (budget) => request(API + '?budget=' + encodeURIComponent(budget)),
-    importExternal: (id) => request(API + '/import', json('POST', { externalId: id }))
+    importExternal: (id) => request(API + '/import', json('POST', { externalId: id })),
+    // DELETE /wishlist/{id} → 204(본문 없음)
+    remove: (id) => request(API + '/' + encodeURIComponent(id), { method: 'DELETE' })
   };
   const extApi = {
     // GET /products?q=&limit=&skip= (q를 생략하면 전체 목록, limit 1~20, skip 0 이상)
@@ -469,8 +489,10 @@ dl.kv dd { margin: 0; font-variant-numeric: tabular-nums; }
     add: (wishlistItemId, quantity) => request('/cart', json('POST', { wishlistItemId, quantity })),
     change: (cartItemId, quantity) => request('/cart/' + encodeURIComponent(cartItemId), json('PATCH', { quantity })),
     remove: (id) => request('/cart/' + encodeURIComponent(id), { method: 'DELETE' }),
-    // POST·PATCH·GET은 장바구니 전체({ items, subtotal })를 돌려준다. DELETE만 204(본문 없음).
-    all: () => request('/cart')
+    // POST·PATCH는 { items }만 돌려주고 금액은 없다. DELETE는 204(본문 없음).
+    // 금액은 GET /cart?couponCode=… (미리보기)만 계산한다. couponCode 파라미터가 필수이므로 NONE도 명시한다.
+    // 응답: { items, total, coupon, couponDiscount, shippingFee } — total은 할인과 배송비를 반영한 결제 예상 금액이다.
+    preview: (couponCode) => request('/cart?couponCode=' + encodeURIComponent(couponCode))
   };
   // 외부 상품 재고가 있으면 재고까지, 수동 상품(재고 null)은 5개까지
   const maxQty = (stock) => (stock == null ? 5 : Math.max(0, Math.min(5, stock)));
@@ -508,6 +530,20 @@ dl.kv dd { margin: 0; font-variant-numeric: tabular-nums; }
   let wishCount = 0;
   let allWish = [];
   let budgetFilter = null; // null이면 전체 목록, 숫자면 해당 예산의 추천 목록
+  let cartWishIds = new Set(); // 장바구니가 참조 중인 위시리스트 id. 서버 FK(RESTRICT)와 같은 규칙으로 삭제를 막는다.
+
+  /** 장바구니에 담긴 위시리스트 항목은 삭제 버튼을 잠그고 '장바구니 담김' 표시를 붙인다. (최종 판단은 서버의 409) */
+  function applyCartLock() {
+    document.querySelectorAll('#list-body .item[data-wid]').forEach((li) => {
+      const locked = cartWishIds.has(Number(li.dataset.wid));
+      const del = li.querySelector('.del-wish');
+      del.classList.toggle('locked', locked);
+      del.title = locked ? '장바구니에 담겨 있어 삭제할 수 없어요. 먼저 장바구니에서 빼 주세요.' : '';
+      const tag = li.querySelector('.tag-cart');
+      if (locked && !tag) li.querySelector('.item-meta').append(' ', el('span', { class: 'tag ok tag-cart', text: '장바구니 담김' }));
+      if (!locked && tag) tag.remove();
+    });
+  }
 
   function renderList(items, total, flashId) {
     const ul = $('list-body');
@@ -518,6 +554,8 @@ dl.kv dd { margin: 0; font-variant-numeric: tabular-nums; }
       const addBtn = el('button', { type: 'button', class: 'btn sm', text: soldOut ? '품절' : '🛒 담기' });
       if (soldOut) addBtn.disabled = true;
       addBtn.addEventListener('click', () => busy(addBtn, () => addToCart(it.wishlistItemId, qty.value())));
+      const delBtn = el('button', { type: 'button', class: 'btn danger sm del-wish', text: '삭제', 'aria-label': it.name + ' 삭제' });
+      delBtn.addEventListener('click', () => busy(delBtn, () => removeWishItem(it.wishlistItemId, it.name)));
       const tags = [];
       if (it.sourceType) tags.push(el('span', { class: 'tag', text: it.sourceType === 'EXTERNAL' ? '외부 상품' : '직접 등록' }));
       if (soldOut) tags.push(el('span', { class: 'tag warn', text: '품절' }));
@@ -527,9 +565,11 @@ dl.kv dd { margin: 0; font-variant-numeric: tabular-nums; }
           el('span', { class: 'item-price', text: won(it.price) })),
         el('div', { class: 'item-bottom' },
           el('span', { class: 'item-meta', text: '#' + it.wishlistItemId }, ...(tags.length ? [' '] : []), ...tags),
-          el('div', { class: 'row', style: 'align-items:center' }, qty, addBtn)));
+          el('div', { class: 'row', style: 'align-items:center' }, qty, addBtn, delBtn)));
+      li.dataset.wid = it.wishlistItemId;
       ul.appendChild(li);
     });
+    applyCartLock();
 
     const empty = $('list-empty');
     empty.hidden = items.length > 0;
@@ -559,6 +599,23 @@ dl.kv dd { margin: 0; font-variant-numeric: tabular-nums; }
     updateFilterUi();
     renderList(shown, all.length, flashId);
     if (extItems) renderExternal(extItems); // '담김' 표시 갱신
+  }
+
+  async function removeWishItem(id, name) {
+    // 장바구니가 참조 중인 항목은 서버(FK RESTRICT)가 409로 거부한다. 불필요한 호출을 줄이려고 화면에서도 먼저 막는다.
+    if (cartWishIds.has(id)) {
+      toast('"' + name + '"은(는) 장바구니에 담겨 있어 삭제할 수 없어요. 먼저 장바구니에서 빼 주세요.', 'err');
+      return;
+    }
+    try {
+      await wishApi.remove(id); // 204 — 본문이 없으므로 다시 조회한다. 장바구니는 건드리지 않는다.
+      toast('"' + name + '"을(를) 위시리스트에서 삭제했어요.');
+      await refresh();
+    } catch (err) {
+      toast(err.message, 'err');
+      // 화면이 오래돼서 막지 못한 409라면 장바구니를 다시 읽어 잠금 표시를 맞춘다.
+      if (/^\[409\]/.test(err.message)) { try { await refreshCart(); } catch (e) {} }
+    }
   }
 
   $('add-form').addEventListener('submit', async (e) => {
@@ -608,7 +665,7 @@ dl.kv dd { margin: 0; font-variant-numeric: tabular-nums; }
   /* ---------- 장바구니 ---------- */
   let cartCount = 0;
 
-  /** cart: 서버의 CartResponse({ items, subtotal }). flashWishlistItemId: 방금 담은 상품(위시리스트 항목 id) 강조용 */
+  /** cart: 서버의 미리보기 응답({ items, total }). subtotal은 쿠폰·배송비 반영 금액. flashWishlistItemId: 방금 담은 상품 강조용 */
   function renderCart(cart, flashWishlistItemId) {
     const items = cart.items;
     const ul = $('cart-body');
@@ -631,38 +688,63 @@ dl.kv dd { margin: 0; font-variant-numeric: tabular-nums; }
     empty.hidden = items.length > 0;
     if (!items.length) emptyState(empty, '🛒', '장바구니가 비어 있어요', '위시리스트에서 "담기"를 눌러 보세요.');
     $('cart-total').hidden = $('cart-hint').hidden = items.length === 0;
-    $('cart-sum').textContent = won(cart.subtotal); // 서버가 계산한 합계
+    // 금액은 모두 서버(미리보기) 값을 그대로 보여준다. 상품 합계만 행별 단가×수량의 합으로 표시한다.
+    $('cart-items-sum').textContent = won(items.reduce((s, c) => s + c.price * c.quantity, 0));
+    $('cart-coupon-label').textContent = '쿠폰 할인 (' + (cart.coupon || 'NONE') + ')';
+    $('cart-discount').textContent = '−' + won(cart.couponDiscount ?? 0);
+    $('cart-shipping').textContent = won(cart.shippingFee ?? 0);
+    $('cart-sum').textContent = won(cart.total ?? 0);
+    $('cart-hint').textContent = '같은 상품은 합쳐서 최대 5개, 외부 상품은 재고까지, 종류는 20개까지 담을 수 있어요.';
     $('cart-count').textContent = items.length;
     // 비면 접고, 처음 생기거나(0→n) 담은 직후에는 연다. 그 외에는 사용자의 수동 상태를 유지.
     if (items.length === 0) setCartOpen(false);
     else if (flashWishlistItemId != null || cartCount === 0) setCartOpen(true);
     cartCount = items.length;
+    cartWishIds = new Set(items.map((c) => c.wishlistItemId));
+    applyCartLock();
   }
 
-  async function refreshCart() {
-    renderCart(await cartApi.all());
+  /**
+   * 선택한 쿠폰으로 미리보기를 불러와 그린다. 담기·수량 변경·삭제가 성공한 뒤에는 항상 이것을 호출한다.
+   * 쿠폰 오류(없는 쿠폰 404 / 적용 불가 409)이면 안내하고 NONE 기준으로 다시 그린다.
+   * 그 밖의 오류(서버 연결 실패 등)는 호출한 쪽으로 던진다.
+   * @returns {Promise<boolean>} 입력한 쿠폰이 그대로 적용됐으면 true
+   */
+  async function refreshCart(flashWishlistItemId) {
+    const code = $('coupon').value.trim() || 'NONE';
+    try {
+      renderCart(await cartApi.preview(code), flashWishlistItemId);
+      return true;
+    } catch (err) {
+      if (code === 'NONE' || !/^\[(404|409)\]/.test(err.message)) throw err;
+      toast(err.message + ' — 쿠폰을 NONE으로 되돌렸어요.', 'err');
+      $('coupon').value = 'NONE';
+      renderCart(await cartApi.preview('NONE'), flashWishlistItemId);
+      return false;
+    }
   }
 
   async function addToCart(wishlistItemId, qty) {
     try {
-      const cart = await cartApi.add(wishlistItemId, qty); // 응답이 장바구니 전체이므로 다시 조회하지 않는다.
+      const cart = await cartApi.add(wishlistItemId, qty); // { items } — 금액이 없으므로 이어서 미리보기를 호출한다.
       const added = cart.items.find((c) => c.wishlistItemId === wishlistItemId); // 같은 상품은 한 줄로 합쳐지므로 wishlistItemId로 찾는다.
       toast('장바구니에 담았어요' + (added ? ': ' + added.name + ' × ' + added.quantity : '.'), 'ok');
-      renderCart(cart, wishlistItemId);
+      await refreshCart(wishlistItemId);
     } catch (err) { toast(err.message, 'err'); }
   }
   async function changeQty(id, qty, stepperNode) {
     stepperNode.querySelectorAll('button').forEach((b) => (b.disabled = true));
     try {
-      renderCart(await cartApi.change(id, qty));
+      await cartApi.change(id, qty);
+      await refreshCart();
     } catch (err) {
       toast(err.message, 'err');
-      try { await refreshCart(); } catch (e) {}
+      try { await refreshCart(); } catch (e) {} // 실패하면 서버의 현재 상태로 되돌린다.
     }
   }
   async function removeItem(id, name) {
     try {
-      await cartApi.remove(id); // 204 — 본문이 없으므로 다시 조회한다.
+      await cartApi.remove(id); // 204 — 본문이 없으므로 미리보기를 다시 조회한다.
       toast('"' + name + '"을(를) 장바구니에서 뺐어요.');
       await refreshCart();
     } catch (err) { toast(err.message, 'err'); }
@@ -670,7 +752,10 @@ dl.kv dd { margin: 0; font-variant-numeric: tabular-nums; }
   $('cart-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     await busy(e.submitter, async () => {
-      try { await refreshCart(); toast('장바구니를 갱신했어요.'); } catch (err) { toast(err.message, 'err'); }
+      try {
+        const code = $('coupon').value.trim() || 'NONE';
+        if (await refreshCart()) toast('쿠폰 ' + code + ' 기준으로 계산했어요.', 'ok');
+      } catch (err) { toast(err.message, 'err'); }
     });
   });
 
@@ -810,6 +895,22 @@ dl.kv dd { margin: 0; font-variant-numeric: tabular-nums; }
     selectTab(next);
     $('tab-' + next).focus();
   }));
+
+  /* ---------- 오른쪽 영역 높이: 헤더가 보이는 동안에는 그만큼 줄여서 하단이 잘리지 않게 한다 ---------- */
+  const side = document.querySelector('.side');
+  const layout = document.querySelector('.layout');
+  const wide = window.matchMedia('(min-width: 961px)');
+  function fitSide() {
+    if (!wide.matches) { side.style.maxHeight = ''; return; }
+    // 스크롤 전에는 헤더 아래(layout 위 패딩 20px 포함)에서 시작하고, 스크롤하면 sticky로 위에서 12px에 붙는다.
+    const top = Math.max(12, layout.getBoundingClientRect().top + 20);
+    side.style.maxHeight = Math.max(240, window.innerHeight - top - 12) + 'px';
+  }
+  window.addEventListener('scroll', fitSide, { passive: true });
+  window.addEventListener('resize', fitSide);
+  wide.addEventListener('change', fitSide);
+  window.addEventListener('load', fitSide);
+  fitSide();
 
   /* ---------- 시작 ---------- */
   function setStatus(state, text) {

@@ -22,19 +22,19 @@ public class WishlistController {
     }
 
     @PostMapping
-    public ResponseEntity<WishlistItemResponse> createWishlist(@Valid @RequestBody CreateWishlistItemRequest request) {
+    public ResponseEntity<WishlistItemResponse> createWishlistItem(@Valid @RequestBody CreateWishlistItemRequest request) {
         WishlistItemResponse response = wishlistService.add(request);
         URI location = URI.create("/wishlist/" + response.wishlistItemId());
         return ResponseEntity.created(location).body(response);
     }
 
     @GetMapping
-    public List<WishlistItemResponse> getAllWishlist() {
+    public List<WishlistItemResponse> getWishlist() {
         return wishlistService.getAll();
     }
 
     @GetMapping("/{id}")
-    public WishlistItemResponse findWishlistById(@PathVariable Long id) {
+    public WishlistItemResponse findWishlistItemById(@PathVariable Long id) {
         return wishlistService.findById(id);
     }
 
@@ -48,5 +48,13 @@ public class WishlistController {
         WishlistItemResponse response = wishlistService.importExternal(request.externalId());
         URI location = URI.create("/wishlist/import/" + response.wishlistItemId());
         return ResponseEntity.created(location).body(response);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> removeWishlistItem(@PathVariable Long id) {
+        wishlistService.remove(id);
+
+        // 204(삭제 완료, 본문 없음)
+        return ResponseEntity.noContent().build();
     }
 }

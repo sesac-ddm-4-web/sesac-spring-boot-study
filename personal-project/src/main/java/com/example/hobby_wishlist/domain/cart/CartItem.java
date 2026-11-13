@@ -6,15 +6,15 @@ public class CartItem {
     public static final int MAX_QUANTITY = 5;
 
     private Long id;
-    private final Long wishlistId;
+    private final Long wishlistItemId;
     private final String name;
     private final Integer price;
     private final Integer stock;
     private Integer quantity;
 
-    private CartItem(Long id, Long wishlistId, String name, Integer price, Integer stock, Integer quantity) {
+    private CartItem(Long id, Long wishlistItemId, String name, Integer price, Integer stock, Integer quantity) {
         this.id = id;
-        this.wishlistId = wishlistId;
+        this.wishlistItemId = wishlistItemId;
         this.name = name;
         this.price = price;
         this.stock = stock;
@@ -27,7 +27,7 @@ public class CartItem {
         return new CartItem(id, wishlistItem.getId(), wishlistItem.getName(), wishlistItem.getPrice(), wishlistItem.getStock(), quantity);
     }
 
-    void setId(Long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -35,8 +35,8 @@ public class CartItem {
         return id;
     }
 
-    public Long getWishlistId() {
-        return wishlistId;
+    public Long getWishlistItemId() {
+        return wishlistItemId;
     }
 
     public String getName() {
@@ -59,8 +59,8 @@ public class CartItem {
         return this.id.equals(cartId);
     }
 
-    public boolean hasSameWishlistId(Long wishlistId) {
-        return this.wishlistId.equals(wishlistId);
+    public boolean hasSameWishlistItemId(Long wishlistItemId) {
+        return this.wishlistItemId.equals(wishlistItemId);
     }
 
     private void validateQuantity(int quantity) {

@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import tools.jackson.databind.JsonNode;
@@ -18,7 +19,6 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -27,6 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
+@ActiveProfiles("test")
 class HobbyWishlistApplicationTests {
 
     @Autowired
@@ -65,23 +66,6 @@ class HobbyWishlistApplicationTests {
                 .andExpect(jsonPath("$.wishlistItemId").value(id))
                 .andExpect(jsonPath("$.name").value("연필"))
                 .andExpect(jsonPath("$.price").value(500));
-
-        // 예산 조건에 따라 해당 데이터를 반환할 수 있음
-        result = mockMvc.perform(get("/wishlist?budget=1000"))
-                .andExpect(status().isOk())
-                .andReturn();
-        jsonNode = objectMapper.readTree(result.getResponse().getContentAsString());
-        assertTrue(jsonNode.isArray());
-        assertEquals(1, jsonNode.size());
-        assertEquals("연필", jsonNode.get(0).get("name").asString());
-        assertEquals(500, jsonNode.get(0).get("price").asInt());
-
-        result = mockMvc.perform(get("/wishlist?budget=300"))
-                .andExpect(status().isOk())
-                .andReturn();
-        jsonNode = objectMapper.readTree(result.getResponse().getContentAsString());
-        assertTrue(jsonNode.isArray());
-        assertTrue(jsonNode.isEmpty());
     }
 
     @Test

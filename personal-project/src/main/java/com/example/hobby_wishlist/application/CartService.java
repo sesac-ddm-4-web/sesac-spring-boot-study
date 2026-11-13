@@ -2,9 +2,12 @@ package com.example.hobby_wishlist.application;
 
 import com.example.hobby_wishlist.domain.cart.Cart;
 import com.example.hobby_wishlist.domain.cart.CartRepository;
+import com.example.hobby_wishlist.domain.cart.ShippingPolicy;
+import com.example.hobby_wishlist.domain.coupon.Coupon;
 import com.example.hobby_wishlist.domain.wishlist.WishlistItem;
 import com.example.hobby_wishlist.domain.wishlist.WishlistRepository;
 import com.example.hobby_wishlist.dto.cart.AddCartItemRequest;
+import com.example.hobby_wishlist.dto.cart.CartPreviewResponse;
 import com.example.hobby_wishlist.dto.cart.CartResponse;
 import com.example.hobby_wishlist.dto.cart.ChangeCartItemQuantityRequest;
 import org.springframework.stereotype.Service;
@@ -31,14 +34,21 @@ public class CartService {
         return CartResponse.from(updatedCart);
     }
 
-    public synchronized CartResponse getAllItems() {
-        return CartResponse.from(cartRepository.getCart());
+    public synchronized CartPreviewResponse getPreview(String couponCode) {
+        Cart cart = cartRepository.getCart();
+        long subtotal = cart.getSubTotal();
+        Coupon coupon = Coupon.getCoupon(couponCode, subtotal);
+        long couponDiscount = coupon.getDiscountAmount(subtotal);
+        long discounted = subtotal - couponDiscount;
+        long shippingFee = ShippingPolicy.STANDARD.getFee(discounted);
+        long total = discounted + shippingFee;
+        return CartPreviewResponse.from(cart, total, coupon.name(), couponDiscount, shippingFee);
     }
 
     public synchronized CartResponse changeQuantity(Long cartItemId, ChangeCartItemQuantityRequest request) {
         // 장바구니에 있는 상품 수량 변경하고 장바구니 갱신하기
         Cart cart = cartRepository.getCart();
-        cart.changeQuantity(cartItemId , request.quantity());
+        cart.changeQuantity(cartItemId, request.quantity());
 
         Cart updatedCart = cartRepository.saveChanges(cart);
         return CartResponse.from(updatedCart);

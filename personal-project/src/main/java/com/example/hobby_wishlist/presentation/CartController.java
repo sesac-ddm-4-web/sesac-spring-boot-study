@@ -2,6 +2,7 @@ package com.example.hobby_wishlist.presentation;
 
 import com.example.hobby_wishlist.application.CartService;
 import com.example.hobby_wishlist.dto.cart.AddCartItemRequest;
+import com.example.hobby_wishlist.dto.cart.CartPreviewResponse;
 import com.example.hobby_wishlist.dto.cart.CartResponse;
 import com.example.hobby_wishlist.dto.cart.ChangeCartItemQuantityRequest;
 import jakarta.validation.Valid;
@@ -36,8 +37,8 @@ public class CartController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping
-    public CartResponse getCart() {
-        return cartService.getAllItems();
+    @GetMapping(params = "couponCode")
+    public CartPreviewResponse getCartPreview(@RequestParam(required = false) String couponCode) {
+        return cartService.getPreview(couponCode);
     }
 }

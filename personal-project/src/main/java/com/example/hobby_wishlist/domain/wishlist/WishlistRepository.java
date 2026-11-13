@@ -12,5 +12,7 @@ public interface WishlistRepository {
 
     List<WishlistItem> recommend(Integer budget);
 
+    void remove(Long id);
+
     boolean existsByExternalId(Long externalId);
 }

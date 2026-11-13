@@ -3,6 +3,7 @@ package com.example.hobby_wishlist.infrastructure.persistence.inmemory;
 import com.example.hobby_wishlist.domain.wishlist.WishlistItem;
 import com.example.hobby_wishlist.domain.wishlist.WishlistItemNotFoundException;
 import com.example.hobby_wishlist.domain.wishlist.WishlistRepository;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import java.util.Comparator;
@@ -11,6 +12,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Repository
+@Profile("test")
 public class InMemoryWishListRepository implements WishlistRepository {
     private final List<WishlistItem> items = new CopyOnWriteArrayList<>();
     private final AtomicLong sequence = new AtomicLong(0L);
@@ -42,6 +44,11 @@ public class InMemoryWishListRepository implements WishlistRepository {
                 .sorted(Comparator.comparing(WishlistItem::getPrice))
                 .limit(3)
                 .toList();
+    }
+
+    @Override
+    public void remove(Long id) {
+        items.removeIf(item -> item.hasSameId(id));
     }
 
     @Override

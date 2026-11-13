@@ -1,5 +1,6 @@
 package com.example.hobby_wishlist.application;
 
+import com.example.hobby_wishlist.domain.cart.CartRepository;
 import com.example.hobby_wishlist.domain.externalproduct.ExternalProduct;
 import com.example.hobby_wishlist.domain.externalproduct.ExternalProductProvider;
 import com.example.hobby_wishlist.domain.wishlist.DuplicateWishlistItemException;
@@ -8,6 +9,7 @@ import com.example.hobby_wishlist.domain.wishlist.WishlistRepository;
 import com.example.hobby_wishlist.dto.wishlist.CreateWishlistItemRequest;
 import com.example.hobby_wishlist.dto.wishlist.WishlistItemResponse;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -15,10 +17,12 @@ import java.util.List;
 public class WishlistService {
     private final WishlistRepository wishlistRepository;
     private final ExternalProductProvider externalProductProvider;
+    private final CartRepository cartRepository;
 
-    public WishlistService(WishlistRepository wishlistRepository, ExternalProductProvider externalProductProvider) {
+    public WishlistService(WishlistRepository wishlistRepository, ExternalProductProvider externalProductProvider, CartRepository cartRepository) {
         this.wishlistRepository = wishlistRepository;
         this.externalProductProvider = externalProductProvider;
+        this.cartRepository = cartRepository;
     }
 
     public WishlistItemResponse add(CreateWishlistItemRequest itemDto) {
@@ -54,5 +58,10 @@ public class WishlistService {
         ExternalProduct externalProduct = externalProductProvider.findById(externalId);
         WishlistItem addedItem = wishlistRepository.add(WishlistItem.fromExternal(externalProduct));
         return WishlistItemResponse.from(addedItem);
+    }
+
+    @Transactional
+    public void remove(Long id) {
+        wishlistRepository.remove(id);
     }
 }

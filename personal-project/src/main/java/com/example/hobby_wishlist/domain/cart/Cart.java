@@ -3,17 +3,26 @@ package com.example.hobby_wishlist.domain.cart;
 import com.example.hobby_wishlist.domain.wishlist.WishlistItem;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
 public class Cart {
     private static final int MAX_ITEM_CAPACITY = 20;
-    private final List<CartItem> items = new ArrayList<>();
+    private final List<CartItem> items;
+
+    public Cart() {
+        items = new ArrayList<>();
+    }
+
+    public Cart(Collection<CartItem> items) {
+        this.items = new ArrayList<>(items);
+    }
 
     private Optional<CartItem> findByWishlistItemId(Long wishlistId) {
         return items.stream()
-                .filter(item -> item.hasSameWishlistId(wishlistId))
+                .filter(item -> item.hasSameWishlistItemId(wishlistId))
                 .findFirst();
     }
 
@@ -68,7 +77,7 @@ public class Cart {
         }
     }
 
-    public Long getSubTotal(){
+    public Long getSubTotal() {
         return items.stream()
                 .mapToLong(CartItem::getSubtotal)
                 .sum();
