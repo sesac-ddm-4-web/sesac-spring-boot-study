@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>HOOP SHOP · 농구용품 쇼핑몰</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="hero">
+    <div class="hero-inner">
+        <p class="brand">🏀 HOOP SHOP</p>
+        <h1>코트 위의 모든 장비, 한 곳에서</h1>
+        <p class="sub">농구공·농구화·보호대까지 골라 위시리스트에 담고, 장바구니에서 쿠폰 적용 금액을 미리 계산해 보세요.</p>
+        <form id="search-form" class="search">
+            <input id="search-q" type="search" placeholder="어떤 장비를 찾으세요? (예: 농구공, 보호대)" aria-label="검색어">
+            <button type="submit">검색</button>
+        </form>
+    </div>
+</header>
+
+<div id="message" role="status" hidden></div>
+
+<div class="layout">
+    <!-- 왼쪽: 외부 상품 둘러보기 -->
+    <section id="external" aria-labelledby="external-title">
+        <div class="section-head">
+            <h2 id="external-title">전체 상품</h2>
+            <span id="result-info" class="muted"></span>
+        </div>
+        <nav id="chips" class="chips" aria-label="카테고리"></nav>
+        <ul id="external-list" class="grid"></ul>
+        <button id="more-btn" class="ghost wide" type="button" hidden>상품 더 보기</button>
+    </section>
+
+    <!-- 오른쪽: 위시리스트 + 장바구니 -->
+    <aside class="side">
+        <section id="wishes" class="panel" aria-labelledby="wishes-title">
+            <h2 id="wishes-title">♡ 내 위시리스트</h2>
+            <ul id="wish-list" class="rows"></ul>
+            <details class="manual">
+                <summary>직접 등록하기</summary>
+                <form id="wish-form" class="row">
+                    <input id="wish-name" type="text" placeholder="상품 이름" maxlength="100" required aria-label="상품 이름">
+                    <input id="wish-price" type="number" placeholder="가격(원)" min="0" max="1000000" required aria-label="가격">
+                    <button type="submit">등록</button>
+                </form>
+            </details>
+        </section>
+
+        <section id="cart" class="panel" aria-labelledby="cart-title">
+            <h2 id="cart-title">🛒 장바구니</h2>
+            <ul id="cart-list" class="rows"></ul>
+
+            <div class="coupon-box">
+                <label for="coupon">쿠폰</label>
+                <select id="coupon">
+                    <option value="NONE">쿠폰 없음</option>
+                    <option value="PERCENT10">10% 할인 (최대 2만원)</option>
+                    <option value="FIXED15000">15,000원 할인 (소계 10만원 이상)</option>
+                </select>
+            </div>
+
+            <div id="recommendation" class="recommendation"></div>
+            <dl id="summary"></dl>
+        </section>
+    </aside>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
