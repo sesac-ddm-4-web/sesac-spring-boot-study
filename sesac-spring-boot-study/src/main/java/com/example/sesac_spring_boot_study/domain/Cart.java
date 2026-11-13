@@ -10,7 +10,12 @@ public class Cart {
     private static final int MAX_KINDS = 20;
 
     private final List<CartItem> items = new ArrayList<>();
-    private long nextRowId = 1;
+
+    public Cart() {}
+
+    public Cart(List<CartItem> loaded) {
+        this.items.addAll(loaded);   // ← 여기서 호출
+    }
 
     private int rangeCheck (int quantity) {
         if (quantity < MIN_QUANTITY || quantity > MAX_QUANTITY) {
@@ -44,7 +49,7 @@ public class Cart {
 
         limitCheck(quantity, stock);
 
-        CartItem itemReturn = new CartItem(nextRowId++, productId, name, price, stock, quantity);
+        CartItem itemReturn = new CartItem(null, productId, name, price, stock, quantity);
         items.add(itemReturn);
         return itemReturn;
 

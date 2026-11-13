@@ -8,6 +8,8 @@ public class CartItem {
     private Integer stock;
     private int quantity;
 
+    public CartItem() {}
+
     public CartItem(Long rowId, Long productId, String name, Long price, Integer stock, int quantity){
         this.rowId=rowId;
         this.productId=productId;
@@ -44,6 +46,28 @@ public class CartItem {
     public long total(){
         return price*quantity;
     }
+
+
+    public void setRowId(Long rowId) {
+        this.rowId = rowId;
+    }
+
+    public void setProductId(Long productId) {
+        this.productId = productId;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setPrice(Long price) {
+        this.price = price;
+    }
+
+    public void setStock(Integer stock) {
+        this.stock = stock;
+    }
+
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;

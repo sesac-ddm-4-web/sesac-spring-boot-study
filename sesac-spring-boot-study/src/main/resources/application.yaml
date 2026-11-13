@@ -1,0 +1,6 @@
+spring:
+  datasource:
+    driver-calss-name: com.mysql.cj.jdbc.Driver
+    username: root
+    url: jdbc:mysql://localhost:3308/product_management
+    password: hanbit

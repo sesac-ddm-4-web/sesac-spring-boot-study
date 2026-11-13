@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 
-@Repository
+//@Repository
 public class ListProductRepository implements ProductRepository {
     private List<Product> products = new CopyOnWriteArrayList<>();
     private AtomicLong id = new AtomicLong(1L);

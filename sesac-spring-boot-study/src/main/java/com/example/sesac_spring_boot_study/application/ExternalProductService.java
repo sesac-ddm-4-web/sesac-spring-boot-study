@@ -6,8 +6,10 @@ import com.example.sesac_spring_boot_study.domain.SourceType;
 import com.example.sesac_spring_boot_study.product.DummyJsonClient;
 import com.example.sesac_spring_boot_study.product.DummyJsonProduct;
 import com.example.sesac_spring_boot_study.product.PriceConverter;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -19,7 +21,7 @@ public class ExternalProductService {
         this.client = client;
         this.productRepository = productRepository;
     }
-
+    @Transactional
     public Product importProduct(Long externalId) {
         if (externalId == null || externalId <= 0) {
             throw new ResponseStatusException(
@@ -42,7 +44,14 @@ public class ExternalProductService {
                 SourceType.EXTERNAL,
                 external.id(),
                 external.stock());
-        return productRepository.add(product);
+
+        try {
+            return productRepository.add(product);
+        } catch (DuplicateKeyException e) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT, "이미 가져온 상품입니다");
+        }
+        //return productRepository.add(product);
     }
 
 

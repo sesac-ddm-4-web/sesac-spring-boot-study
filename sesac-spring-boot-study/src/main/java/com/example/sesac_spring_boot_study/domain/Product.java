@@ -15,6 +15,20 @@ public class Product {
         this.sourceType = SourceType.MANUAL;
     }
 
+    public Product () {}
+
+    public void setSourceType(SourceType sourceType) {
+        this.sourceType = sourceType;
+    }
+
+    public void setExternalId(Long externalId) {
+        this.externalId = externalId;
+    }
+
+    public void setStock(Integer stock) {
+        this.stock = stock;
+    }
+
     public Product(Long id, String name, Integer price, SourceType sourceType, Long externalId, Integer stock){
         this.id = id;
         this.name = name;
