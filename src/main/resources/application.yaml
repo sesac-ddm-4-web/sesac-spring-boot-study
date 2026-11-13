@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: wishlist
+  datasource:
+    url: jdbc:mysql://localhost:3306/wishlist_test?createDatabaseIfNotExist=true&serverTimezone=Asia/Seoul
+    username: root
+    password: ${DB_PASSWORD:1234}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  sql:
+    init:
+      mode: always

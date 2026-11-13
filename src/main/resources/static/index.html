@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>책 위시리스트 · 장바구니</title>
+  <style>
+    :root {
+      --bg: #f7f7f2;
+      --card: #ffffff;
+      --ink: #1b2a24;
+      --muted: #5f6d66;
+      --line: #e3e6df;
+      --accent: #0f7a55;
+      --accent-ink: #ffffff;
+      --accent-soft: #e9f3ee;
+      --danger: #b3261e;
+      --danger-soft: #fbeeed;
+      --warn: #8a5a00;
+      --warn-soft: #fff4d6;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+      line-height: 1.5;
+    }
+
+    button, input, select { font: inherit; color: inherit; }
+
+    /* ---------- 상단 ---------- */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(247, 247, 242, 0.92);
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid var(--line);
+    }
+    .header-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    .brand { font-size: 1.15rem; font-weight: 800; letter-spacing: -0.01em; }
+    .brand small { font-weight: 500; color: var(--muted); margin-left: 6px; font-size: 0.85rem; }
+
+    .tabs { display: flex; gap: 4px; }
+    .tab {
+      border: 0;
+      background: transparent;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .tab[aria-selected="true"] { background: var(--ink); color: #fff; }
+    .tab .count {
+      display: inline-block;
+      min-width: 20px;
+      margin-left: 6px;
+      padding: 0 6px;
+      border-radius: 999px;
+      background: var(--line);
+      color: var(--ink);
+      font-size: 0.75rem;
+    }
+    .tab[aria-selected="true"] .count { background: rgba(255, 255, 255, 0.2); color: #fff; }
+
+    /* ---------- 레이아웃 ---------- */
+    .layout {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 380px;
+      gap: 24px;
+      align-items: start;
+    }
+    @media (max-width: 1000px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .panel + .panel { margin-top: 20px; }
+    h2 { font-size: 1.05rem; margin: 0 0 14px; }
+    h2 .sub { font-weight: 500; color: var(--muted); font-size: 0.85rem; margin-left: 6px; }
+    .hint { color: var(--muted); font-size: 0.85rem; margin: 10px 0 0; }
+
+    /* ---------- 폼 ---------- */
+    .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+    label.field { display: flex; flex-direction: column; gap: 4px; font-size: 0.82rem; color: var(--muted); }
+    label.field.grow { flex: 1 1 200px; }
+    input, select {
+      padding: 9px 11px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      min-width: 0;
+    }
+    input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+
+    .btn {
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: var(--accent-ink);
+      padding: 9px 14px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn.ghost { background: transparent; color: var(--accent); }
+    .btn.plain { background: transparent; color: var(--muted); border-color: var(--line); }
+    .btn.danger { background: transparent; color: var(--danger); border-color: transparent; }
+    .btn.small { padding: 5px 10px; font-size: 0.85rem; }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* ---------- 배지 ---------- */
+    .badge {
+      display: inline-block;
+      padding: 1px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    .badge.manual { background: var(--accent-soft); color: var(--accent); }
+    .badge.external { background: #e8eefb; color: #2b4c9a; }
+    .badge.soldout { background: var(--danger-soft); color: var(--danger); }
+    .badge.sample { background: var(--warn-soft); color: var(--warn); }
+
+    /* ---------- 외부 상품 ---------- */
+    .meta { display: flex; justify-content: space-between; align-items: center; margin: 16px 0 12px; color: var(--muted); font-size: 0.88rem; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 14px;
+    }
+    .product {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+    }
+    .thumb {
+      aspect-ratio: 1 / 1;
+      background: #f0f1ec;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+    .thumb img { width: 100%; height: 100%; object-fit: contain; }
+    .product .body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+    .product .title { font-weight: 600; font-size: 0.92rem; line-height: 1.35; }
+    .product .category { color: var(--muted); font-size: 0.78rem; }
+    .product .price { font-weight: 700; }
+    .product .price .raw { color: var(--muted); font-weight: 500; font-size: 0.8rem; margin-right: 4px; }
+    .product .stock { color: var(--muted); font-size: 0.8rem; }
+    .product .btn { margin-top: auto; }
+    .pager { display: flex; gap: 8px; justify-content: center; margin-top: 16px; }
+
+    /* ---------- 표 ---------- */
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th {
+      text-align: left;
+      color: var(--accent);
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 8px 8px;
+      border-bottom: 1px solid var(--line);
+      white-space: nowrap;
+    }
+    td { padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+    td.actions { white-space: nowrap; text-align: right; }
+    td.actions select { padding: 5px 6px; }
+    .empty { color: var(--muted); text-align: center; padding: 28px 8px; }
+    .edit-row input { width: 100%; }
+
+    /* ---------- 장바구니 ---------- */
+    aside { position: sticky; top: 78px; }
+    .cart-line { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+    .cart-line:last-of-type { border-bottom: none; }
+    .cart-line .name { font-weight: 600; font-size: 0.92rem; }
+    .cart-line .unit { color: var(--muted); font-size: 0.8rem; }
+    .cart-line .total { font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+    .stepper { justify-self: start; display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+    .stepper button { border: 0; background: #fff; width: 30px; height: 28px; cursor: pointer; font-weight: 700; }
+    .stepper button:disabled { color: #c3c8c2; cursor: not-allowed; }
+    .stepper span { min-width: 28px; text-align: center; font-variant-numeric: tabular-nums; }
+    .cart-meta { display: flex; justify-content: space-between; color: var(--muted); font-size: 0.82rem; margin-bottom: 4px; }
+
+    .summary { margin-top: 14px; padding-top: 14px; border-top: 2px solid var(--ink); }
+    .summary dl { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; margin: 12px 0 0; font-variant-numeric: tabular-nums; }
+    .summary dt { color: var(--muted); }
+    .summary dd { margin: 0; text-align: right; }
+    .summary .final dt, .summary .final dd { font-weight: 800; font-size: 1.1rem; color: var(--ink); }
+    .summary .minus { color: var(--danger); }
+
+    .best { margin-top: 12px; }
+    .best table { font-size: 0.85rem; }
+    .best tr.is-best td { background: var(--accent-soft); font-weight: 700; }
+
+    /* ---------- 메시지 ---------- */
+    .notice { margin-top: 10px; padding: 9px 12px; border-radius: 8px; font-size: 0.88rem; display: none; }
+    .notice.ok { display: block; background: var(--accent-soft); color: var(--accent); }
+    .notice.error { display: block; background: var(--danger-soft); color: var(--danger); }
+
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      max-width: 380px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      background: var(--ink);
+      color: #fff;
+      font-size: 0.9rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.18s, transform 0.18s;
+      pointer-events: none;
+      z-index: 20;
+    }
+    .toast.show { opacity: 1; transform: none; }
+    .toast.error { background: var(--danger); }
+
+    /* ---------- 요청·응답 기록 ---------- */
+    .log-wrap { max-width: 1280px; margin: 0 auto 40px; padding: 0 24px; }
+    details.log { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); }
+    details.log summary { padding: 14px 20px; cursor: pointer; font-weight: 700; }
+    .log-list { padding: 0 20px 16px; display: flex; flex-direction: column; gap: 8px; max-height: 420px; overflow: auto; }
+    .log-entry { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-family: ui-monospace, Consolas, monospace; font-size: 0.8rem; }
+    .log-entry .head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .log-entry .status { padding: 0 8px; border-radius: 999px; font-weight: 700; }
+    .log-entry .status.ok { background: var(--accent-soft); color: var(--accent); }
+    .log-entry .status.error { background: var(--danger-soft); color: var(--danger); }
+    .log-entry pre { margin: 4px 0 0; white-space: pre-wrap; word-break: break-all; color: var(--muted); }
+
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">책 위시리스트<small>외부 상품 · 장바구니 · 쿠폰</small></div>
+    <nav class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tab-external" aria-selected="true" aria-controls="view-external">외부 상품</button>
+      <button class="tab" role="tab" id="tab-wishlist" aria-selected="false" aria-controls="view-wishlist">내 위시리스트<span class="count" id="wishlist-count">0</span></button>
+    </nav>
+  </div>
+</header>
+
+<div class="layout">
+  <main>
+    <!-- ================= 외부 상품 ================= -->
+    <section id="view-external" role="tabpanel" aria-labelledby="tab-external">
+      <div class="panel">
+        <h2>외부 상품 검색 <span class="sub">DummyJSON · 내 Spring 서버를 거쳐 조회해요</span></h2>
+        <form id="search-form" class="row" novalidate>
+          <label class="field grow">검색어
+            <input id="search-q" type="search" placeholder="예: phone, book, laptop" autocomplete="off">
+          </label>
+          <label class="field">개수
+            <select id="search-limit">
+              <option value="10">10개</option>
+              <option value="20">20개</option>
+            </select>
+          </label>
+          <button class="btn" type="submit">검색</button>
+          <button class="btn plain" type="button" id="show-all">전체 목록</button>
+        </form>
+        <div id="external-notice" class="notice" role="status"></div>
+
+        <div class="meta">
+          <span id="external-meta">불러오는 중…</span>
+          <span>가격은 외부 1단위 = 1,000원으로 환산</span>
+        </div>
+        <div id="external-grid" class="grid"></div>
+        <div class="pager">
+          <button class="btn plain small" id="page-prev" type="button">← 이전</button>
+          <button class="btn plain small" id="page-next" type="button">다음 →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 내 위시리스트 ================= -->
+    <section id="view-wishlist" role="tabpanel" aria-labelledby="tab-wishlist" hidden>
+      <div class="panel">
+        <h2>직접 등록</h2>
+        <form id="register-form" class="row" novalidate>
+          <label class="field grow">이름
+            <input id="register-name" type="text" placeholder="예: 데미안" autocomplete="off">
+          </label>
+          <label class="field">가격 (원)
+            <input id="register-price" type="number" step="1" placeholder="12000">
+          </label>
+          <button class="btn" type="submit">등록</button>
+          <button class="btn ghost" type="button" id="sample-books">샘플 책 5권 <span class="badge sample">샘플</span></button>
+        </form>
+        <div id="register-notice" class="notice" role="status"></div>
+        <p class="hint">빈 이름·음수 가격도 서버로 그대로 보내서 백엔드 검증 결과를 확인할 수 있어요.</p>
+      </div>
+
+      <div class="panel">
+        <h2>위시리스트 <span class="sub" id="wishlist-sub"></span></h2>
+        <table>
+          <thead>
+          <tr><th>#</th><th>이름</th><th>가격</th><th>재고</th><th></th></tr>
+          </thead>
+          <tbody id="wishlist-body"></tbody>
+        </table>
+        <p class="hint">외부에서 가져온 아이템은 이름·가격을 수정할 수 없어요. 장바구니에 담긴 값은 담을 때 복사돼서, 여기서 수정·삭제해도 바뀌지 않아요.</p>
+      </div>
+
+      <div class="panel">
+        <h2>예산으로 추천받기 <span class="sub">가격이 낮은 순서로 최대 3개</span></h2>
+        <form id="recommend-form" class="row" novalidate>
+          <label class="field grow">예산 (원)
+            <input id="budget" type="number" step="1" placeholder="5000">
+          </label>
+          <button class="btn" type="submit">추천</button>
+        </form>
+        <div id="recommend-notice" class="notice" role="status"></div>
+        <table id="recommend-table" hidden>
+          <thead><tr><th>#</th><th>이름</th><th>가격</th></tr></thead>
+          <tbody id="recommend-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- ================= 장바구니 ================= -->
+  <aside>
+    <div class="panel">
+      <h2>장바구니</h2>
+      <div class="cart-meta">
+        <span id="cart-kinds">0 / 20종</span>
+        <span id="cart-quantity">0개</span>
+      </div>
+      <div id="cart-lines"></div>
+      <div id="cart-notice" class="notice" role="status"></div>
+
+      <div class="summary">
+        <label class="field">쿠폰
+          <select id="coupon">
+            <option value="NONE">NONE · 할인 없음</option>
+            <option value="PERCENT10">PERCENT10 · 10% (최대 20,000원)</option>
+            <option value="FIXED15000">FIXED15000 · 10만 원 이상 15,000원</option>
+          </select>
+        </label>
+        <dl id="preview">
+          <dt>상품 합계</dt><dd id="pv-subtotal">0원</dd>
+          <dt>쿠폰 할인</dt><dd id="pv-discount" class="minus">0원</dd>
+          <dt>할인 후 금액</dt><dd id="pv-discounted">0원</dd>
+          <dt>배송비</dt><dd id="pv-shipping">0원</dd>
+          <div class="final" style="display: contents;">
+            <dt>최종 금액</dt><dd id="pv-final">0원</dd>
+          </div>
+        </dl>
+        <div id="preview-notice" class="notice" role="status"></div>
+        <p class="hint">할인 후 100,000원 이상이면 무료배송, 미만이면 5,000원. 미리보기는 저장하지 않아요.</p>
+
+        <button class="btn ghost" type="button" id="best-coupon" style="width: 100%; margin-top: 8px;">최저 금액 쿠폰 찾기</button>
+        <div class="best" id="best-wrap" hidden>
+          <table>
+            <thead><tr><th>쿠폰</th><th>할인</th><th>배송비</th><th>최종</th></tr></thead>
+            <tbody id="best-body"></tbody>
+          </table>
+          <button class="btn small" type="button" id="apply-best" style="margin-top: 8px;">이 쿠폰으로 보기</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div class="log-wrap">
+  <details class="log" id="log">
+    <summary>요청 · 응답 기록 <span class="sub" id="log-count" style="font-weight: 500; color: var(--muted);">0건</span></summary>
+    <div class="log-list" id="log-list"></div>
+  </details>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+  // =========================================================
+  // 공통: API 주소, 요청 함수, 화면 요소 만들기
+  // =========================================================
+  const API = {
+    externalProducts: "/api/external-products",
+    externalSearch: "/api/external-products/search",
+    items: "/api/wishlist/items",
+    importItem: "/api/wishlist/items/import",
+    recommend: "/api/wishlist/recommendations",
+    cart: "/api/cart",
+    cartItems: "/api/cart/items",
+    preview: "/api/cart/preview",
+    bestCoupon: "/api/cart/best-coupon",
+  };
+
+  const SAMPLE_BOOKS = [
+    { name: "데미안", price: 12000 },
+    { name: "무료 전자책 샘플", price: 0 },
+    { name: "어린 왕자", price: 5000 },
+    { name: "노인과 바다", price: 5000 },
+    { name: "동물농장", price: 8000 },
+  ];
+
+  const $ = (id) => document.getElementById(id);
+  const won = (n) => Number(n).toLocaleString("ko-KR") + "원";
+
+  /** 서버에 요청하고 기록을 남깁니다. 결과: { ok, status, data } */
+  async function request(method, url, body) {
+    const options = { method, headers: {} };
+    if (body !== undefined) {
+      options.headers["Content-Type"] = "application/json";
+      options.body = JSON.stringify(body);
+    }
+    let status = 0;
+    let data = null;
+    try {
+      const response = await fetch(url, options);
+      status = response.status;
+      const text = await response.text();
+      data = text ? parseJson(text) : null;
+    } catch (e) {
+      data = { message: "서버에 연결할 수 없어요. Spring 서버가 실행 중인지 확인해 주세요." };
+    }
+    addLog(method, url, body, status, data);
+    return { ok: status >= 200 && status < 300, status, data };
+  }
+
+  function parseJson(text) {
+    try { return JSON.parse(text); } catch { return text; }
+  }
+
+  /** 실패 응답의 {"message"}를 꺼냅니다. */
+  function messageOf(result) {
+    if (result.data && typeof result.data === "object" && result.data.message) return result.data.message;
+    if (result.status === 0) return "서버에 연결할 수 없어요.";
+    return "요청이 실패했어요. (HTTP " + result.status + ")";
+  }
+
+  /** 안전하게 요소를 만듭니다. (문자열은 textContent로 넣어서 HTML로 해석되지 않음) */
+  function el(tag, attrs, ...children) {
+    const node = document.createElement(tag);
+    for (const [key, value] of Object.entries(attrs || {})) {
+      if (value === undefined || value === null || value === false) continue;
+      if (key === "class") node.className = value;
+      else if (key.startsWith("on")) node.addEventListener(key.slice(2), value);
+      else if (value === true) node.setAttribute(key, "");
+      else node.setAttribute(key, value);
+    }
+    for (const child of children.flat()) {
+      if (child === null || child === undefined || child === false) continue;
+      node.append(child instanceof Node ? child : document.createTextNode(String(child)));
+    }
+    return node;
+  }
+
+  function notice(id, text, type) {
+    const box = $(id);
+    box.textContent = text || "";
+    box.className = "notice" + (text ? " " + type : "");
+  }
+
+  let toastTimer;
+  function toast(text, isError) {
+    const box = $("toast");
+    box.textContent = text;
+    box.className = "toast show" + (isError ? " error" : "");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { box.className = "toast"; }, 2600);
+  }
+
+  /** 버튼을 누르는 동안 막아서 중복 요청을 방지합니다. */
+  async function busy(button, task) {
+    if (button) button.disabled = true;
+    try { await task(); } finally { if (button) button.disabled = false; }
+  }
+
+  // ---------- 요청·응답 기록 ----------
+  let logCount = 0;
+  function addLog(method, url, body, status, data) {
+    logCount++;
+    $("log-count").textContent = logCount + "건";
+    const ok = status >= 200 && status < 300;
+    const entry = el("div", { class: "log-entry" },
+      el("div", { class: "head" },
+        el("strong", {}, method),
+        el("span", {}, url),
+        el("span", { class: "status " + (ok ? "ok" : "error") }, status === 0 ? "연결 실패" : status)
+      ),
+      body !== undefined ? el("pre", {}, "요청  " + JSON.stringify(body)) : null,
+      el("pre", {}, "응답  " + (data === null ? "(본문 없음)" : typeof data === "string" ? data : JSON.stringify(data)))
+    );
+    const list = $("log-list");
+    list.prepend(entry);
+    while (list.children.length > 40) list.lastChild.remove();
+  }
+
+  // =========================================================
+  // 상태
+  // =========================================================
+  const state = {
+    items: [],                                  // 위시리스트
+    cart: { items: [], kindCount: 0, totalQuantity: 0, subtotal: 0 },
+    external: { q: "", limit: 10, skip: 0, total: 0, products: [] },
+    best: null,
+  };
+
+  // =========================================================
+  // 탭
+  // =========================================================
+  function showTab(name) {
+    for (const tab of ["external", "wishlist"]) {
+      $("tab-" + tab).setAttribute("aria-selected", String(tab === name));
+      $("view-" + tab).hidden = tab !== name;
+    }
+  }
+  $("tab-external").addEventListener("click", () => showTab("external"));
+  $("tab-wishlist").addEventListener("click", () => showTab("wishlist"));
+
+  // =========================================================
+  // 외부 상품
+  // =========================================================
+  async function loadExternal() {
+    const { q, limit, skip } = state.external;
+    const url = q
+      ? `${API.externalSearch}?q=${encodeURIComponent(q)}&limit=${limit}&skip=${skip}`
+      : `${API.externalProducts}?limit=${limit}&skip=${skip}`;
+    $("external-meta").textContent = "불러오는 중…";
+    const result = await request("GET", url);
+    if (!result.ok) {
+      notice("external-notice", messageOf(result), "error");
+      state.external.products = [];
+      state.external.total = 0;
+      renderExternal();
+      return;
+    }
+    notice("external-notice", "", "");
+    state.external.products = result.data.products;
+    state.external.total = result.data.total;
+    renderExternal();
+  }
+
+  function importedExternalIds() {
+    return new Set(state.items.filter((i) => i.externalId !== null).map((i) => i.externalId));
+  }
+
+  function renderExternal() {
+    const { products, total, skip, limit, q } = state.external;
+    const grid = $("external-grid");
+    grid.replaceChildren();
+
+    const from = products.length ? skip + 1 : 0;
+    const to = skip + products.length;
+    $("external-meta").textContent = (q ? `"${q}" 검색 결과 ` : "전체 상품 ") + `${total}개 · ${from}–${to}`;
+    $("page-prev").disabled = skip === 0;
+    $("page-next").disabled = skip + limit >= total;
+
+    if (products.length === 0) {
+      grid.append(el("p", { class: "empty", style: "grid-column: 1 / -1;" },
+        q ? "검색 결과가 없어요." : "상품이 없어요."));
+      return;
+    }
+
+    const imported = importedExternalIds();
+    for (const product of products) {
+      const already = imported.has(product.id);
+      const image = el("img", { src: product.thumbnail, alt: product.title, loading: "lazy" });
+      image.addEventListener("error", () => image.replaceWith("이미지 없음"));
+
+      const button = el("button", {
+        class: "btn small" + (already ? " plain" : ""),
+        type: "button",
+        disabled: already,
+      }, already ? "가져옴" : "위시리스트로 가져오기");
+      button.addEventListener("click", () => busy(button, () => importProduct(product)));
+
+      grid.append(el("article", { class: "product" },
+        el("div", { class: "thumb" }, image),
+        el("div", { class: "body" },
+          el("div", { class: "title" }, product.title),
+          el("div", { class: "category" }, product.category),
+          el("div", { class: "price" }, el("span", { class: "raw" }, product.price), "→ " + won(product.priceWon)),
+          el("div", { class: "stock" },
+            product.soldOut ? el("span", { class: "badge soldout" }, "품절") : "재고 " + product.stock + "개"),
+          button
+        )
+      ));
+    }
+  }
+
+  async function importProduct(product) {
+    const result = await request("POST", API.importItem, { externalId: product.id });
+    if (result.ok) {
+      toast(`가져왔어요: #${result.data.id} ${result.data.name} (${won(result.data.price)})`);
+      await loadItems();
+      renderExternal();
+    } else {
+      toast(messageOf(result), true);
+    }
+  }
+
+  $("search-form").addEventListener("submit", (event) => {
+    event.preventDefault();
+    state.external.q = $("search-q").value;     // 공백뿐인 검색어도 그대로 보내서 400을 확인할 수 있게
+    state.external.limit = Number($("search-limit").value);
+    state.external.skip = 0;
+    busy(event.submitter, loadExternal);
+  });
+  $("show-all").addEventListener("click", (event) => {
+    $("search-q").value = "";
+    state.external.q = "";
+    state.external.limit = Number($("search-limit").value);
+    state.external.skip = 0;
+    busy(event.currentTarget, loadExternal);
+  });
+  $("page-prev").addEventListener("click", () => {
+    state.external.skip = Math.max(0, state.external.skip - state.external.limit);
+    loadExternal();
+  });
+  $("page-next").addEventListener("click", () => {
+    state.external.skip += state.external.limit;
+    loadExternal();
+  });
+
+  // =========================================================
+  // 위시리스트
+  // =========================================================
+  async function loadItems() {
+    const result = await request("GET", API.items);
+    if (result.ok) {
+      state.items = result.data;
+      renderItems();
+    }
+  }
+
+  let editingId = null;
+
+  function renderItems() {
+    $("wishlist-count").textContent = state.items.length;
+    const manual = state.items.filter((i) => i.sourceType === "MANUAL").length;
+    $("wishlist-sub").textContent = `${state.items.length}개 · 직접 ${manual} · 외부 ${state.items.length - manual}`;
+
+    const body = $("wishlist-body");
+    body.replaceChildren();
+    if (state.items.length === 0) {
+      body.append(el("tr", {}, el("td", { class: "empty", colspan: 5 },
+        "아직 아이템이 없어요. 직접 등록하거나 외부 상품을 가져와 보세요.")));
+      return;
+    }
+    for (const item of state.items) {
+      body.append(item.id === editingId ? editRow(item) : itemRow(item));
+    }
+  }
+
+  function itemRow(item) {
+    const source = item.sourceType === "EXTERNAL"
+      ? el("span", { class: "badge external" }, "외부 #" + item.externalId)
+      : el("span", { class: "badge manual" }, "직접");
+
+    const stock = item.stock === null ? "제한 없음"
+      : item.soldOut ? el("span", { class: "badge soldout" }, "품절")
+      : item.stock + "개";
+
+    const quantity = el("select", { "aria-label": item.name + " 담을 수량", disabled: item.soldOut },
+      [1, 2, 3, 4, 5].map((n) => el("option", { value: n }, n + "개")));
+    const addButton = el("button", { class: "btn small", type: "button", disabled: item.soldOut }, "담기");
+    addButton.addEventListener("click", () => busy(addButton, () => addToCart(item, Number(quantity.value))));
+
+    const editButton = el("button", {
+      class: "btn plain small", type: "button",
+      disabled: item.sourceType === "EXTERNAL",
+      title: item.sourceType === "EXTERNAL" ? "외부에서 가져온 아이템은 수정할 수 없어요" : "",
+    }, "수정");
+    editButton.addEventListener("click", () => { editingId = item.id; renderItems(); });
+
+    const deleteButton = el("button", { class: "btn danger small", type: "button" }, "삭제");
+    deleteButton.addEventListener("click", () => busy(deleteButton, () => deleteItem(item)));
+
+    return el("tr", {},
+      el("td", { class: "num" }, item.id),
+      el("td", {}, item.name, " ", source),
+      el("td", { class: "num" }, won(item.price)),
+      el("td", { class: "num" }, stock),
+      el("td", { class: "actions" }, quantity, " ", addButton, " ", editButton, " ", deleteButton)
+    );
+  }
+
+  function editRow(item) {
+    const name = el("input", { type: "text", value: item.name, "aria-label": "이름" });
+    const price = el("input", { type: "number", step: "1", value: item.price, "aria-label": "가격" });
+    const save = el("button", { class: "btn small", type: "button" }, "저장");
+    const cancel = el("button", { class: "btn plain small", type: "button" }, "취소");
+    save.addEventListener("click", () => busy(save, async () => {
+      const body = { name: name.value, price: price.value.trim() === "" ? null : Number(price.value) };
+      const result = await request("PUT", `${API.items}/${item.id}`, body);
+      if (result.ok) {
+        editingId = null;
+        toast("수정했어요. 장바구니에 담긴 값은 그대로예요.");
+        await loadItems();
+      } else {
+        toast(messageOf(result), true);
+      }
+    }));
+    cancel.addEventListener("click", () => { editingId = null; renderItems(); });
+    return el("tr", { class: "edit-row" },
+      el("td", { class: "num" }, item.id),
+      el("td", {}, name),
+      el("td", {}, price),
+      el("td", {}, ""),
+      el("td", { class: "actions" }, save, " ", cancel)
+    );
+  }
+
+  async function deleteItem(item) {
+    const result = await request("DELETE", `${API.items}/${item.id}`);
+    if (result.ok) {
+      toast(`삭제했어요: ${item.name} (장바구니에 담긴 줄은 남아 있어요)`);
+      await loadItems();
+      renderExternal();
+    } else {
+      toast(messageOf(result), true);
+    }
+  }
+
+  $("register-form").addEventListener("submit", (event) => {
+    event.preventDefault();
+    busy(event.submitter, async () => {
+      const priceText = $("register-price").value.trim();
+      const body = { name: $("register-name").value, price: priceText === "" ? null : Number(priceText) };
+      const result = await request("POST", API.items, body);
+      if (result.ok) {
+        notice("register-notice", `등록했어요: #${result.data.id} ${result.data.name} (${won(result.data.price)})`, "ok");
+        $("register-form").reset();
+        await loadItems();
+      } else {
+        notice("register-notice", messageOf(result), "error");
+      }
+    });
+  });
+
+  $("sample-books").addEventListener("click", (event) => busy(event.currentTarget, async () => {
+    for (const book of SAMPLE_BOOKS) await request("POST", API.items, book);
+    notice("register-notice", "샘플 책 5권을 등록했어요. (과제 예시와 같은 가격 구성)", "ok");
+    await loadItems();
+  }));
+
+  $("recommend-form").addEventListener("submit", (event) => {
+    event.preventDefault();
+    busy(event.submitter, async () => {
+      const budget = $("budget").value.trim();
+      const result = await request("GET", `${API.recommend}?budget=${encodeURIComponent(budget)}`);
+      const table = $("recommend-table");
+      const body = $("recommend-body");
+      body.replaceChildren();
+      if (!result.ok) {
+        notice("recommend-notice", messageOf(result), "error");
+        table.hidden = true;
+        return;
+      }
+      const { count, items } = result.data;
+      notice("recommend-notice", `예산 ${won(result.data.budget)} · ${count}개 추천 (가격 오름차순, 같은 가격은 등록 순서)`, "ok");
+      table.hidden = count === 0;
+      for (const item of items) {
+        body.append(el("tr", {},
+          el("td", { class: "num" }, item.id), el("td", {}, item.name), el("td", { class: "num" }, won(item.price))));
+      }
+    });
+  });
+
+  // =========================================================
+  // 장바구니
+  // =========================================================
+  async function loadCart() {
+    const result = await request("GET", API.cart);
+    if (result.ok) {
+      state.cart = result.data;
+      renderCart();
+      await loadPreview();
+    }
+  }
+
+  function renderCart() {
+    const { items, kindCount, totalQuantity } = state.cart;
+    $("cart-kinds").textContent = `${kindCount} / 20종`;
+    $("cart-quantity").textContent = `${totalQuantity}개`;
+
+    const box = $("cart-lines");
+    box.replaceChildren();
+    if (items.length === 0) {
+      box.append(el("p", { class: "empty" }, "장바구니가 비어 있어요."));
+      return;
+    }
+    for (const line of items) {
+      const max = Math.min(5, line.stockLimit === null ? 5 : line.stockLimit);
+      const minus = el("button", { type: "button", "aria-label": "수량 줄이기", disabled: line.quantity <= 1 }, "−");
+      const plus = el("button", { type: "button", "aria-label": "수량 늘리기", disabled: line.quantity >= max }, "+");
+      minus.addEventListener("click", () => busy(minus, () => changeQuantity(line, line.quantity - 1)));
+      plus.addEventListener("click", () => busy(plus, () => changeQuantity(line, line.quantity + 1)));
+
+      const remove = el("button", { class: "btn danger small", type: "button" }, "삭제");
+      remove.addEventListener("click", () => busy(remove, () => removeLine(line)));
+
+      box.append(el("div", { class: "cart-line" },
+        el("div", {},
+          el("div", { class: "name" }, line.name),
+          el("div", { class: "unit" },
+            won(line.unitPrice) + " · " + (line.stockLimit === null ? "재고 제한 없음" : "재고 " + line.stockLimit + "개"))
+        ),
+        el("div", { class: "total" }, won(line.lineTotal)),
+        el("div", { class: "stepper" }, minus, el("span", {}, line.quantity), plus),
+        el("div", { style: "text-align: right;" }, remove)
+      ));
+    }
+  }
+
+  async function addToCart(item, quantity) {
+    const result = await request("POST", API.cartItems, { wishlistItemId: item.id, quantity });
+    if (result.ok) {
+      // 201: 새 줄 / 200: 같은 상품이라 수량 합산
+      toast(result.status === 201
+        ? `장바구니에 담았어요: ${item.name} ${quantity}개`
+        : `이미 담긴 상품이라 수량을 합쳤어요: ${item.name} → ${result.data.quantity}개`);
+      notice("cart-notice", "", "");
+      await loadCart();
+    } else {
+      toast(messageOf(result), true);
+    }
+  }
+
+  async function changeQuantity(line, quantity) {
+    const result = await request("PATCH", `${API.cartItems}/${line.id}`, { quantity });
+    if (result.ok) {
+      notice("cart-notice", "", "");
+      await loadCart();
+    } else {
+      notice("cart-notice", messageOf(result), "error");
+    }
+  }
+
+  async function removeLine(line) {
+    const result = await request("DELETE", `${API.cartItems}/${line.id}`);
+    if (result.ok) {
+      toast(`장바구니에서 뺐어요: ${line.name}`);
+      await loadCart();
+    } else {
+      toast(messageOf(result), true);
+    }
+  }
+
+  // ---------- 쿠폰 미리보기 ----------
+  async function loadPreview() {
+    const coupon = $("coupon").value;
+    const result = await request("GET", `${API.preview}?couponCode=${encodeURIComponent(coupon)}`);
+    if (!result.ok) {
+      notice("preview-notice", messageOf(result), "error");
+      renderPreview(null);
+      return;
+    }
+    notice("preview-notice", "", "");
+    renderPreview(result.data);
+    hideBest();
+  }
+
+  function renderPreview(data) {
+    const value = (n) => (data ? won(n) : "—");
+    $("pv-subtotal").textContent = data ? won(data.subtotal) : won(state.cart.subtotal);
+    $("pv-discount").textContent = data ? (data.discount ? "−" + won(data.discount) : "0원") : "—";
+    $("pv-discounted").textContent = value(data && data.discountedSubtotal);
+    $("pv-shipping").textContent = data ? (data.shipping ? won(data.shipping) : "무료") : "—";
+    $("pv-final").textContent = value(data && data.finalAmount);
+  }
+
+  $("coupon").addEventListener("change", loadPreview);
+
+  // ---------- 최저 금액 쿠폰 ----------
+  $("best-coupon").addEventListener("click", (event) => busy(event.currentTarget, async () => {
+    const result = await request("GET", API.bestCoupon);
+    if (!result.ok) {
+      toast(messageOf(result), true);
+      return;
+    }
+    state.best = result.data.best;
+    const body = $("best-body");
+    body.replaceChildren();
+    for (const c of result.data.candidates) {
+      body.append(el("tr", { class: c.coupon === state.best.coupon ? "is-best" : "" },
+        el("td", {}, c.coupon),
+        el("td", { class: "num" }, c.discount ? "−" + won(c.discount) : "0원"),
+        el("td", { class: "num" }, c.shipping ? won(c.shipping) : "무료"),
+        el("td", { class: "num" }, won(c.finalAmount))
+      ));
+    }
+    $("apply-best").textContent = `${state.best.coupon}로 보기 (${won(state.best.finalAmount)})`;
+    $("best-wrap").hidden = false;
+  }));
+
+  $("apply-best").addEventListener("click", async () => {
+    if (!state.best) return;
+    $("coupon").value = state.best.coupon;
+    await loadPreview();
+  });
+
+  function hideBest() {
+    $("best-wrap").hidden = true;
+    state.best = null;
+  }
+
+  // =========================================================
+  // 시작
+  // =========================================================
+  (async function start() {
+    await loadItems();
+    await Promise.all([loadExternal(), loadCart()]);
+  })();
+</script>
+</body>
+</html>
