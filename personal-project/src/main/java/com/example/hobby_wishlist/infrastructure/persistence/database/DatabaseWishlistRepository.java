@@ -98,7 +98,7 @@ public class DatabaseWishlistRepository implements WishlistRepository {
                 """
                         SELECT * FROM wishlist_items
                                  WHERE price <= :budget
-                                 ORDER BY id
+                                 ORDER BY price ASC, id ASC
                                  LIMIT 3
                         """,
                 new MapSqlParameterSource("budget", budget),
