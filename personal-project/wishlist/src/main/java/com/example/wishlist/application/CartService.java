@@ -30,7 +30,7 @@ public class CartService {
         CartItem existing = cartRepository.findByWishItemId(wishItemId);
         if (existing != null) {
             existing.addQuantity(quantity);
-            return existing;
+            return cartRepository.update(existing);
         }
 
         new Cart(cartRepository.findAll()).checkCanAddNewKind();
@@ -45,7 +45,7 @@ public class CartService {
     public CartItem changeQuantity(Long cartItemId, int quantity) {
         CartItem cartItem = findCartItem(cartItemId);
         cartItem.changeQuantity(quantity);
-        return cartItem;
+        return cartRepository.update(cartItem);
     }
 
     public void remove(Long cartItemId) {

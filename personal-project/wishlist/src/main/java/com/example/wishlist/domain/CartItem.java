@@ -5,11 +5,14 @@ public class CartItem {
     public static final int MAX_QUANTITY = 5;
 
     private Long id;
-    private final Long wishItemId;
-    private final String name;
-    private final long unitPrice;
-    private final Integer stock;
+    private Long wishItemId;
+    private String name;
+    private long unitPrice;
+    private Integer stock;
     private int quantity;
+
+    public CartItem() {
+    }
 
     private CartItem(Long wishItemId, String name, long unitPrice, Integer stock, int quantity) {
         this.wishItemId = wishItemId;
@@ -90,5 +93,25 @@ public class CartItem {
 
     public int getQuantity() {
         return quantity;
+    }
+
+    public void setWishItemId(Long wishItemId) {
+        this.wishItemId = wishItemId;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setUnitPrice(long unitPrice) {
+        this.unitPrice = unitPrice;
+    }
+
+    public void setStock(Integer stock) {
+        this.stock = stock;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
     }
 }

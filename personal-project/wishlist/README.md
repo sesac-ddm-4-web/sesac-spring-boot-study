@@ -1,19 +1,23 @@
-# 취미 위시리스트, 외부 상품 연동, 장바구니
+# 취미 위시리스트, 외부 상품 연동, 장바구니, DB 연동
 
 사고 싶은 물건을 등록하고 예산 안에서 추천받는 위시리스트에, DummyJSON 외부 상품 검색과 가져오기, 장바구니(쿠폰, 배송비 미리보기)를 더한 API입니다.
+위시리스트와 장바구니는 MySQL에 저장하므로 서버를 다시 시작해도 데이터가 남습니다.
 
 ## 환경
 
 | 항목 | 버전 |
 |---|---|
 | Java | 21 |
-| Spring Boot | 4.1.2 (spring-boot-starter-webmvc, spring-boot-starter-validation) |
+| Spring Boot | 4.1.2 (spring-boot-starter-webmvc, spring-boot-starter-validation, spring-boot-starter-jdbc) |
+| DB | MySQL 8.0.29 (Docker 컨테이너), `mysql-connector-j`, `NamedParameterJdbcTemplate` |
 | 외부 호출 | Spring Web에 포함된 `RestClient` (별도 HTTP 라이브러리 없음) |
 | 빌드 | Gradle 9.8.2 (Wrapper 포함) |
-| 테스트 | JUnit 5, MockMvc |
+| 테스트 | JUnit 5, MockMvc, MySQL 테스트 DB(`wishlist_test`) |
 | 화면 | 순수 HTML, CSS, JavaScript (외부 라이브러리, CDN 없음) |
 
 ## 실행과 테스트
+
+실행 전 준비는 [1-3. 실행 설정](#1-3-실행-설정)을 먼저 확인합니다. MySQL 컨테이너가 켜져 있어야 서버와 테스트가 동작합니다.
 
 `personal-project/wishlist` 폴더에서 실행합니다.
 
@@ -27,7 +31,183 @@ Windows 명령 프롬프트에서는 `gradlew.bat bootRun`, `gradlew.bat test`�
 
 ---
 
-## 1. API 계약
+## 1. DB 연동
+
+메모리(`ArrayList`) 저장소를 MySQL 저장소로 바꿨습니다. Controller, Service, API 계약은 그대로이고, Service는 계속 Repository **인터페이스**만 압니다.
+
+```
+Controller → Service → CollectionItemRepository / CartItemRepository (인터페이스)
+                          ├─ 실행: DatabaseCollectionItemRepository, DatabaseCartItemRepository (MySQL)
+                          └─ 단위 테스트: ListCollectionItemRepository, ListCartItemRepository (src/test, 메모리)
+```
+
+### 1-1. 테이블
+
+전체 DDL: [`src/main/resources/schema.sql`](src/main/resources/schema.sql)
+
+**`collection_items`** (위시리스트)
+
+| 컬럼 | 자료형 | NULL | 제약 | 자바 필드 | 설명 |
+|---|---|---|---|---|---|
+| `id` | BIGINT | X | PK, AUTO_INCREMENT | `Long id` | 내 로컬 id. DB가 부여 |
+| `name` | VARCHAR(100) | X | | `String name` | 수동 상품은 같은 이름 허용 (UNIQUE 없음) |
+| `price` | INT | X | | `int price` | 원 단위. 0 허용 |
+| `source_type` | VARCHAR(20) | X | UNIQUE ① | `SourceType sourceType` | enum을 문자열로 저장 (`MANUAL`, `DUMMYJSON`) |
+| `external_id` | BIGINT | O | UNIQUE ① | `Long externalId` | 외부 상품 id. 수동 상품은 NULL |
+| `stock` | INT | O | | `Integer stock` | 가져올 때의 외부 재고. 수동 상품은 NULL |
+
+① `uk_collection_items_source_external UNIQUE (source_type, external_id)`: 같은 출처의 같은 외부 상품은 한 줄만. MySQL UNIQUE는 NULL끼리 중복으로 보지 않으므로 `external_id`가 NULL인 수동 상품은 여러 개 저장됩니다.
+
+**`cart_items`** (장바구니 한 줄)
+
+| 컬럼 | 자료형 | NULL | 제약 | 자바 필드 | 설명 |
+|---|---|---|---|---|---|
+| `id` | BIGINT | X | PK, AUTO_INCREMENT | `Long id` | 장바구니 행 id. 수량 변경, 삭제에 사용 |
+| `wish_item_id` | BIGINT | X | UNIQUE ② | `Long wishItemId` | 원본 위시리스트 로컬 id (FK 없음) |
+| `name` | VARCHAR(100) | X | | `String name` | 처음 담을 때 복사한 이름 |
+| `unit_price` | BIGINT | X | | `long unitPrice` | 처음 담을 때 복사한 단가 |
+| `stock` | INT | O | | `Integer stock` | 처음 담을 때 복사한 재고. 수동 상품은 NULL (재고 제한 없음) |
+| `quantity` | INT | X | | `int quantity` | 1~5 (범위 검사는 domain) |
+
+② `uk_cart_items_wish_item UNIQUE (wish_item_id)`: 같은 원본은 장바구니에 한 줄 (다시 담으면 합산).
+
+**FK를 걸지 않은 이유**
+
+장바구니는 원본을 참조하는 대신 담는 순간의 이름, 단가, 재고를 복사해 둡니다. 원본 위시를 수정, 삭제해도 장바구니 행과 원본 id는 그대로 남아야 합니다 (기존 규칙).
+
+| 선택지 | 위시 삭제 시 | 맞지 않는 이유 |
+|---|---|---|
+| `ON DELETE CASCADE` | 장바구니 행도 삭제 | 장바구니를 함께 지우면 안 됨 |
+| `ON DELETE RESTRICT` | 위시 삭제를 막음 | 기존 API는 장바구니에 담긴 상품도 삭제 가능 (동작 변경) |
+| `ON DELETE SET NULL` | `wish_item_id`가 NULL | 원본 로컬 id를 보존하지 못함 |
+| **FK 없음** | 장바구니 행 그대로 | 원본 존재 확인은 담을 때 Service가 함 (없으면 404) |
+
+### 1-2. SQL
+
+모두 `NamedParameterJdbcTemplate`의 이름 있는 파라미터(`:name`)를 씁니다. 조회 결과는 `BeanPropertyRowMapper`로 객체에 채웁니다.
+
+| Repository 메서드 | SQL | 비고 |
+|---|---|---|
+| 위시 `add` | `INSERT INTO collection_items (name, price, source_type, external_id, stock) VALUES (...)` | `GeneratedKeyHolder`로 DB가 만든 id를 받아 객체에 넣음. enum은 `VARCHAR`로 등록해 문자열로 저장 |
+| 위시 `findById` | `SELECT ... FROM collection_items WHERE id=:id` | 없으면 `null` (Service가 404) |
+| 위시 `findByExternalId` | `SELECT ... WHERE source_type=:sourceType AND external_id=:externalId` | 중복 가져오기 확인 |
+| 위시 `findAll` | `SELECT ... FROM collection_items ORDER BY id` | 등록 순서. 추천의 같은 가격 순서도 이 순서를 따름 |
+| 위시 `update` | `UPDATE collection_items SET name = :name, price = :price WHERE id = :id` | 바뀌는 값(이름, 가격)만 |
+| 위시 `delete` | `DELETE FROM collection_items WHERE id=:id` | 지운 행 수 > 0이면 `true` (0이면 Service가 404) |
+| 장바구니 `add` | `INSERT INTO cart_items (wish_item_id, name, unit_price, stock, quantity) VALUES (...)` | |
+| 장바구니 `findById`, `findByWishItemId` | `SELECT ... FROM cart_items WHERE id=:id` / `WHERE wish_item_id=:wishItemId` | 없으면 `null` |
+| 장바구니 `findAll` | `SELECT ... FROM cart_items ORDER BY id` | 담은 순서 |
+| 장바구니 `update` | `UPDATE cart_items SET quantity = :quantity WHERE id = :id` | 바뀌는 값(수량)만 |
+| 장바구니 `delete` | `DELETE FROM cart_items WHERE id=:id` | |
+
+**변경 저장 순서**
+
+DB에서 읽은 객체는 복사본이라 값을 바꿔도 DB에 반영되지 않습니다. 그래서 Repository에 `update`를 추가하고, Service는 "domain 규칙 검사와 값 변경 → `update`" 순서로 호출합니다. 규칙 검사에서 예외가 나면 `update`까지 가지 않으므로 실패한 요청은 DB를 바꾸지 않습니다.
+
+| Service 메서드 | 순서 |
+|---|---|
+| `WishService.update` | `findById` → 외부 상품 거부, 입력 검증 → `item.update(...)` → `repository.update(item)` |
+| `CartService.add` (이미 담긴 상품) | `findByWishItemId` → `addQuantity` (5개, 재고 검사) → `cartRepository.update(...)` |
+| `CartService.changeQuantity` | `findById` → `changeQuantity` (범위, 재고 검사) → `cartRepository.update(...)` |
+
+**409 변환**
+
+중복은 Service가 먼저 확인해 `DuplicateItemException`(409)을 냅니다. 확인과 저장 사이에 같은 요청이 동시에 들어와 DB UNIQUE에 걸리면 Spring이 `DuplicateKeyException`을 던지고, `GlobalExceptionHandler`가 이것도 409로 바꿉니다.
+
+### 1-3. 실행 설정
+
+1. MySQL 컨테이너 실행 (호스트 3306은 다른 MySQL이 쓰고 있어 3307을 사용)
+
+   ```bash
+   docker run -d --name some-mysql -p 3307:3306 -e MYSQL_ROOT_PASSWORD=<비밀번호> mysql:8.0.29
+   ```
+
+   이후에는 `docker start some-mysql`로 켭니다.
+
+2. 스키마 생성 (테이블은 서버, 테스트가 시작할 때 `schema.sql`로 만듭니다)
+
+   ```sql
+   CREATE DATABASE wishlist;
+   CREATE DATABASE wishlist_test;
+   ```
+
+3. 비밀번호 파일 만들기: `src/main/resources/application-local.yaml` (`.gitignore`에 포함, 커밋하지 않음)
+
+   ```yaml
+   spring:
+     datasource:
+       password: <비밀번호>
+   ```
+
+   파일 대신 환경 변수 `DB_PASSWORD`로 넣어도 됩니다.
+
+| 파일 | 내용 |
+|---|---|
+| `src/main/resources/application.yaml` | `jdbc:mysql://localhost:3307/wishlist`, `root`, `application-local.yaml` 가져오기, `spring.sql.init.mode: always` |
+| `src/main/resources/application-local.yaml` | DB 비밀번호 (커밋하지 않음) |
+| `src/main/resources/schema.sql` | `CREATE TABLE IF NOT EXISTS` 두 개. 시작할 때마다 실행되지만 기존 테이블, 데이터는 건드리지 않음 |
+| `src/test/resources/application-test.yaml` | `test` 프로필일 때 URL만 `wishlist_test`로 교체 |
+
+DB를 쓰는 테스트(`ApiStatusTest`, `Database...RepositoryTest`)는 `@ActiveProfiles("test")`로 `wishlist_test`만 사용하고, 테스트마다 두 테이블을 `TRUNCATE`해서 개발용 `wishlist` 데이터는 지우지 않습니다.
+
+### 1-4. Repository 통합 테스트
+
+`wishlist_test`에 실제 SQL을 실행합니다. 단위 테스트는 메모리 저장소를 쓰므로 SQL, 컬럼, 객체 복원 문제는 이 테스트로 확인합니다.
+
+| 테스트 | 확인 항목 | 분류 |
+|---|---|---|
+| `DatabaseCollectionItemRepositoryTest.manualItemRoundTrip` | DB id 부여, `source_type`에 문자열 `MANUAL` 저장, NULL인 `externalId`, `stock`이 0이 아닌 `null`로 복원 | SQL, 객체 복원 |
+| `externalItemRoundTrip` | `DUMMYJSON`, `externalId`, `stock` 복원, source + externalId 조회 | 객체 복원 |
+| `findAllKeepsInsertOrder` | `ORDER BY id` 등록 순서, 같은 가격 추천도 등록 순서 | SQL, 기존 규칙 |
+| `update` | 이름, 가격만 바뀌고 출처는 그대로 | SQL |
+| `failedUpdateKeepsRow` | 외부 상품 수정 거부, 음수 가격 거부 뒤 DB 값 유지 | 실패 보존 |
+| `manualNameDuplicateAllowed` | 같은 이름 수동 상품 두 개 저장 | 제약 |
+| `externalUniqueConstraint` | 같은 외부 상품 중복 저장은 `DuplicateKeyException`, 기존 행 유지 | 제약, 실패 보존 |
+| `notFoundAndDelete` | 없는 id는 `null`, 삭제는 한 번만 `true` | SQL |
+| `DatabaseCartItemRepositoryTest.roundTrip` | 행 id, 원본 id, 수량, 이름, 단가, 재고 복사본 복원 | 객체 복원 |
+| `manualStockIsNull` | 수동 상품 행의 재고 NULL 복원 | 객체 복원 |
+| `findAllKeepsInsertOrder` | `ORDER BY id` 담은 순서 | SQL |
+| `quantityUpdate` | 합산, 수량 변경이 DB에 반영, 한 줄 유지 | SQL |
+| `failedQuantityKeepsRow` | 합산 초과, 재고 초과(409), 범위 밖(400) 뒤 DB 수량 유지 | 실패 보존 |
+| `wishItemUniqueConstraint` | 같은 원본 두 줄 저장은 `DuplicateKeyException`, 기존 행 유지 | 제약, 실패 보존 |
+| `originalChangesDoNotTouchCart` | 원본 수정, 삭제 뒤에도 장바구니 복사본, 원본 id 유지, 수량 변경 가능 | FK 없음 설계 |
+| `notFoundAndDelete` | 없는 행 `null`, 삭제는 한 번만 `true` | SQL |
+
+### 1-5. 수동 QA
+
+서버를 실행하고 `http://localhost:8080/wish.html` 또는 Postman으로 확인합니다. 시작 전 `wishlist`의 두 테이블을 비우고, 응답과 함께 `SELECT * FROM collection_items;`, `SELECT * FROM cart_items;`로 DB도 확인합니다.
+
+| 분류 | 요청 | 기대 결과 | 실제 결과 |
+|---|---|---|---|
+| 정상 | 수동 상품 등록 `키보드`, 50000 | 200, DB에 `MANUAL`, `external_id`·`stock` NULL | |
+| 정상 | 같은 이름 `키보드`, 0원 한 번 더 등록 | 200, 새 id로 두 번째 행 (이름 중복, 0원 허용) | |
+| 정상 | 외부 상품 1번 가져오기 | 200, DB에 `DUMMYJSON`, `external_id` 1, `stock` 저장 | |
+| 정상 | 첫 번째 `키보드`를 장바구니에 2개 → 1개 더 | 200, `cart_items` 한 줄, `quantity` 3 | |
+| 정상 | 첫 번째 `키보드` 이름, 가격 수정 | 200, `collection_items` 반영, `cart_items`의 이름, 단가는 그대로 | |
+| 실패 | 외부 상품 1번 다시 가져오기 | 409, 행 수 그대로 | |
+| 실패 | 장바구니의 `키보드` 3개 더 담기 (합계 6) | 409, `quantity` 3 그대로 | |
+| 실패 | 가격 -1로 등록 | 400, 행 수 그대로 | |
+| 실패 | 없는 id 조회 `GET /wish/items/999` | 404 | |
+| 재시작 | 서버 종료 → 다시 실행 → 위시 목록, 장바구니 조회 | 재시작 전 데이터, id, 수량 그대로 | |
+| 재시작 | 재시작 후 새 상품 등록 | id가 1부터가 아니라 이어서 증가 | |
+| 재시작 | 재시작 후 외부 상품 1번 다시 가져오기 | 409 (중복 규칙이 재시작 뒤에도 유지) | |
+
+### 1-6. 완료 범위
+
+- [x] 위시리스트, 장바구니를 MySQL 테이블 두 개에 저장 (`schema.sql`)
+- [x] id: DB `AUTO_INCREMENT`. 로컬 id와 외부 `source_type` + `external_id` 구분 유지
+- [x] 외부 상품 조합 DB UNIQUE, 충돌 409 변환. 수동 상품 이름 중복 허용
+- [x] 장바구니 행 id, 원본 로컬 id, 수량, 이름·단가·재고 복사본 보존. FK 없이 원본 삭제와 분리
+- [x] 목록 SQL `ORDER BY id`, 추천 동률 등록 순서 유지
+- [x] 가격 0, 입력 검증, 400, 404, 409, 502 등 기존 API 동작 유지
+- [x] 외부 요청 실패 시 저장하지 않고 기존 DB 유지 (검사 통과 후에만 `add`)
+- [x] 별도 테스트 DB에서 Repository 통합 테스트 16개 (SQL, 객체 복원, 실패 보존, 제약)
+- [x] 기존 단위 테스트(검증, 추천, 쿠폰 계산) 수정 없이 유지
+- [x] DB 비밀번호는 커밋하지 않는 `application-local.yaml`로 분리
+
+---
+
+## 2. API 계약
 
 ### 요청 형식
 
@@ -96,7 +276,7 @@ Windows 명령 프롬프트에서는 `gradlew.bat bootRun`, `gradlew.bat test`�
 |---|---|
 | 이름 | `null`, 빈 문자열, 공백만 있는 이름은 거부. 앞뒤 공백은 제거해서 저장 |
 | 가격 | 0 이상의 정수. 무료 아이템(0원) 허용 |
-| id | 저장할 때 프로그램이 1부터 차례로 부여. 등록 응답에 담긴 실제 id로 조회 |
+| id | 저장할 때 DB가 `AUTO_INCREMENT`로 부여. 등록 응답에 담긴 실제 id로 조회 |
 | 실패한 등록 | 검증을 모두 통과한 뒤에만 저장하므로 목록과 다음 id가 바뀌지 않음 |
 | 예산, 추천 | 예산 0 이상. 개별 가격이 예산 이하인 물건만, 가격 오름차순, 같은 가격은 등록 순서 유지, 최대 3개 |
 
@@ -116,7 +296,7 @@ Windows 명령 프롬프트에서는 `gradlew.bat bootRun`, `gradlew.bat test`�
 
 #### 장바구니
 
-서버 메모리에 장바구니 하나를 관리합니다. 재고 예약, 차감이나 결제는 하지 않습니다.
+장바구니 하나를 DB(`cart_items`)에 저장합니다 (사용자 구분 없음). 재고 예약, 차감이나 결제는 하지 않습니다.
 
 | 대상 | 규칙 |
 |---|---|
@@ -152,7 +332,7 @@ Windows 명령 프롬프트에서는 `gradlew.bat bootRun`, `gradlew.bat test`�
 
 ---
 
-## 2. 클래스 책임
+## 3. 클래스 책임
 
 ```
 src/main/java/com/example/wishlist
@@ -160,7 +340,7 @@ src/main/java/com/example/wishlist
 │  └─ dto/         요청 DTO, 응답 DTO
 ├─ application/    작업 순서 조율
 ├─ domain/         업무 규칙과 Repository 인터페이스
-└─ infrastructure/ 메모리 저장, 외부 API 호출
+└─ infrastructure/ DB 저장(JDBC), 외부 API 호출
 ```
 
 | 계층 | 맡는 일 | 하지 않는 일 |
@@ -168,7 +348,7 @@ src/main/java/com/example/wishlist
 | Controller | HTTP 요청을 DTO로 받기, `@Valid`, `@Min` 같은 입력 형식 검사, 응답 DTO로 변환 | 할인 계산, 저장, 외부 호출 |
 | Service | "원본 찾기 → 규칙 검사 맡기기 → 저장" 순서 조율 | 규칙 숫자(5개, 20종, 10%)를 직접 다루기 |
 | Domain | 수량, 재고, 종류, 금액 규칙 | HTTP, 저장 방법, 외부 API |
-| Repository | 메모리 저장, 조회 | 규칙 검사 |
+| Repository | SQL로 저장, 조회, 수정, 삭제 | 규칙 검사 |
 | Client | DummyJSON 호출, 연결 3초, 읽기 5초 제한, 실패 → 404/502 | 저장, 가격 환산 |
 
 | 패키지 | 클래스 | 책임 |
@@ -192,7 +372,8 @@ src/main/java/com/example/wishlist
 | | `CollectionItemRepository`, `CartItemRepository` | 저장소 인터페이스 (Service는 이것만 앎) |
 | | `ItemNotFoundException`, `CartItemNotFoundException` | 404 |
 | | `DuplicateItemException`, `CartConflictException` | 409 |
-| infrastructure | `ListCollectionItemRepository`, `ListCartItemRepository` | Repository 인터페이스의 `ArrayList` 구현 |
+| infrastructure | `DatabaseCollectionItemRepository`, `DatabaseCartItemRepository` | Repository 인터페이스의 MySQL 구현 (`NamedParameterJdbcTemplate`) |
+| (src/test) | `ListCollectionItemRepository`, `ListCartItemRepository` | 단위 테스트용 `ArrayList` 구현 |
 | | `DummyJsonClient` | DummyJSON 호출, 시간 제한, 실패 → 404/502 |
 | | `DummyJsonProduct`, `DummyJsonProductList` | DummyJSON 응답 모양 그대로의 DTO |
 
@@ -200,7 +381,7 @@ src/main/java/com/example/wishlist
 
 ---
 
-## 3. 단계별 완료 범위
+## 4. 단계별 완료 범위
 
 ### 기존
 - [x] 위시리스트 등록, 목록, 단건 조회, 예산 추천과 테스트 (변경 없이 유지)
@@ -225,9 +406,9 @@ src/main/java/com/example/wishlist
 
 ---
 
-## 4. QA, 테스트
+## 5. QA, 테스트
 
-`./gradlew test` 결과: **39개 모두 통과**. 외부 호출은 `FakeDummyJsonClient`로 바꿔서 인터넷 없이 실행됩니다.
+`./gradlew test` 결과: **55개 모두 통과** (기존 39개 + Repository 통합 테스트 16개). 외부 호출은 `FakeDummyJsonClient`로 바꿔서 인터넷 없이 실행됩니다. DB를 쓰는 테스트는 MySQL `wishlist_test`가 필요합니다.
 
 ### 자율 체크리스트
 
@@ -254,7 +435,8 @@ src/main/java/com/example/wishlist
 | `WishServiceTest` | 5 | 기존 위시리스트 |
 | `PriceConverterTest`, `PaymentPreviewTest` | 2, 6 | 금액 규칙 (Spring 없이) |
 | `ExternalProductServiceTest`, `CartServiceTest` | 6, 12 | 작업 순서와 실패 보존 (Spring 없이) |
-| `ApiStatusTest` | 8 | HTTP 상태 코드 (`@SpringBootTest`, MockMvc) |
+| `ApiStatusTest` | 8 | HTTP 상태 코드 (`@SpringBootTest`, MockMvc, `wishlist_test`) |
+| `DatabaseCollectionItemRepositoryTest`, `DatabaseCartItemRepositoryTest` | 8, 8 | SQL, 객체 복원, 실패 보존, 제약 (`wishlist_test`, 1-4 참고) |
 
 ### 실제 결과 (서버를 실행해 실제 DummyJSON으로 요청)
 
@@ -284,13 +466,12 @@ GET /wish/recommendations?budget=1499   → 200 [스티커 0]
 
 ---
 
-## 5. 남은 문제
+## 6. 남은 문제
 
 | 문제 | 현재 상태 |
 |---|---|
-| 데이터가 메모리에만 있음 | 서버를 다시 시작하면 위시리스트, 장바구니가 비워지고 id도 1부터 다시 시작 |
 | 장바구니가 하나뿐 | 사용자 구분이 없어서 모든 요청이 같은 장바구니를 씀 |
-| 동시 요청 | `ArrayList`를 그대로 써서 여러 요청이 동시에 바꾸는 상황은 고려하지 않음 |
+| 동시 요청 | 중복 저장은 DB UNIQUE가 막지만, 같은 장바구니 행의 수량을 동시에 바꾸는 경우(읽고 → 바꾸고 → 저장 사이 경합)는 고려하지 않음 |
 | 외부 값 갱신 | 가져온 뒤 DummyJSON의 가격, 재고가 바뀌어도 반영하지 않음 (조건대로). 장바구니 재고도 처음 복사한 값 기준 |
 | 실패 응답 형식 | 메시지 문자열만 보냄. 에러 코드가 담긴 JSON 형식은 아님 |
 | 요청 형식이 섞임 | 기존 위시리스트 API는 form 값, 새 쓰기 API는 JSON (기존 화면을 바꾸지 않으려고 유지) |

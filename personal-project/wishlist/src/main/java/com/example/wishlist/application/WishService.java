@@ -43,7 +43,7 @@ public class WishService {
         }
         validate(name, price);
         item.update(name.strip(), price);
-        return item;
+        return repository.update(item);
     }
 
     public void delete(Long id) {

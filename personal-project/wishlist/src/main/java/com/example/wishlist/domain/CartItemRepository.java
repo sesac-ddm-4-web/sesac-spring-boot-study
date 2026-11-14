@@ -12,5 +12,7 @@ public interface CartItemRepository {
 
     List<CartItem> findAll();
 
+    CartItem update(CartItem cartItem);
+
     boolean delete(Long id);
 }

@@ -3,12 +3,10 @@ package com.example.wishlist.infrastructure;
 import com.example.wishlist.domain.CollectionItem;
 import com.example.wishlist.domain.CollectionItemRepository;
 import com.example.wishlist.domain.SourceType;
-import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Repository
 public class ListCollectionItemRepository implements CollectionItemRepository {
     private List<CollectionItem> items = new ArrayList<>();
     private long nextId = 1;
@@ -43,6 +41,11 @@ public class ListCollectionItemRepository implements CollectionItemRepository {
     @Override
     public List<CollectionItem> findAll() {
         return new ArrayList<>(items);
+    }
+
+    @Override
+    public CollectionItem update(CollectionItem collectionItem) {
+        return collectionItem;
     }
 
     @Override

@@ -2,12 +2,10 @@ package com.example.wishlist.infrastructure;
 
 import com.example.wishlist.domain.CartItem;
 import com.example.wishlist.domain.CartItemRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Repository
 public class ListCartItemRepository implements CartItemRepository {
     private List<CartItem> items = new ArrayList<>();
     private long nextId = 1;
@@ -42,6 +40,11 @@ public class ListCartItemRepository implements CartItemRepository {
     @Override
     public List<CartItem> findAll() {
         return new ArrayList<>(items);
+    }
+
+    @Override
+    public CartItem update(CartItem cartItem) {
+        return cartItem;
     }
 
     @Override

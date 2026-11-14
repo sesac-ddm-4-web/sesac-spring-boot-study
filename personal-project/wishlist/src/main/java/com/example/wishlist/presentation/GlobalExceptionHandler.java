@@ -4,6 +4,7 @@ import com.example.wishlist.domain.CartConflictException;
 import com.example.wishlist.domain.CartItemNotFoundException;
 import com.example.wishlist.domain.DuplicateItemException;
 import com.example.wishlist.domain.ItemNotFoundException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -50,6 +51,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({DuplicateItemException.class, CartConflictException.class})
     public ResponseEntity<String> handleConflict(RuntimeException e) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+    }
+
+    @ExceptionHandler(DuplicateKeyException.class)
+    public ResponseEntity<String> handleDuplicateKey(DuplicateKeyException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body("이미 등록된 항목입니다.");
     }
 
     @ExceptionHandler(ResponseStatusException.class)

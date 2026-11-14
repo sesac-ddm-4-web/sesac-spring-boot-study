@@ -2,6 +2,7 @@ package com.example.wishlist.presentation;
 
 import com.example.wishlist.infrastructure.DummyJsonClient;
 import com.example.wishlist.infrastructure.FakeDummyJsonClient;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +12,9 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -22,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
+@ActiveProfiles("test")
 @AutoConfigureMockMvc
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class ApiStatusTest {
@@ -42,6 +46,15 @@ class ApiStatusTest {
 
     @Autowired
     private DummyJsonClient client;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @BeforeEach
+    void clearTables() {
+        jdbcTemplate.execute("TRUNCATE TABLE cart_items");
+        jdbcTemplate.execute("TRUNCATE TABLE collection_items");
+    }
 
     private void importExternal(long externalId) throws Exception {
         mockMvc.perform(post("/wish/items/import")

@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: wishlist
+  config:
+    import: optional:classpath:application-local.yaml
+  datasource:
+    url: jdbc:mysql://localhost:3307/wishlist
+    username: root
+    password: ${DB_PASSWORD:}
+  sql:
+    init:
+      mode: always

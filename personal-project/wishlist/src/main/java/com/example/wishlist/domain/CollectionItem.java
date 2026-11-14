@@ -8,6 +8,9 @@ public class CollectionItem {
     private Long externalId;
     private Integer stock;
 
+    public CollectionItem() {
+    }
+
     public CollectionItem(String name, int price) {
         this(name, price, SourceType.MANUAL, null, null);
     }
@@ -55,5 +58,25 @@ public class CollectionItem {
 
     public Integer getStock() {
         return stock;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setPrice(int price) {
+        this.price = price;
+    }
+
+    public void setSourceType(SourceType sourceType) {
+        this.sourceType = sourceType;
+    }
+
+    public void setExternalId(Long externalId) {
+        this.externalId = externalId;
+    }
+
+    public void setStock(Integer stock) {
+        this.stock = stock;
     }
 }

@@ -12,5 +12,7 @@ public interface CollectionItemRepository {
 
     List<CollectionItem> findAll();
 
+    CollectionItem update(CollectionItem collectionItem);
+
     boolean delete(Long id);
 }
