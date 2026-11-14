@@ -18,3 +18,7 @@ Issue와 PR 제목은 `[11/05][홍길동] 인사 API 구현`처럼 날짜·이�
 
 [수업 자료 모음](https://graygreat.github.io/mentoring-archive/)에서 날짜별 실습 요구사항과 제출 안내를 확인합니다.
 
+
+## 실습 프로젝트
+
+- [취미 위시리스트 구현](personal-project/README.md)
