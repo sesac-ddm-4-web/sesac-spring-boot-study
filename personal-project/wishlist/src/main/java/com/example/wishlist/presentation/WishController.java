@@ -1,26 +1,30 @@
 package com.example.wishlist.presentation;
 
+import com.example.wishlist.application.ExternalProductService;
 import com.example.wishlist.application.WishService;
 import com.example.wishlist.domain.CollectionItem;
-import com.example.wishlist.domain.ItemNotFoundException;
-import org.springframework.http.HttpStatus;
+import com.example.wishlist.presentation.dto.ImportRequest;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.List;
 
 @RestController
 public class WishController {
     private final WishService service;
+    private final ExternalProductService externalProductService;
 
-    public WishController(WishService service) {
+    public WishController(WishService service, ExternalProductService externalProductService) {
         this.service = service;
+        this.externalProductService = externalProductService;
     }
 
     @PostMapping("/wish/items")
@@ -28,6 +32,11 @@ public class WishController {
             @RequestParam(name = "name", required = false) String name,
             @RequestParam(name = "price", required = false) Integer price) {
         return service.register(name, price);
+    }
+
+    @PostMapping("/wish/items/import")
+    public CollectionItem importExternal(@Valid @RequestBody ImportRequest request) {
+        return externalProductService.importToWishlist(request.externalId());
     }
 
     @GetMapping("/wish/items")
@@ -40,25 +49,23 @@ public class WishController {
         return service.findById(id);
     }
 
+    @PutMapping("/wish/items/{id}")
+    public CollectionItem update(
+            @PathVariable("id") Long id,
+            @RequestParam(name = "name", required = false) String name,
+            @RequestParam(name = "price", required = false) Integer price) {
+        return service.update(id, name, price);
+    }
+
+    @DeleteMapping("/wish/items/{id}")
+    public ResponseEntity<Void> delete(@PathVariable("id") Long id) {
+        service.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/wish/recommendations")
     public List<CollectionItem> recommend(
             @RequestParam(name = "budget", required = false) Integer budget) {
         return service.recommend(budget);
-    }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> handleBadRequest(IllegalArgumentException e) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-    }
-
-    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<String> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(e.getName() + "은(는) 정수로 입력해 주세요.");
-    }
-
-    @ExceptionHandler(ItemNotFoundException.class)
-    public ResponseEntity<String> handleNotFound(ItemNotFoundException e) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }
 }

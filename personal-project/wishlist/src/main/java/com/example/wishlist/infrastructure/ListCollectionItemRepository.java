@@ -2,6 +2,7 @@ package com.example.wishlist.infrastructure;
 
 import com.example.wishlist.domain.CollectionItem;
 import com.example.wishlist.domain.CollectionItemRepository;
+import com.example.wishlist.domain.SourceType;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -30,7 +31,22 @@ public class ListCollectionItemRepository implements CollectionItemRepository {
     }
 
     @Override
+    public CollectionItem findByExternalId(SourceType sourceType, Long externalId) {
+        for (CollectionItem item : items) {
+            if (item.getSourceType() == sourceType && externalId.equals(item.getExternalId())) {
+                return item;
+            }
+        }
+        return null;
+    }
+
+    @Override
     public List<CollectionItem> findAll() {
         return new ArrayList<>(items);
+    }
+
+    @Override
+    public boolean delete(Long id) {
+        return items.removeIf(item -> item.getId().equals(id));
     }
 }

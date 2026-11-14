@@ -19,15 +19,7 @@ public class WishService {
     }
 
     public CollectionItem register(String name, Integer price) {
-        if (name == null || name.strip().isEmpty()) {
-            throw new IllegalArgumentException("이름을 입력해 주세요.");
-        }
-        if (price == null) {
-            throw new IllegalArgumentException("가격을 입력해 주세요.");
-        }
-        if (price < 0) {
-            throw new IllegalArgumentException("가격은 0원 이상이어야 합니다.");
-        }
+        validate(name, price);
         CollectionItem collectionItem = new CollectionItem(name.strip(), price);
         return repository.add(collectionItem);
     }
@@ -44,6 +36,22 @@ public class WishService {
         return item;
     }
 
+    public CollectionItem update(Long id, String name, Integer price) {
+        CollectionItem item = findById(id);
+        if (item.isExternal()) {
+            throw new IllegalArgumentException("외부에서 가져온 상품의 이름, 가격은 수정할 수 없습니다.");
+        }
+        validate(name, price);
+        item.update(name.strip(), price);
+        return item;
+    }
+
+    public void delete(Long id) {
+        if (!repository.delete(id)) {
+            throw new ItemNotFoundException(id);
+        }
+    }
+
     public List<CollectionItem> recommend(Integer budget) {
         if (budget == null) {
             throw new IllegalArgumentException("예산을 입력해 주세요.");
@@ -56,5 +64,17 @@ public class WishService {
                 .sorted(Comparator.comparingInt(CollectionItem::getPrice))
                 .limit(MAX_RECOMMENDATIONS)
                 .toList();
+    }
+
+    private void validate(String name, Integer price) {
+        if (name == null || name.strip().isEmpty()) {
+            throw new IllegalArgumentException("이름을 입력해 주세요.");
+        }
+        if (price == null) {
+            throw new IllegalArgumentException("가격을 입력해 주세요.");
+        }
+        if (price < 0) {
+            throw new IllegalArgumentException("가격은 0원 이상이어야 합니다.");
+        }
     }
 }
