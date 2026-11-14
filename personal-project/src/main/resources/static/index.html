@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="좋아하는 상품을 모으고, 예산과 쿠폰에 맞춰 나만의 장바구니를 만들어 보세요.">
+  <meta name="theme-color" content="#284b3d">
+  <title>모아 — 취향을 모으는 장바구니</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js?v=20261114-6" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#collection">본문 바로가기</a>
+  <header class="header">
+    <a class="brand" href="/" aria-label="모아 홈">모아<span class="brand-dot">.</span><span class="brand-caption">a little collection of you</span></a>
+    <nav aria-label="주요 메뉴"><a href="#collection">컬렉션</a><a href="#cart-panel" class="nav-cart">장바구니 <span id="nav-cart-count">0</span></a></nav>
+  </header>
+
+  <main>
+    <section class="intro" aria-labelledby="intro-title">
+      <div><p class="eyebrow">COLLECT A LITTLE. MAKE IT YOURS.</p><h1 id="intro-title">취향을 담고,<br>나에게 맞게 <em>모아.</em></h1><p class="intro-copy">눈여겨본 상품부터 나만의 작은 발견까지.<br>예산 안에서, 좋아하는 것들을 골라보세요.</p><button id="open-add" class="primary" type="button">새 상품 등록 <span aria-hidden="true">＋</span></button></div>
+      <div class="intro-art" aria-hidden="true"><span class="orbit orbit-one"></span><span class="orbit orbit-two"></span><span class="art-label">THINGS I LOVE</span><span class="art-mark">m.</span><span class="art-spark">✳</span><span class="art-note">작은 취향이 모여<br>나다운 컬렉션.</span></div>
+      <div class="intro-bottom"><span><i class="status-dot"></i>나만의 쇼핑 아카이브</span><span>발견하고, 모으고, 비교해 보세요 <span aria-hidden="true">↗</span></span></div>
+    </section>
+
+    <div class="workspace">
+      <section id="collection" class="collection" aria-labelledby="collection-title">
+        <div class="section-heading"><div><p class="eyebrow">YOUR LITTLE ARCHIVE</p><h2 id="collection-title">나의 컬렉션 <span id="collection-count" class="count">—</span></h2></div><button id="refresh" class="icon-button" type="button" aria-label="현재 상품 목록 새로고침">↻</button></div>
+        <div class="tabs" role="tablist" aria-label="상품 목록 선택"><button id="tab-collection" class="tab active" role="tab" aria-selected="true" aria-controls="collection-pane" type="button">모아둔 상품</button><button id="tab-external" class="tab" role="tab" aria-selected="false" aria-controls="external-pane" tabindex="-1" type="button">외부 상품 <span aria-hidden="true">↗</span></button></div>
+
+        <div id="collection-pane" role="tabpanel" aria-labelledby="tab-collection">
+          <div class="discovery-box"><div class="discovery-icon" aria-hidden="true">✳</div><div class="discovery-copy"><h3>예산 안의 작은 발견</h3><p>예산 이하 상품을 낮은 가격순으로 최대 3개 추천해요.</p></div><form id="budget-form"><label class="sr-only" for="budget">추천 예산 (원)</label><div class="input-unit"><input id="budget" type="number" min="0" max="2147483647" step="1" required placeholder="예산 입력"><span>원</span></div><button class="small-dark" type="submit">추천받기</button></form></div>
+          <div class="toolbar"><button id="show-all" class="filter active" type="button">전체 보기</button><form id="lookup-form"><label class="sr-only" for="item-id">내부 상품 ID</label><input id="item-id" type="number" min="1" max="9007199254740991" step="1" required placeholder="상품 ID로 찾기"><button type="submit" class="text-button">조회 <span aria-hidden="true">→</span></button></form></div>
+        </div>
+        <div id="external-pane" role="tabpanel" aria-labelledby="tab-external" hidden>
+          <form id="external-form" class="search-form"><label class="sr-only" for="external-query">외부 상품 검색어</label><span aria-hidden="true">⌕</span><input id="external-query" type="search" placeholder="어떤 상품을 찾고 있나요? (예: phone)" autocomplete="off"><button type="submit" class="small-dark">검색</button></form><p class="hint external-hint">외부 상품을 컬렉션에 등록한 뒤 장바구니에 담을 수 있어요.</p>
+        </div>
+        <div class="list-meta"><p id="view-description">상품을 불러오고 있어요.</p><span id="result-count"></span></div>
+        <div id="list-error" class="inline-error" role="alert" hidden></div>
+        <div id="items" class="items" aria-live="polite" aria-busy="true"></div>
+        <div id="pagination" class="pagination" hidden><button id="previous-page" class="outline-button" type="button">← 이전</button><span id="page-info"></span><button id="next-page" class="outline-button" type="button">다음 →</button></div>
+      </section>
+
+      <aside id="cart-panel" class="cart-panel" aria-labelledby="cart-title">
+        <div class="cart-heading"><div><p class="eyebrow">A BAG OF FAVORITES</p><h2 id="cart-title">나의 장바구니 <span id="cart-count" class="count">—</span></h2></div><span class="bag-icon" aria-hidden="true">♧</span></div>
+        <p class="cart-caption">좋아하는 것들만, 가볍게 담아보세요.</p>
+        <div id="cart-error" class="inline-error" role="alert" hidden></div>
+        <div id="cart-items" class="cart-items" aria-live="polite" aria-busy="true"><p class="loading">장바구니를 불러오고 있어요…</p></div>
+        <button id="refresh-cart" class="text-button cart-refresh" type="button">장바구니 새로고침 ↻</button>
+        <div class="coupon-section"><label for="coupon">작은 혜택, 쿠폰 <span>선택</span></label><select id="coupon"><option value="">쿠폰 사용 안 함</option><option value="PERCENT10">10% 할인 · 최대 20,000원</option><option value="FIXED15000">15,000원 할인 · 10만원 이상</option></select><p id="coupon-description" class="hint">쿠폰 없이 상품 금액을 기준으로 배송비를 계산해요.</p></div>
+        <div id="summary-error" class="inline-error" role="alert" hidden></div>
+        <div id="summary" aria-live="polite" aria-busy="true"><dl class="summary-lines"><div><dt>상품 금액</dt><dd id="subtotal">—</dd></div><div class="discount-line"><dt>쿠폰 할인</dt><dd id="discount">—</dd></div><div><dt>배송비</dt><dd id="shipping">—</dd></div></dl><div class="total-line"><span>결제 예상 금액</span><strong id="final-price">—</strong></div></div>
+        <p class="shipping-note">쿠폰 적용 후 100,000원 이상이면 무료 배송<br>0원 초과~100,000원 미만은 배송비 5,000원</p>
+        <div class="cart-note"><span aria-hidden="true">ⓘ</span><p>상품별 1~5개, 최대 20종을 담을 수 있어요.<br>예상 금액을 확인하는 화면으로, 결제는 진행되지 않아요.</p></div>
+      </aside>
+    </div>
+    <div class="storage-note"><span aria-hidden="true">◌</span><p>가볍게 모아두는 공간이에요. 서버를 재시작하면 상품과 장바구니가 초기화됩니다.</p></div>
+  </main>
+  <footer><a class="brand" href="/">모아<span class="brand-dot">.</span></a><p>작은 취향이 모여, 나다운 컬렉션.</p><span>MADE FOR YOUR LITTLE FINDS</span></footer>
+
+  <dialog id="add-dialog" aria-labelledby="add-title"><div class="dialog-heading"><p class="eyebrow">ADD TO YOUR COLLECTION</p><button id="close-add" class="icon-button" type="button" aria-label="상품 등록 닫기">×</button></div><h2 id="add-title">새로운 취향 하나</h2><p class="description">눈여겨본 상품을 컬렉션에 기록해 보세요.</p><form id="add-form"><label for="name">상품 이름</label><input id="name" name="name" required minlength="1" maxlength="40" placeholder="예: 기계식 키보드" autocomplete="off"><p class="hint">1~40자 · 앞뒤 공백은 제거하며 공백만 입력할 수 없어요.</p><label for="price">가격</label><div class="input-unit"><input id="price" name="price" type="number" min="0" max="2147483647" step="1" required placeholder="0"><span>원</span></div><div id="add-error" class="inline-error" role="alert" hidden></div><button id="add-submit" class="primary" type="submit">컬렉션에 추가 <span aria-hidden="true">↗</span></button></form></dialog>
+  <template id="cart-add-button">
+    <button type="button" class="card-add" data-mutation data-keep-enabled>담기 ＋</button>
+  </template>
+  <div id="feedback" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>
