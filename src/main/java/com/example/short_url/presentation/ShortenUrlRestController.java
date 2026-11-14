@@ -22,7 +22,7 @@ public class ShortenUrlRestController {
     }
 
     @PostMapping(value = "/shortenUrl")
-    public ResponseEntity<ShortenUrlCreateResponseDto> createShrotUrl(
+    public ResponseEntity<ShortenUrlCreateResponseDto> createShortUrl(
             @Valid @RequestBody ShortenUrlCreateRequestDto shortenUrlCreateRequestDto){
         ShortenUrlCreateResponseDto shortenUrlCreateResponseDto = simpleShortenUrlService.generateShortenUrl(shortenUrlCreateRequestDto);
 
@@ -43,14 +43,9 @@ public class ShortenUrlRestController {
     }
 
     @GetMapping(value = "/shortenUrl/{shortenUrlKey}")
-    public ResponseEntity<ShortenUrlInformatinDto> getShrotenUrlInformatin(
+    public ResponseEntity<ShortenUrlInformationDto> getShortenUrlInformation(
             @PathVariable String shortenUrlKey)  {
-        ShortenUrlInformatinDto shortenUrlInformatinDto = simpleShortenUrlService.getShortenUrlInformationByShortenUrlKey(shortenUrlKey);
-        return ResponseEntity.ok(shortenUrlInformatinDto);
+        ShortenUrlInformationDto shortenUrlInformationDto = simpleShortenUrlService.getShortenUrlInformationByShortenUrlKey(shortenUrlKey);
+        return ResponseEntity.ok(shortenUrlInformationDto);
     }
-
-
-
-
-
 }

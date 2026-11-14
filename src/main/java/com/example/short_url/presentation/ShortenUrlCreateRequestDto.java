@@ -1,22 +1,23 @@
 package com.example.short_url.presentation;
 
 import com.example.short_url.domain.ShortenUrl;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.URL;
 
-public class ShortenUrlCreateRequestDto {
-    @NotNull
-    @URL(regexp = "[(http(s)?):\\/\\/(www\\.)?a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)")
+import java.util.List;
 
-    private String originalUrl;
+public class ShortenUrlCreateRequestDto {
+    @NotEmpty
+    private List<@URL(regexp = "[(http(s)?):\\/\\/(www\\.)?a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)") String> originalUrls;
 
     public ShortenUrlCreateRequestDto(){}
 
-    public ShortenUrlCreateRequestDto(String originalUrl){
-        this.originalUrl = originalUrl;
+    public ShortenUrlCreateRequestDto(List<String> originalUrls){
+        this.originalUrls = originalUrls;
     }
 
-    public String getOriginalUrl() {
-        return originalUrl;
+    public List<String> getOriginalUrls() {
+        return originalUrls;
     }
 }

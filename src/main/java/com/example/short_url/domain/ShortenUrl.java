@@ -1,6 +1,8 @@
 package com.example.short_url.domain;
 
+import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class ShortenUrl {
     private String originalUrl;
@@ -40,17 +42,5 @@ public class ShortenUrl {
 
     public Long getRedirectCount() {
         return redirectCount;
-    }
-
-    public void setOriginalUrl(String originalUrl) {
-        this.originalUrl = originalUrl;
-    }
-
-    public void setShortenUrlKey(String shortenUrlKey) {
-        this.shortenUrlKey = shortenUrlKey;
-    }
-
-    public void setRedirectCount(Long redirectCount) {
-        this.redirectCount = redirectCount;
     }
 }

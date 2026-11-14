@@ -2,12 +2,12 @@ package com.example.short_url.presentation;
 
 import com.example.short_url.domain.ShortenUrl;
 
-public class ShortenUrlInformatinDto {
+public class ShortenUrlInformationDto {
     private String originalUrl;
     private String shortenUrlKey;
     private Long reidrctcount;
 
-    public ShortenUrlInformatinDto(ShortenUrl shortenUrl){
+    public ShortenUrlInformationDto(ShortenUrl shortenUrl){
         this.originalUrl = shortenUrl.getOriginalUrl();
         this.shortenUrlKey = shortenUrl.getShortenUrlKey();
         this.reidrctcount = shortenUrl.getRedirectCount();
@@ -21,7 +21,7 @@ public class ShortenUrlInformatinDto {
         return shortenUrlKey;
     }
 
-    public Long getReidrctcount() {
+    public Long getRedirectcount() {
         return reidrctcount;
     }
 }

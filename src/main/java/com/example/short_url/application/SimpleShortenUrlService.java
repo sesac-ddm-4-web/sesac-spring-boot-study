@@ -6,9 +6,12 @@ import com.example.short_url.domain.ShortenUrl;
 import com.example.short_url.domain.ShortenUrlRepository;
 import com.example.short_url.presentation.ShortenUrlCreateRequestDto;
 import com.example.short_url.presentation.ShortenUrlCreateResponseDto;
-import com.example.short_url.presentation.ShortenUrlInformatinDto;
+import com.example.short_url.presentation.ShortenUrlInformationDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 public class SimpleShortenUrlService {
@@ -21,7 +24,9 @@ public class SimpleShortenUrlService {
     }
 
     public ShortenUrlCreateResponseDto generateShortenUrl(ShortenUrlCreateRequestDto shortenUrlCreateRequestDto){
-        String originalUrl = shortenUrlCreateRequestDto.getOriginalUrl();
+
+        List<String> originalUrls = shortenUrlCreateRequestDto.getOriginalUrls();
+        String originalUrl = originalUrls.get(ThreadLocalRandom.current().nextInt(originalUrls.size()));
         String shortenUrlKey= getUniqueShortenUrlKey();
 
         ShortenUrl shortenUrl = new ShortenUrl(originalUrl,shortenUrlKey);
@@ -31,14 +36,14 @@ public class SimpleShortenUrlService {
         return shortenUrlCreateResponseDto;
     }
 
-    public ShortenUrlInformatinDto getShortenUrlInformationByShortenUrlKey(String shortenUrlKey){
+    public ShortenUrlInformationDto getShortenUrlInformationByShortenUrlKey(String shortenUrlKey){
         ShortenUrl shortenUrl = shortenUrlRepository.findShortenUrlByShortenUrlKey(shortenUrlKey);
 
         if (null==shortenUrl) throw new NotFoundShortenUrlException();
 
-        ShortenUrlInformatinDto shortenUrlInformatinDto = new ShortenUrlInformatinDto(shortenUrl);
+        ShortenUrlInformationDto shortenUrlInformationDto = new ShortenUrlInformationDto(shortenUrl);
 
-        return shortenUrlInformatinDto;
+        return shortenUrlInformationDto;
     }
 
     public String getOriginalUrlByShortenUrlKey(String shortenUrlKey){
