@@ -26,8 +26,6 @@ public class Item {
         this.stock = stock;
     }
 
-
-
     public Long getId() {
         return id;
     }
