@@ -1,0 +1,38 @@
+package com.example.sesac_spring_boot_study;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class StudyController {
+    private final StudyService service;
+
+    public StudyController(StudyService service){
+        this.service = service;
+    }
+
+    @PostMapping("/study/participants")
+    public String participate (
+            @RequestParam(name = "name", required = false) String name) {
+        return service.participate(name);
+    }
+
+    @GetMapping("/study/participants")
+    public String getMemberList() {
+        return service.getMemberList();
+    }
+
+    @PostMapping("/study/cancel")
+    public String cancel (
+            @RequestParam(name = "memberId", required = false) String memberId) {
+        return service.cancel(memberId);
+    }
+
+    @PostMapping("/study/capacity")
+    public String changeCapacity(
+            @RequestParam(name = "capacity", required = false) String capacity) {
+        return service.changeCapacity(capacity);
+    }
+}

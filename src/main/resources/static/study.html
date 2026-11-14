@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스터디 참가 신청</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 32px 16px;
+            font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+            background: #f4f5f7;
+            color: #222;
+        }
+
+        .container {
+            max-width: 640px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            margin: 0 0 24px;
+            font-size: 24px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .card h2 {
+            margin: 0 0 12px;
+            font-size: 16px;
+        }
+
+        form {
+            display: flex;
+            gap: 8px;
+        }
+
+        input {
+            flex: 1;
+            min-width: 0;
+            padding: 10px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        button {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            background: #3b6cf6;
+            color: #fff;
+            font-size: 15px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        button:hover {
+            background: #2f58d0;
+        }
+
+        button.small {
+            padding: 4px 10px;
+            font-size: 13px;
+            background: #e5484d;
+        }
+
+        button.small:hover {
+            background: #c93a3f;
+        }
+
+        button.gray {
+            background: #6b7280;
+        }
+
+        button.gray:hover {
+            background: #4b5563;
+        }
+
+        /* 서버 응답 메시지 */
+        #message {
+            white-space: pre-line; /* 서버가 보낸 \n 줄바꿈을 그대로 보여줌 */
+            padding: 12px 14px;
+            border-radius: 6px;
+            background: #eef2ff;
+            color: #2a3b8f;
+            min-height: 44px;
+        }
+
+        #message.fail {
+            background: #fdecec;
+            color: #a12a2e;
+        }
+
+        /* 명단 표 */
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .list-header h2 {
+            margin: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+
+        th {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-size: 13px;
+        }
+
+        .badge.confirmed {
+            background: #e3f6e8;
+            color: #1d7a3a;
+        }
+
+        .badge.waiting {
+            background: #fff4dc;
+            color: #9a6200;
+        }
+
+        .empty {
+            color: #888;
+            text-align: center;
+            padding: 20px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>스터디 참가 신청</h1>
+
+    <!-- 서버 응답 -->
+    <div class="card">
+        <h2>결과</h2>
+        <div id="message">아래에서 신청, 취소, 정원 변경을 해 보세요.</div>
+    </div>
+
+    <!-- 참가 신청 -->
+    <div class="card">
+        <h2>참가 신청</h2>
+        <form id="participateForm">
+            <input type="text" id="nameInput" placeholder="이름">
+            <button type="submit">신청</button>
+        </form>
+    </div>
+
+    <!-- 참가 취소 -->
+    <div class="card">
+        <h2>참가 취소</h2>
+        <form id="cancelForm">
+            <input type="text" id="memberIdInput" placeholder="취소할 id">
+            <button type="submit">취소</button>
+        </form>
+    </div>
+
+    <!-- 정원 변경 -->
+    <div class="card">
+        <h2>정원 변경 (1~10명)</h2>
+        <form id="capacityForm">
+            <input type="text" id="capacityInput" placeholder="새 정원">
+            <button type="submit">변경</button>
+        </form>
+    </div>
+
+    <!-- 명단 -->
+    <div class="card">
+        <div class="list-header">
+            <h2>참가자 명단</h2>
+            <button type="button" class="gray" id="refreshButton">새로고침</button>
+        </div>
+        <table>
+            <thead>
+            <tr>
+                <th>id</th>
+                <th>이름</th>
+                <th>상태</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody id="memberList"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // POST 요청 공통 함수
+    // URLSearchParams로 보내면 application/x-www-form-urlencoded 형식이 됨
+    async function postForm(url, key, value) {
+        const body = new URLSearchParams();
+        body.append(key, value);
+
+        const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: body
+        });
+        return response.text();
+    }
+
+    // 결과 메시지 표시 (실패 문구면 빨간색)
+    function showMessage(text) {
+        const message = document.getElementById("message");
+        message.textContent = text;
+        if (text.includes("실패")) {
+            message.classList.add("fail");
+        } else {
+            message.classList.remove("fail");
+        }
+    }
+
+    // 명단 불러오기: GET /study/participants
+    // 서버 응답 한 줄 형식: "id | 이름 | 확정 또는 대기"
+    async function loadMembers() {
+        const response = await fetch("/study/participants");
+        const text = await response.text();
+        const tbody = document.getElementById("memberList");
+        tbody.innerHTML = "";
+
+        if (text.trim() === "참가자가 없습니다") {
+            const row = document.createElement("tr");
+            const cell = document.createElement("td");
+            cell.colSpan = 4;
+            cell.className = "empty";
+            cell.textContent = "참가자가 없습니다";
+            row.appendChild(cell);
+            tbody.appendChild(row);
+            return;
+        }
+
+        const lines = text.trim().split("\n");
+        for (const line of lines) {
+            const [id, name, status] = line.split(" | ");
+
+            const row = document.createElement("tr");
+
+            const idCell = document.createElement("td");
+            idCell.textContent = id;
+
+            // 이름은 사용자가 입력한 값이라 textContent로 넣음 (HTML로 해석되지 않게)
+            const nameCell = document.createElement("td");
+            nameCell.textContent = name;
+
+            const statusCell = document.createElement("td");
+            const badge = document.createElement("span");
+            badge.className = "badge " + (status === "확정" ? "confirmed" : "waiting");
+            badge.textContent = status;
+            statusCell.appendChild(badge);
+
+            const buttonCell = document.createElement("td");
+            const cancelButton = document.createElement("button");
+            cancelButton.type = "button";
+            cancelButton.className = "small";
+            cancelButton.textContent = "취소";
+            cancelButton.addEventListener("click", () => cancel(id));
+            buttonCell.appendChild(cancelButton);
+
+            row.append(idCell, nameCell, statusCell, buttonCell);
+            tbody.appendChild(row);
+        }
+    }
+
+    // 취소: POST /study/cancel
+    async function cancel(memberId) {
+        const result = await postForm("/study/cancel", "memberId", memberId);
+        showMessage(result);
+        await loadMembers();
+    }
+
+    // 참가 신청: POST /study/participants
+    document.getElementById("participateForm").addEventListener("submit", async (event) => {
+        event.preventDefault(); // 폼 기본 동작(페이지 새로고침) 막기
+        const input = document.getElementById("nameInput");
+        const result = await postForm("/study/participants", "name", input.value);
+        showMessage(result);
+        if (!result.includes("실패")) {
+            input.value = "";
+        }
+        await loadMembers();
+    });
+
+    // id 입력으로 취소
+    document.getElementById("cancelForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const input = document.getElementById("memberIdInput");
+        await cancel(input.value);
+        input.value = "";
+    });
+
+    // 정원 변경: POST /study/capacity
+    document.getElementById("capacityForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const input = document.getElementById("capacityInput");
+        const result = await postForm("/study/capacity", "capacity", input.value);
+        showMessage(result);
+        input.value = "";
+        await loadMembers();
+    });
+
+    document.getElementById("refreshButton").addEventListener("click", loadMembers);
+
+    // 페이지가 열리면 명단부터 불러오기
+    loadMembers();
+</script>
+</body>
+</html>
