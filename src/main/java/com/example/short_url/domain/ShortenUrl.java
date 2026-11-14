@@ -2,12 +2,14 @@ package com.example.short_url.domain;
 
 import java.util.List;
 import java.util.Random;
+import java.time.LocalDateTime;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class ShortenUrl {
     private String originalUrl;
     private String shortenUrlKey;
     private Long redirectCount;
+    private LocalDateTime expire;
 
     public static String generateShortenUrlKey(){
         String base56Characters="23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz";
@@ -22,10 +24,15 @@ public class ShortenUrl {
         return shortenUrlKey.toString();
     }
 
-    public ShortenUrl(String originalUrl, String shortenUrlKey){
+    public ShortenUrl(String originalUrl, String shortenUrlKey, LocalDateTime expire){
         this.originalUrl = originalUrl;
         this.shortenUrlKey = shortenUrlKey;
         this.redirectCount = 0L;
+        this.expire = expire;
+    }
+
+    public ShortenUrl(String originalUrl, String shortenUrlKey){
+        this(originalUrl, shortenUrlKey, null);
     }
 
     public void increaseRedirectCount() {
@@ -42,5 +49,18 @@ public class ShortenUrl {
 
     public Long getRedirectCount() {
         return redirectCount;
+    }
+
+    public LocalDateTime getExpire() {
+        return expire;
+    }
+
+    public boolean isExpired(){
+        if (expire == null) {
+            return false;                       // 만료 시각이 없으면 영구 링크 → 만료 아님
+        }
+
+        LocalDateTime now = LocalDateTime.now(); // 지금 시각
+        return now.isAfter(expire);
     }
 }

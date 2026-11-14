@@ -1,5 +1,7 @@
 package com.example.short_url.application;
 
+import com.example.short_url.DuplicateShortenUrlKeyException;
+import com.example.short_url.ExpiredShortenUrlException;
 import com.example.short_url.LackOfShortenUrlKeyException;
 import com.example.short_url.NotFoundShortenUrlException;
 import com.example.short_url.domain.ShortenUrl;
@@ -10,6 +12,7 @@ import com.example.short_url.presentation.ShortenUrlInformationDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -27,9 +30,20 @@ public class SimpleShortenUrlService {
 
         List<String> originalUrls = shortenUrlCreateRequestDto.getOriginalUrls();
         String originalUrl = originalUrls.get(ThreadLocalRandom.current().nextInt(originalUrls.size()));
-        String shortenUrlKey= getUniqueShortenUrlKey();
 
-        ShortenUrl shortenUrl = new ShortenUrl(originalUrl,shortenUrlKey);
+        Integer expireDays = shortenUrlCreateRequestDto.getExpireDays();
+        String shortenUrlKey= getShortenUrlKey(shortenUrlCreateRequestDto.getCustomKey());
+        LocalDateTime expire;
+
+        if (expireDays == null) {
+            expire = null;
+        } else {
+            LocalDateTime now = LocalDateTime.now();
+            //expire = now.plusDays(expireDays);
+            expire = now.plusSeconds(expireDays);
+        }
+
+        ShortenUrl shortenUrl = new ShortenUrl(originalUrl,shortenUrlKey, expire);
         shortenUrlRepository.saveShortenUrl(shortenUrl);
 
         ShortenUrlCreateResponseDto shortenUrlCreateResponseDto = new ShortenUrlCreateResponseDto(shortenUrl);
@@ -50,6 +64,7 @@ public class SimpleShortenUrlService {
         ShortenUrl shortenUrl = shortenUrlRepository.findShortenUrlByShortenUrlKey(shortenUrlKey);
 
         if (null==shortenUrl) throw new NotFoundShortenUrlException();
+        if (shortenUrl.isExpired()) throw new ExpiredShortenUrlException();
         shortenUrl.increaseRedirectCount();
         shortenUrlRepository.saveShortenUrl(shortenUrl);
 
@@ -70,5 +85,15 @@ public class SimpleShortenUrlService {
         }
 
         throw new LackOfShortenUrlKeyException();
+    }
+
+    private String getShortenUrlKey(String customKey){
+        if (customKey == null) {
+            return getUniqueShortenUrlKey();
+        }
+        if (shortenUrlRepository.findShortenUrlByShortenUrlKey(customKey) != null) {
+            throw new DuplicateShortenUrlKeyException();
+        }
+        return customKey;
     }
 }
