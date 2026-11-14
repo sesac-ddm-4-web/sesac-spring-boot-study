@@ -68,4 +68,15 @@ public class CartService {
 
         return responses;
     }
+
+    public CartItemResponse changeQuantity(Long id, int quantity) {
+        Cart cart = cartRepository.getCart();
+        CartItem updatedItem = cart.changeQuantity(id, quantity);
+        return CartItemResponse.from(updatedItem);
+    }
+
+    public void remove(Long id) {
+        Cart cart = cartRepository.getCart();
+        cart.remove(id);
+    }
 }

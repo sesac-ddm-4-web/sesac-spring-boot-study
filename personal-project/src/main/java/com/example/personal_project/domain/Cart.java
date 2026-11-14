@@ -60,4 +60,26 @@ public class Cart {
     public List<CartItem> getItems() {
         return new ArrayList<>(items);
     }
+
+    public CartItem findById(Long id) {
+        for (CartItem cartItem:items) {
+            if (cartItem.getId().equals(id)) {
+                return cartItem;
+            }
+        }
+        throw new EntityNotFoundException(
+                "장바구니 항목을 찾지 못했습니다."
+        );
+    }
+
+    public CartItem changeQuantity(Long id, int quantity) {
+        CartItem cartItem = findById(id);
+        cartItem.changeQuantity(quantity);
+        return cartItem;
+    }
+
+    public void remove(Long id) {
+        CartItem cartItem = findById(id);
+        items.remove(cartItem);
+    }
 }
