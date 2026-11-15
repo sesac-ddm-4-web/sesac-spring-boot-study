@@ -1,0 +1,28 @@
+### 단축 URL 생성
+POST http://localhost:8080/api/shorten-urls
+Content-Type: application/json
+
+{
+  "originalUrl": "https://www.naver.com",
+  "channel": "instagram"
+}
+
+> {% client.global.set("key", response.body.shortenUrlKey); %}
+
+### 리다이렉트 (방금 만든 키 사용)
+GET http://localhost:8080/{{key}}
+
+### 정보 조회
+GET http://localhost:8080/api/shorten-urls/{{key}}
+
+### 목록 조회
+GET http://localhost:8080/api/shorten-urls?originalUrl=https%3A%2F%2Fwww.naver.com
+
+### 잘못된 URL
+POST http://localhost:8080/api/shorten-urls
+Content-Type: application/json
+
+{
+  "originalUrl": "javascript:alert(1)",
+  "channel": "instagram"
+}

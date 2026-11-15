@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>채널 링크 - 채널별 유입 분석 단축 URL</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<main class="container">
+    <header class="header">
+        <h1>채널 링크</h1>
+        <p>채널마다 다른 단축 URL을 만들고, 어디서 클릭이 많은지 비교하세요.</p>
+    </header>
+
+    <section class="card">
+        <h2>단축 URL 만들기</h2>
+        <form id="create-form" novalidate>
+            <label for="original-url">원본 URL</label>
+            <input id="original-url" type="text" placeholder="https://shop.com/product/123" autocomplete="off">
+
+            <label for="channel">채널</label>
+            <input id="channel" type="text" list="channel-options" placeholder="instagram" autocomplete="off">
+            <datalist id="channel-options">
+                <option value="instagram">
+                <option value="tiktok">
+                <option value="youtube">
+                <option value="naver-blog">
+                <option value="kakao">
+            </datalist>
+
+            <button type="submit">단축하기</button>
+        </form>
+        <p id="create-error" class="error" hidden></p>
+        <div id="create-result" class="result" hidden>
+            <a id="result-link" target="_blank" rel="noopener"></a>
+            <button id="copy-button" type="button" class="secondary">복사</button>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>채널별 클릭 비교</h2>
+        <form id="compare-form" class="inline-form" novalidate>
+            <input id="compare-url" type="text" placeholder="비교할 원본 URL" autocomplete="off">
+            <button type="submit">조회</button>
+        </form>
+        <p id="compare-error" class="error" hidden></p>
+        <p id="compare-summary" class="summary" hidden></p>
+        <table id="compare-table" hidden>
+            <thead>
+            <tr><th>채널</th><th>단축 URL</th><th class="num">클릭 수</th><th class="bar-col">비율</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </section>
+
+    <section class="card">
+        <div class="card-header">
+            <h2>최근 만든 링크</h2>
+            <button id="refresh-button" type="button" class="secondary">새로고침</button>
+        </div>
+        <table id="recent-table">
+            <thead>
+            <tr><th>채널</th><th>단축 URL</th><th>원본 URL</th><th class="num">클릭 수</th><th>생성일</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <p id="recent-empty" class="empty" hidden>아직 만든 링크가 없어요.</p>
+    </section>
+</main>
+<script src="/app.js"></script>
+</body>
+</html>
