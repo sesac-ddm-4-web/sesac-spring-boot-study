@@ -2,6 +2,7 @@ package com.example.demo.item.repository;
 
 import com.example.demo.item.domain.CollectionItem;
 import com.example.demo.global.exception.EntityNotFoundException;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Repository
+@Profile("test")
 public class ListCollectionItemRepository implements CollectionItemRepository {
 
     private List<CollectionItem> items = new CopyOnWriteArrayList<>();

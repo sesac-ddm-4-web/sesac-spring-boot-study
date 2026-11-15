@@ -25,6 +25,9 @@ public class CollectionItem {
     @Min(0)
     private Integer stock; // 외부 재고, 수동이면 null
 
+    public CollectionItem() {
+    }
+
     public CollectionItem(Long id, String name, Integer price) {
         this(id, name, price, SourceType.MANUAL, null, null);
     }
@@ -67,6 +70,26 @@ public class CollectionItem {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setPrice(Integer price) {
+        this.price = price;
+    }
+
+    public void setSourceType(SourceType sourceType) {
+        this.sourceType = sourceType;
+    }
+
+    public void setExternalId(Long externalId) {
+        this.externalId = externalId;
+    }
+
+    public void setStock(Integer stock) {
+        this.stock = stock;
     }
 
     public Long getId() {
