@@ -14,6 +14,8 @@ public class ShortenUrl {
     private static final int UNUSED_EXPIRE_DAYS = 7;
     private LocalDateTime lastAccessedAt = LocalDateTime.now();
 
+    public ShortenUrl() {}
+
     public static String generateShortenUrlKey(){
         String base56Characters="23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz";
         Random random = new Random();
@@ -25,6 +27,16 @@ public class ShortenUrl {
             shortenUrlKey.append(base56Character);
         }
         return shortenUrlKey.toString();
+    }
+
+    public ShortenUrl(String originalUrl, String shortenUrlKey, Long redirectCount,
+                      LocalDateTime expire, String managementToken, LocalDateTime lastAccessedAt) {
+        this.originalUrl = originalUrl;
+        this.shortenUrlKey = shortenUrlKey;
+        this.redirectCount = redirectCount;
+        this.expire = expire;
+        this.managementToken = managementToken;
+        this.lastAccessedAt = lastAccessedAt;
     }
 
     public ShortenUrl(String originalUrl, String shortenUrlKey, LocalDateTime expire){
@@ -62,6 +74,32 @@ public class ShortenUrl {
         return expire;
     }
 
+    public LocalDateTime getLastAccessedAt() { return lastAccessedAt; }
+
+    public void setOriginalUrl(String originalUrl) {
+        this.originalUrl = originalUrl;
+    }
+
+    public void setShortenUrlKey(String shortenUrlKey) {
+        this.shortenUrlKey = shortenUrlKey;
+    }
+
+    public void setRedirectCount(Long redirectCount) {
+        this.redirectCount = redirectCount;
+    }
+
+    public void setExpire(LocalDateTime expire) {
+        this.expire = expire;
+    }
+
+    public void setManagementToken(String managementToken) {
+        this.managementToken = managementToken;
+    }
+
+    public void setLastAccessedAt(LocalDateTime lastAccessedAt) {
+        this.lastAccessedAt = lastAccessedAt;
+    }
+
     public boolean isExpired(){
         LocalDateTime now = LocalDateTime.now();
         //LocalDateTime deadline = lastAccessedAt.plusSeconds(UNUSED_EXPIRE_DAYS);
@@ -84,5 +122,9 @@ public class ShortenUrl {
 
     public void access(){
         this.lastAccessedAt = LocalDateTime.now();
+    }
+
+    public LocalDateTime getLastAccessTime() {
+        return lastAccessedAt;
     }
 }

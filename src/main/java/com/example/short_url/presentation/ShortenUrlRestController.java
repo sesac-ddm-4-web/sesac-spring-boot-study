@@ -29,7 +29,7 @@ public class ShortenUrlRestController {
         return ResponseEntity.ok(shortenUrlCreateResponseDto);
     }
 
-    @GetMapping(value = "/{shortenUrlKey}")
+    @GetMapping(value = "/{shortenUrlKey:[^.]+}")
     public ResponseEntity<?> redirectShortenUrl(
             @PathVariable String shortenUrlKey) throws URISyntaxException {
         String originalUrl = simpleShortenUrlService.getOriginalUrlByShortenUrlKey(shortenUrlKey);

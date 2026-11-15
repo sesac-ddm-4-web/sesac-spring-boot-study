@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Roulink 테스트 콘솔</title>
+    <style>
+        :root{--bg:#f6f7f9;--card:#fff;--text:#1d2330;--muted:#667085;--line:#e3e6eb;--accent:#2f6fed;--accent-text:#fff;--ok:#1a7f4b;--okbg:#e6f6ee;--warn:#9a6700;--warnbg:#fff4d6;--err:#b42318;--errbg:#fdecea;}
+        @media (prefers-color-scheme: dark){:root{--bg:#14171c;--card:#1c2027;--text:#e8eaee;--muted:#9aa3b2;--line:#2c313b;--accent:#6c9bff;--accent-text:#0d1117;--ok:#5fd18f;--okbg:#17352a;--warn:#f0c15a;--warnbg:#3a2f12;--err:#ff8a80;--errbg:#3b1b19;}}
+        *{box-sizing:border-box}
+        body{margin:0;background:var(--bg);color:var(--text);font:14px/1.6 system-ui,-apple-system,"Segoe UI","Malgun Gothic",sans-serif}
+        header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:16px 24px;background:var(--card);border-bottom:1px solid var(--line)}
+        h1{font-size:18px;margin:0;font-weight:600}
+        h2{font-size:15px;margin:0 0 12px;font-weight:600}
+        h2 small{font-weight:400;color:var(--muted);margin-left:6px;font-family:ui-monospace,Consolas,monospace;font-size:12px}
+        main{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;padding:16px 24px;max-width:1400px;margin:0 auto}
+        .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+        .wide{grid-column:1/-1}
+        label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px}
+        input,textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text);font:inherit}
+        input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px}
+        textarea{resize:vertical;font-family:ui-monospace,Consolas,monospace;font-size:13px}
+        .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        .btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+        button{padding:8px 14px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--text);font:inherit;cursor:pointer}
+        button:hover{border-color:var(--accent)}
+        button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-text)}
+        button.danger{color:var(--err)}
+        button:disabled{opacity:.5;cursor:default}
+        .result{margin-top:12px;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);white-space:pre-wrap;word-break:break-all;font-family:ui-monospace,Consolas,monospace;font-size:12px;min-height:40px;color:var(--muted)}
+        .result.ok{background:var(--okbg);color:var(--ok);border-color:transparent}
+        .result.warn{background:var(--warnbg);color:var(--warn);border-color:transparent}
+        .result.err{background:var(--errbg);color:var(--err);border-color:transparent}
+        .badge{display:inline-block;min-width:44px;text-align:center;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:600}
+        .badge.ok{background:var(--okbg);color:var(--ok)}
+        .badge.warn{background:var(--warnbg);color:var(--warn)}
+        .badge.err{background:var(--errbg);color:var(--err)}
+        .muted{color:var(--muted);font-size:12px}
+        code{font-family:ui-monospace,Consolas,monospace;font-size:12px}
+        table{width:100%;border-collapse:collapse;font-size:13px}
+        th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+        th{color:var(--muted);font-weight:500;font-size:12px}
+        .link-item{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+        .link-item:last-child{border-bottom:0}
+        .link-item .grow{flex:1;min-width:160px}
+        .log-item{padding:8px 0;border-bottom:1px solid var(--line)}
+        .log-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+        .log-item pre{margin:6px 0 0;white-space:pre-wrap;word-break:break-all;font-size:12px;color:var(--muted);font-family:ui-monospace,Consolas,monospace}
+        .summary{font-weight:600;margin:12px 0 8px}
+        .scroll{max-height:420px;overflow:auto}
+        header label{margin:0;display:flex;gap:8px;align-items:center}
+        header input{width:260px}
+    </style>
+</head>
+<body>
+<header>
+    <h1>Roulink 테스트 콘솔</h1>
+    <label>서버 주소 <input id="base" type="text" spellcheck="false"></label>
+</header>
+
+<main>
+    <section class="card">
+        <h2>1. 링크 생성 <small>POST /shortenUrl</small></h2>
+        <label for="urls">원본 URL (한 줄에 하나. 여러 개면 서버가 1개를 랜덤 선택)</label>
+        <textarea id="urls" rows="3" spellcheck="false">https://www.naver.com</textarea>
+        <div class="row">
+            <div>
+                <label for="customKey">customKey (선택)</label>
+                <input id="customKey" type="text" placeholder="portfolio" spellcheck="false">
+            </div>
+            <div>
+                <label for="expireDays">expireDays (선택, 비우면 미전송)</label>
+                <input id="expireDays" type="number" placeholder="7">
+            </div>
+        </div>
+        <div class="btns"><button id="btnCreate" class="primary">생성</button></div>
+        <div id="createResult" class="result">결과가 여기에 표시됩니다.</div>
+    </section>
+
+    <section class="card">
+        <h2>2. 접속(리다이렉트) <small>GET /{key}</small></h2>
+        <label for="rKey">단축 키</label>
+        <input id="rKey" type="text" spellcheck="false">
+        <div class="btns">
+            <button id="btnRedirect" class="primary">상태 확인</button>
+            <button id="btnOpen">새 탭에서 열기</button>
+        </div>
+        <div id="redirectResult" class="result">리다이렉트되면 "리다이렉트", 없으면 404, 만료면 410이 표시됩니다.</div>
+        <p class="muted">상태 확인은 캐시를 쓰지 않고 서버에 직접 요청합니다. 새 탭에서 열기는 브라우저가 301을 캐시할 수 있어 조회수가 안 오를 수 있습니다(302 권장).</p>
+    </section>
+
+    <section class="card">
+        <h2>3. 정보 조회 <small>GET /shortenUrl/{key}</small></h2>
+        <label for="iKey">단축 키</label>
+        <input id="iKey" type="text" spellcheck="false">
+        <div class="btns"><button id="btnInfo" class="primary">조회</button></div>
+        <div id="infoResult" class="result">원본 URL, 키, 조회수가 표시됩니다.</div>
+    </section>
+
+    <section class="card">
+        <h2>4. 즉시 만료 <small>DELETE /shortenUrl/{key}</small></h2>
+        <label for="eKey">단축 키</label>
+        <input id="eKey" type="text" spellcheck="false">
+        <label for="eToken">X-Management-Token (비우면 헤더 없이 전송 → 400 확인용)</label>
+        <input id="eToken" type="text" spellcheck="false">
+        <div class="btns"><button id="btnExpire" class="danger">만료 요청</button></div>
+        <div id="expireResult" class="result">성공하면 204, 토큰이 틀리면 403, 없는 키는 404입니다.</div>
+    </section>
+
+    <section class="card wide">
+        <h2>내가 만든 링크 <small>브라우저에 저장된 목록 (서버 데이터와는 별개)</small></h2>
+        <div id="links"><span class="muted">아직 만든 링크가 없습니다.</span></div>
+    </section>
+
+    <section class="card wide">
+        <h2>자동 시나리오 <small>정상/오류 케이스를 한 번에 실행</small></h2>
+        <div class="btns"><button id="btnScenario" class="primary">전체 실행</button></div>
+        <div id="scenarioSummary" class="summary"></div>
+        <div id="scenarioTable"></div>
+        <p class="muted">기대 결과는 현재 구현 기준입니다(409 중복, 403 토큰 오류, 400 입력 오류, 410 만료). 미사용 자동 만료는 시간이 필요해 포함하지 않았습니다.</p>
+    </section>
+
+    <section class="card wide">
+        <h2>요청 로그</h2>
+        <div class="btns" style="margin:0 0 8px"><button id="btnClearLog">로그 지우기</button></div>
+        <div id="log" class="scroll"></div>
+    </section>
+</main>
+
+<script>
+    const $ = (id) => document.getElementById(id);
+    const enc = encodeURIComponent;
+    $('base').value = location.protocol.startsWith('http') ? location.origin : 'http://localhost:8080';
+    const baseUrl = () => $('base').value.trim().replace(/\/+$/, '');
+
+    function label(r) { if (r.redirect) return '리다이렉트'; if (r.error) return '오류'; return String(r.status); }
+    function tone(r) {
+        if (r.redirect) return 'ok';
+        if (r.error) return 'err';
+        if (r.status >= 200 && r.status < 300) return 'ok';
+        return r.status < 500 ? 'warn' : 'err';
+    }
+    function pretty(d) { return typeof d === 'string' ? d : JSON.stringify(d, null, 2); }
+    function render(el, r) { el.className = 'result ' + tone(r); el.textContent = '[' + label(r) + ']\n' + pretty(r.data); }
+
+    function addLog(method, path, r) {
+        const item = document.createElement('div'); item.className = 'log-item';
+        const head = document.createElement('div'); head.className = 'log-head';
+        const badge = document.createElement('span'); badge.className = 'badge ' + tone(r); badge.textContent = label(r);
+        const title = document.createElement('code'); title.textContent = method + ' ' + path;
+        const time = document.createElement('span'); time.className = 'muted'; time.textContent = new Date().toLocaleTimeString('ko-KR');
+        head.append(badge, title, time);
+        const body = document.createElement('pre'); body.textContent = pretty(r.data).slice(0, 600);
+        item.append(head, body);
+        $('log').prepend(item);
+    }
+
+    async function api(method, path, opt = {}) {
+        const init = { method, headers: Object.assign({}, opt.headers || {}), cache: 'no-store' };
+        if (opt.body !== undefined) { init.headers['Content-Type'] = 'application/json'; init.body = JSON.stringify(opt.body); }
+        if (opt.manual) init.redirect = 'manual';
+        let out;
+        try {
+            const res = await fetch(baseUrl() + path, init);
+            if (res.type === 'opaqueredirect') {
+                out = { status: 0, redirect: true, data: '리다이렉트 응답 (301/302)' };
+            } else {
+                const text = await res.text();
+                let data = text;
+                try { data = JSON.parse(text); } catch (e) {}
+                out = { status: res.status, redirect: false, data };
+            }
+        } catch (e) {
+            out = { status: 0, redirect: false, error: true, data: '요청 실패: ' + e.message + ' (서버 주소와 CORS를 확인하세요. 스프링 서버의 / 주소로 열어야 합니다)' };
+        }
+        addLog(method, path, out);
+        return out;
+    }
+
+    const STORE = 'roulink.links';
+    function loadLinks() { try { return JSON.parse(localStorage.getItem(STORE)) || []; } catch (e) { return []; } }
+    function storeLinks(list) { try { localStorage.setItem(STORE, JSON.stringify(list)); } catch (e) {} }
+
+    function useLink(l) {
+        $('rKey').value = l.key; $('iKey').value = l.key;
+        $('eKey').value = l.key; $('eToken').value = l.token || '';
+    }
+
+    function renderLinks() {
+        const box = $('links'); box.textContent = '';
+        const list = loadLinks();
+        if (!list.length) { const s = document.createElement('span'); s.className = 'muted'; s.textContent = '아직 만든 링크가 없습니다.'; box.append(s); return; }
+        list.forEach((l, idx) => {
+            const row = document.createElement('div'); row.className = 'link-item';
+            const info = document.createElement('div'); info.className = 'grow';
+            const k = document.createElement('code'); k.textContent = l.key;
+            const sub = document.createElement('div'); sub.className = 'muted';
+            sub.textContent = l.url + ' · 토큰 ' + (l.token || '').slice(0, 8) + '… · ' + l.at;
+            info.append(k, sub);
+            const use = document.createElement('button'); use.textContent = '위 폼에 채우기'; use.onclick = () => useLink(l);
+            const copy = document.createElement('button'); copy.textContent = '토큰 복사';
+            copy.onclick = async () => { try { await navigator.clipboard.writeText(l.token); copy.textContent = '복사됨'; } catch (e) { copy.textContent = '복사 실패'; } setTimeout(() => copy.textContent = '토큰 복사', 1200); };
+            const del = document.createElement('button'); del.className = 'danger'; del.textContent = '목록에서 제거';
+            del.onclick = () => { const cur = loadLinks(); cur.splice(idx, 1); storeLinks(cur); renderLinks(); };
+            row.append(info, use, copy, del);
+            box.append(row);
+        });
+    }
+
+    function rememberLink(data) {
+        const list = loadLinks();
+        list.unshift({ key: data.shortenUrlKey, token: data.managementToken, url: data.originalUrl, at: new Date().toLocaleString('ko-KR') });
+        storeLinks(list.slice(0, 30));
+        renderLinks();
+    }
+
+    $('btnCreate').onclick = async () => {
+        const urls = $('urls').value.split('\n').map((s) => s.trim()).filter(Boolean);
+        const body = { originalUrls: urls };
+        const ck = $('customKey').value.trim(); if (ck) body.customKey = ck;
+        const ed = $('expireDays').value.trim(); if (ed !== '') body.expireDays = Number(ed);
+        const r = await api('POST', '/shortenUrl', { body });
+        render($('createResult'), r);
+        if (r.status === 200 && r.data && r.data.shortenUrlKey) {
+            rememberLink(r.data);
+            useLink({ key: r.data.shortenUrlKey, token: r.data.managementToken });
+        }
+    };
+
+    $('btnRedirect').onclick = async () => {
+        const k = $('rKey').value.trim(); if (!k) return;
+        render($('redirectResult'), await api('GET', '/' + enc(k), { manual: true }));
+    };
+    $('btnOpen').onclick = () => {
+        const k = $('rKey').value.trim(); if (!k) return;
+        window.open(baseUrl() + '/' + enc(k), '_blank');
+    };
+    $('btnInfo').onclick = async () => {
+        const k = $('iKey').value.trim(); if (!k) return;
+        render($('infoResult'), await api('GET', '/shortenUrl/' + enc(k)));
+    };
+    $('btnExpire').onclick = async () => {
+        const k = $('eKey').value.trim(); if (!k) return;
+        const headers = {}; const tk = $('eToken').value.trim();
+        if (tk) headers['X-Management-Token'] = tk;
+        const r = await api('DELETE', '/shortenUrl/' + enc(k), { headers });
+        if (r.status === 204) r.data = '만료 처리되었습니다. (본문 없음)';
+        render($('expireResult'), r);
+    };
+    $('btnClearLog').onclick = () => { $('log').textContent = ''; };
+
+    $('btnScenario').onclick = async () => {
+        const btn = $('btnScenario'); btn.disabled = true;
+        $('scenarioSummary').textContent = '실행 중...'; $('scenarioTable').textContent = '';
+        const rows = [];
+        const add = (name, expect, pass, actual) => rows.push({ name, expect, pass: !!pass, actual });
+        const status = (name, code, r) => add(name, String(code), r.status === code && !r.redirect, label(r));
+        const redirect = (name, r) => add(name, '리다이렉트', r.redirect === true, label(r));
+        const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+        const isObj = (r) => r.data && typeof r.data === 'object';
+        const key = 'auto' + Math.random().toString(36).slice(2, 8);
+        const urls = ['https://www.naver.com', 'https://www.google.com', 'https://www.hanbit.co.kr'];
+
+        let r = await api('POST', '/shortenUrl', { body: { originalUrls: urls, customKey: key, expireDays: 7 } });
+        status('생성: 여러 URL + customKey + expireDays', 200, r);
+        const token = isObj(r) ? r.data.managementToken : '';
+        add('생성: 요청한 customKey가 그대로 사용됨', key, isObj(r) && r.data.shortenUrlKey === key, isObj(r) ? r.data.shortenUrlKey : '-');
+        add('생성: 선택된 URL이 후보 중 하나', '후보 중 하나', isObj(r) && urls.includes(r.data.originalUrl), isObj(r) ? r.data.originalUrl : '-');
+        add('생성: 관리 토큰 발급', '토큰 있음', !!token, token ? '있음' : '없음');
+
+        redirect('접속: 리다이렉트', await api('GET', '/' + enc(key), { manual: true }));
+
+        r = await api('GET', '/shortenUrl/' + enc(key));
+        status('정보 조회', 200, r);
+        const cntKey = isObj(r) ? Object.keys(r.data).find((k) => /redirect/i.test(k)) : null;
+        add('조회수가 1 이상', '>= 1', cntKey && Number(r.data[cntKey]) >= 1, cntKey ? String(r.data[cntKey]) : '-');
+
+        status('중복 customKey 재등록', 409, await api('POST', '/shortenUrl', { body: { originalUrls: [urls[0]], customKey: key } }));
+
+        r = await api('POST', '/shortenUrl', { body: { originalUrls: [urls[0]] } });
+        status('customKey 없이 생성(랜덤 키)', 200, r);
+        add('랜덤 키는 8자리', '8', isObj(r) && String(r.data.shortenUrlKey).length === 8, isObj(r) ? String(r.data.shortenUrlKey).length : '-');
+
+        status('없는 키 접속', 404, await api('GET', '/nokey' + Math.random().toString(36).slice(2, 8), { manual: true }));
+        status('만료: 틀린 토큰', 403, await api('DELETE', '/shortenUrl/' + enc(key), { headers: { 'X-Management-Token': 'wrong-token' } }));
+        status('만료: 토큰 헤더 없음', 400, await api('DELETE', '/shortenUrl/' + enc(key)));
+        status('만료: 올바른 토큰', 204, await api('DELETE', '/shortenUrl/' + enc(key), { headers: { 'X-Management-Token': token } }));
+
+        await sleep(1200);
+        status('만료 후 접속', 410, await api('GET', '/' + enc(key), { manual: true }));
+        status('만료된 customKey 재사용', 200, await api('POST', '/shortenUrl', { body: { originalUrls: [urls[1]], customKey: key } }));
+
+        status('검증: 빈 URL 목록', 400, await api('POST', '/shortenUrl', { body: { originalUrls: [] } }));
+        status('검증: 잘못된 URL', 400, await api('POST', '/shortenUrl', { body: { originalUrls: ['abc'] } }));
+        status('검증: customKey 2자(너무 짧음)', 400, await api('POST', '/shortenUrl', { body: { originalUrls: [urls[0]], customKey: 'ab' } }));
+        status('검증: expireDays 0', 400, await api('POST', '/shortenUrl', { body: { originalUrls: [urls[0]], expireDays: 0 } }));
+        status('검증: expireDays 366', 400, await api('POST', '/shortenUrl', { body: { originalUrls: [urls[0]], expireDays: 366 } }));
+
+        const passed = rows.filter((x) => x.pass).length;
+        $('scenarioSummary').textContent = passed + ' / ' + rows.length + ' 통과';
+        const table = document.createElement('table');
+        const thead = document.createElement('tr');
+        ['결과', '항목', '기대', '실제'].forEach((h) => { const th = document.createElement('th'); th.textContent = h; thead.append(th); });
+        table.append(thead);
+        rows.forEach((x) => {
+            const tr = document.createElement('tr');
+            const c1 = document.createElement('td'); const b = document.createElement('span');
+            b.className = 'badge ' + (x.pass ? 'ok' : 'err'); b.textContent = x.pass ? '통과' : '실패'; c1.append(b);
+            const c2 = document.createElement('td'); c2.textContent = x.name;
+            const c3 = document.createElement('td'); c3.textContent = x.expect;
+            const c4 = document.createElement('td'); c4.textContent = x.actual;
+            tr.append(c1, c2, c3, c4); table.append(tr);
+        });
+        $('scenarioTable').append(table);
+        btn.disabled = false;
+    };
+
+    renderLinks();
+</script>
+</body>
+</html>
