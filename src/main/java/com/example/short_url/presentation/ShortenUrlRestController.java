@@ -48,4 +48,12 @@ public class ShortenUrlRestController {
         ShortenUrlInformationDto shortenUrlInformationDto = simpleShortenUrlService.getShortenUrlInformationByShortenUrlKey(shortenUrlKey);
         return ResponseEntity.ok(shortenUrlInformationDto);
     }
+
+    @DeleteMapping(value = "/shortenUrl/{shortenUrlKey}")
+    public ResponseEntity<Void> expireShortenUrl(
+            @PathVariable String shortenUrlKey,
+            @RequestHeader("X-Management-Token") String managementToken) {
+        simpleShortenUrlService.expireShortenUrl(shortenUrlKey, managementToken);
+        return ResponseEntity.noContent().build();
+    }
 }

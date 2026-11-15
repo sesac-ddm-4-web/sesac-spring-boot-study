@@ -1,9 +1,6 @@
 package com.example.short_url.application;
 
-import com.example.short_url.DuplicateShortenUrlKeyException;
-import com.example.short_url.ExpiredShortenUrlException;
-import com.example.short_url.LackOfShortenUrlKeyException;
-import com.example.short_url.NotFoundShortenUrlException;
+import com.example.short_url.exception.*;
 import com.example.short_url.domain.ShortenUrl;
 import com.example.short_url.domain.ShortenUrlRepository;
 import com.example.short_url.presentation.ShortenUrlCreateRequestDto;
@@ -39,8 +36,8 @@ public class SimpleShortenUrlService {
             expire = null;
         } else {
             LocalDateTime now = LocalDateTime.now();
-            //expire = now.plusDays(expireDays);
-            expire = now.plusSeconds(expireDays);
+            expire = now.plusDays(expireDays);
+            //expire = now.plusSeconds(expireDays);
         }
 
         ShortenUrl shortenUrl = new ShortenUrl(originalUrl,shortenUrlKey, expire);
@@ -65,6 +62,7 @@ public class SimpleShortenUrlService {
 
         if (null==shortenUrl) throw new NotFoundShortenUrlException();
         if (shortenUrl.isExpired()) throw new ExpiredShortenUrlException();
+        shortenUrl.access();
         shortenUrl.increaseRedirectCount();
         shortenUrlRepository.saveShortenUrl(shortenUrl);
 
@@ -91,9 +89,20 @@ public class SimpleShortenUrlService {
         if (customKey == null) {
             return getUniqueShortenUrlKey();
         }
-        if (shortenUrlRepository.findShortenUrlByShortenUrlKey(customKey) != null) {
+        ShortenUrl exist = shortenUrlRepository.findShortenUrlByShortenUrlKey(customKey);
+        if (exist != null && !exist.isExpired()) {
             throw new DuplicateShortenUrlKeyException();
         }
         return customKey;
+    }
+
+    public void expireShortenUrl(String shortenUrlKey, String managementToken){
+        ShortenUrl shortenUrl = shortenUrlRepository.findShortenUrlByShortenUrlKey(shortenUrlKey);
+
+        if (null==shortenUrl) throw new NotFoundShortenUrlException();
+        if (!shortenUrl.TokenMatch(managementToken)) throw new InvalidManagementTokenException();
+
+        shortenUrl.expireNow();
+        shortenUrlRepository.saveShortenUrl(shortenUrl);
     }
 }

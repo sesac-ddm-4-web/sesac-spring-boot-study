@@ -1,15 +1,18 @@
 package com.example.short_url.domain;
 
-import java.util.List;
 import java.util.Random;
 import java.time.LocalDateTime;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.UUID;;
 
 public class ShortenUrl {
     private String originalUrl;
     private String shortenUrlKey;
     private Long redirectCount;
     private LocalDateTime expire;
+    private String managementToken = UUID.randomUUID().toString();
+
+    private static final int UNUSED_EXPIRE_DAYS = 7;
+    private LocalDateTime lastAccessedAt = LocalDateTime.now();
 
     public static String generateShortenUrlKey(){
         String base56Characters="23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz";
@@ -51,16 +54,35 @@ public class ShortenUrl {
         return redirectCount;
     }
 
+    public String getManagementToken() {
+        return managementToken;
+    }
+
     public LocalDateTime getExpire() {
         return expire;
     }
 
     public boolean isExpired(){
-        if (expire == null) {
-            return false;                       // 만료 시각이 없으면 영구 링크 → 만료 아님
+        LocalDateTime now = LocalDateTime.now();
+        //LocalDateTime deadline = lastAccessedAt.plusSeconds(UNUSED_EXPIRE_DAYS);
+        LocalDateTime deadline = lastAccessedAt.plusDays(UNUSED_EXPIRE_DAYS);
+
+        if (expire != null && now.isAfter(expire)) {
+            return true;
         }
 
-        LocalDateTime now = LocalDateTime.now(); // 지금 시각
-        return now.isAfter(expire);
+        return now.isAfter(deadline);
+    }
+
+    public boolean TokenMatch(String token){
+        return managementToken.equals(token);
+    }
+
+    public void expireNow(){
+        this.expire = LocalDateTime.now();
+    }
+
+    public void access(){
+        this.lastAccessedAt = LocalDateTime.now();
     }
 }
