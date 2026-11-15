@@ -117,46 +117,46 @@ erDiagram
 
 `POST /shortenUrl`로 원본 URL과 `customKey`를 보냅니다. 지정한 키(`test1`)로 생성되고, 응답에 관리 토큰이 함께 발급됩니다. (200 OK)
 
-![img.png](img.png)
+![img.png](files/images/img.png)
 
 ### 2. 리다이렉트 접속
 
 `GET /test1`로 접속하면 원본 URL(네이버)로 이동합니다. Postman은 리다이렉트를 자동으로 따라가기 때문에 최종 페이지의 200 OK가 표시됩니다. 서버가 보내는 상태 코드와 `Location` 헤더를 보려면 Postman 설정에서 *Automatically follow redirects*를 끄면 됩니다.
 
-![img_1.png](img_1.png)
+![img_1.png](files/images/img_1.png)
 
 ### 3. 정보 조회
 
 `GET /shortenUrl/test1`로 원본 URL, 단축 키, 접속 횟수를 확인합니다. 2번에서 접속한 1회가 `redirectcount: 1`로 집계된 것을 볼 수 있습니다. (200 OK)
 
-![img_2.png](img_2.png)
+![img_2.png](files/images/img_2.png)
 
 ### 4. 중복 키 거절
 
 1번과 같은 본문으로 다시 `POST /shortenUrl`을 보내면 이미 사용 중인 키이므로 409 Conflict와 "이미 사용 중인 주소입니다."가 반환됩니다.
 
-![img_3.png](img_3.png)
+![img_3.png](files/images/img_3.png)
 
 ### 5. 즉시 만료
 
 `DELETE /shortenUrl/test1`에 헤더 `X-Management-Token`으로 1번에서 받은 토큰을 보내면 링크가 즉시 만료됩니다. (204 No Content)
 
-![img_4.png](img_4.png)
+![img_4.png](files/images/img_4.png)
 
 ### 6. 만료된 링크 접속
 
 만료 후 `GET /test1`로 접속하면 410 Gone과 "만료된 단축 URL입니다."가 반환됩니다. 조회수와 접속 시각은 갱신되지 않습니다.
 
-![img_5.png](img_5.png)
+![img_5.png](files/images/img_5.png)
 
 ### 7. 만료된 키 재사용
 
 만료된 키는 다시 등록할 수 있습니다. 1번과 같은 본문으로 `POST /shortenUrl`을 보내면 200 OK로 생성되고 새 관리 토큰이 발급됩니다. 이전 토큰은 더 이상 쓸 수 없습니다.
 
-![img_6.png](img_6.png)
+![img_6.png](files/images/img_6.png)
 
 ### 8. 여러 링크 중 하나 선택
 
 `customKey` 없이 원본 URL 3개를 보내면, 랜덤 8자리 키가 생성되고 후보 중 1개가 생성 시점에 선택되어 고정됩니다. 응답의 `originalUrl`이 선택된 결과입니다. (200 OK)
 
-![img_7.png](img_7.png)
+![img_7.png](files/images/img_7.png)
