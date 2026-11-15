@@ -35,6 +35,11 @@ public class CartItem {
         return cartItem;
     }
 
+    // db에서 가져와서 다시 조립
+    public static CartItem restore(Long id, Long itemId, String name, int unitPrice, Integer stock, int quantity) {
+        return new CartItem(id, itemId, name, unitPrice, stock, quantity);
+    }
+
     // 같은 상품 더할 때
     public void addQuantity(int amount) {
         int newQuantity = this.quantity + amount;

@@ -4,4 +4,5 @@ import com.example.demo.cart.domain.Cart;
 
 public interface CartRepository {
     Cart find();
+    void save(Cart cart);
 }

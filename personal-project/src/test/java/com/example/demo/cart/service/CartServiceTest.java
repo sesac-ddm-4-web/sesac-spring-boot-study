@@ -27,7 +27,7 @@ class CartServiceTest {
     @BeforeEach
     void setUp() {
         itemRepository = new ListCollectionItemRepository();
-        cartService = new CartService(new MemoryCartRepository(), itemRepository, new ValidationService());
+        cartService = new CartService(new MemoryCartRepository(itemRepository), itemRepository, new ValidationService());
     }
 
     private Long saveManual(String name, int price) {
@@ -41,43 +41,40 @@ class CartServiceTest {
     }
 
     @Test
-    void 원본을_수정해도_장바구니에_복사한_이름과_가격은_그대로다() {
+    void 원본을_수정하면_장바구니의_이름과_가격도_따라_바뀐다() {
         Long itemId = saveManual("코트", 110000);
         cartService.add(new CartAddReq(itemId, 1));
 
         itemRepository.update(new CollectionItem(itemId, "롱코트", 50000));
 
         CartItemRes line = cartService.find().items().get(0);
-        assertEquals("코트", line.name());
-        assertEquals(110000, line.unitPrice());
+        assertEquals("롱코트", line.name());
+        assertEquals(50000, line.unitPrice());
     }
 
     @Test
-    void 원본이_삭제돼도_장바구니_행의_수량을_변경하고_삭제할_수_있다() {
+    void 원본이_삭제되면_장바구니에서도_빠진다() {
         Long itemId = saveManual("코트", 110000);
         Long cartItemId = cartService.add(new CartAddReq(itemId, 1)).items().get(0).id();
         itemRepository.delete(itemId);
 
-        CartRes changed = cartService.changeQuantity(cartItemId, new CartQuantityReq(3));
-        assertEquals(3, changed.items().get(0).quantity());
-        assertEquals(330000L, changed.subtotal());
-
-        cartService.remove(cartItemId);
         assertTrue(cartService.find().items().isEmpty());
+        assertThrows(EntityNotFoundException.class,
+                () -> cartService.changeQuantity(cartItemId, new CartQuantityReq(3)));
+        assertThrows(EntityNotFoundException.class, () -> cartService.remove(cartItemId));
     }
 
     @Test
     void 원본이_삭제된_뒤에는_같은_상품을_다시_담을_수_없다() {
         Long itemId = saveManual("코트", 110000);
-        Long cartItemId = cartService.add(new CartAddReq(itemId, 1)).items().get(0).id();
+        cartService.add(new CartAddReq(itemId, 1));
         itemRepository.delete(itemId);
-        cartService.remove(cartItemId);
 
         assertThrows(EntityNotFoundException.class, () -> cartService.add(new CartAddReq(itemId, 1)));
     }
 
     @Test
-    void 장바구니_행을_삭제한_뒤_다시_담으면_수정된_위시리스트_값을_복사한다() {
+    void 장바구니_행을_삭제한_뒤_다시_담으면_수정된_위시리스트_값이_보인다() {
         Long itemId = saveManual("셔츠", 30000);
         Long cartItemId = cartService.add(new CartAddReq(itemId, 1)).items().get(0).id();
         itemRepository.update(new CollectionItem(itemId, "새 셔츠", 40000));

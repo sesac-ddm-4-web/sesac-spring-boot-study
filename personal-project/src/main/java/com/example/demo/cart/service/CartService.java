@@ -33,6 +33,7 @@ public class CartService {
         CollectionItem item = collectionItemRepository.findById(request.itemId());
         Cart cart = cartRepository.find();
         cart.add(item, request.quantity());
+        cartRepository.save(cart);
         return CartRes.from(cart);
     }
 
@@ -44,11 +45,14 @@ public class CartService {
         validationService.checkValid(request);
         Cart cart = cartRepository.find();
         cart.changeQuantity(cartItemId, request.quantity());
+        cartRepository.save(cart);
         return CartRes.from(cart);
     }
 
     public synchronized void remove(Long cartItemId) {
-        cartRepository.find().remove(cartItemId);
+        Cart cart = cartRepository.find();
+        cart.remove(cartItemId);
+        cartRepository.save(cart);
     }
 
     public synchronized PricePreviewRes preview(String couponCode) {

@@ -34,6 +34,17 @@ public class Cart {
         nextId++;
     }
 
+    // db에서 가져와서 다시 객체로 조립
+    public static Cart restore(List<CartItem> items) {
+        Cart cart = new Cart();
+        cart.items.addAll(items);
+        cart.nextId = items.stream()
+                .mapToLong(CartItem::getId)
+                .max()
+                .orElse(0L) + 1;
+        return cart;
+    }
+
     public void changeQuantity(Long cartItemId, int quantity) {
         findItem(cartItemId).changeQuantity(quantity);
     }
