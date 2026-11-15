@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>포트링크 · 지원서 링크 관리</title>
+  <style>
+    :root {
+      --bg: #f6f7f4;
+      --surface: #ffffff;
+      --ink: #1d2420;
+      --muted: #66706a;
+      --line: #e1e5df;
+      --accent: #17694a;
+      --accent-soft: #e4f1ea;
+      --warn: #a15c07;
+      --warn-soft: #fbf0df;
+      --danger: #b4322b;
+      --danger-soft: #fbe6e4;
+      --radius: 12px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      line-height: 1.5;
+    }
+    header {
+      padding: 32px 16px 8px;
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+    header h1 { margin: 0; font-size: 28px; letter-spacing: -0.5px; }
+    header h1 span { color: var(--accent); }
+    header p { margin: 6px 0 0; color: var(--muted); }
+    main {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: minmax(0, 380px) minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+    @media (max-width: 860px) { main { grid-template-columns: minmax(0, 1fr); } }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .card h2 { margin: 0 0 14px; font-size: 17px; }
+    label { display: block; font-size: 13px; font-weight: 600; margin: 12px 0 4px; }
+    label small { font-weight: 400; color: var(--muted); }
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 14px;
+      background: #fff;
+      color: var(--ink);
+    }
+    input:focus, select:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+    .prefix { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #fff; }
+    .prefix span { padding: 0 2px 0 12px; color: var(--muted); font-size: 13px; white-space: nowrap; }
+    .prefix input { border: 0; padding-left: 2px; }
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+      white-space: nowrap;
+    }
+    button.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); font-weight: 500; }
+    button.small { padding: 6px 10px; font-size: 13px; }
+    button:disabled { opacity: .5; cursor: default; }
+    .primary { width: 100%; margin-top: 18px; padding: 12px; }
+    .message { margin-top: 12px; font-size: 14px; border-radius: 8px; padding: 10px 12px; display: none; }
+    .message.error { display: block; background: var(--danger-soft); color: var(--danger); }
+    .result { margin-top: 14px; padding: 14px; border-radius: 10px; background: var(--accent-soft); display: none; }
+    .result.show { display: block; }
+    .result .row { display: flex; gap: 8px; align-items: center; }
+    .result a { font-weight: 700; color: var(--accent); word-break: break-all; flex: 1; }
+    .toolbar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+    .toolbar input { flex: 1; min-width: 160px; width: auto; }
+    .toolbar select { width: auto; }
+    .list { display: flex; flex-direction: column; gap: 10px; }
+    .item {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 6px 12px;
+    }
+    .item.selected { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+    .item .title { font-weight: 700; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .item .short { color: var(--accent); font-weight: 600; text-decoration: none; }
+    .item .origin { color: var(--muted); font-size: 13px; word-break: break-all; }
+    .item .meta { color: var(--muted); font-size: 12px; }
+    .item .count { text-align: right; font-size: 22px; font-weight: 700; }
+    .item .count small { display: block; font-size: 11px; font-weight: 500; color: var(--muted); }
+    .item .actions { grid-column: 1 / -1; display: flex; gap: 6px; flex-wrap: wrap; }
+    .badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+    .badge.ACTIVE { background: var(--accent-soft); color: var(--accent); }
+    .badge.DISABLED { background: #ececec; color: #555; }
+    .badge.EXPIRED { background: var(--warn-soft); color: var(--warn); }
+    .badge.custom { background: #eef0ff; color: #3d47a8; }
+    .badge.unopened { background: #fff; color: var(--muted); border: 1px dashed var(--line); }
+    .item .bot { color: var(--muted); font-size: 12px; }
+    .empty { color: var(--muted); text-align: center; padding: 28px 0; }
+    .stats { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); display: none; }
+    .stats.show { display: block; }
+    .stats-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .stats-head h3 { margin: 0; font-size: 15px; }
+    .stats-head select { width: auto; }
+    .summary { display: flex; gap: 16px; margin: 10px 0 14px; font-size: 13px; color: var(--muted); }
+    .summary b { color: var(--ink); font-size: 18px; margin-left: 4px; }
+    .chart { display: flex; align-items: flex-end; gap: 4px; height: 140px; border-bottom: 1px solid var(--line); }
+    .bar { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; min-width: 0; }
+    .bar .fill { width: 100%; max-width: 32px; background: var(--accent); border-radius: 4px 4px 0 0; min-height: 2px; }
+    .bar .fill.zero { background: var(--line); }
+    .bar .num { font-size: 11px; color: var(--muted); margin-bottom: 2px; }
+    .labels { display: flex; gap: 4px; }
+    .labels span { flex: 1; text-align: center; font-size: 10px; color: var(--muted); min-width: 0; overflow: hidden; }
+    .hint { font-size: 12px; color: var(--muted); margin-top: 8px; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>포트<span>링크</span></h1>
+  <p>지원한 회사마다 다른 짧은 링크를 주고, 회사별 링크가 언제 몇 번 열렸는지 확인하세요.</p>
+</header>
+
+<main>
+  <section class="card">
+    <h2>새 링크 만들기</h2>
+    <form id="create-form" novalidate>
+      <label for="originalUrl">원본 주소</label>
+      <input id="originalUrl" name="originalUrl" placeholder="https://github.com/내아이디" required>
+
+      <label for="title">메모 <small>(지원 회사·용도)</small></label>
+      <input id="title" name="title" maxlength="50" placeholder="토스 서류 - 포트폴리오">
+
+      <label for="customKey">원하는 짧은 주소 <small>(비우면 8자 자동 생성)</small></label>
+      <div class="prefix">
+        <span id="origin-prefix"></span>
+        <input id="customKey" name="customKey" maxlength="30" placeholder="toss-portfolio">
+      </div>
+
+      <label for="expiresOn">만료일 <small>(공고 마감일, 선택)</small></label>
+      <input id="expiresOn" name="expiresOn" type="date">
+
+      <button class="primary" type="submit" id="create-button">짧은 링크 만들기</button>
+      <div class="message" id="create-message"></div>
+    </form>
+
+    <div class="result" id="result">
+      <div class="row">
+        <a id="result-link" target="_blank" rel="noopener noreferrer"></a>
+        <button class="small" type="button" id="copy-button">복사</button>
+      </div>
+      <div class="hint" id="result-hint"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>내 링크</h2>
+    <div class="toolbar">
+      <input id="search" placeholder="회사, 주소, 키로 검색">
+      <select id="status-filter" aria-label="상태">
+        <option value="">전체 상태</option>
+        <option value="ACTIVE">사용 중</option>
+        <option value="DISABLED">사용 중지</option>
+        <option value="EXPIRED">만료</option>
+      </select>
+      <select id="opened-filter" aria-label="열람 여부">
+        <option value="">열람 전체</option>
+        <option value="true">열린 링크</option>
+        <option value="false">아직 안 열림</option>
+      </select>
+      <button class="ghost" type="button" id="refresh-button">새로고침</button>
+    </div>
+    <div class="message" id="list-message"></div>
+    <div class="list" id="list"></div>
+
+    <div class="stats" id="stats">
+      <div class="stats-head">
+        <h3 id="stats-title"></h3>
+        <select id="stats-days" aria-label="기간">
+          <option value="7">최근 7일</option>
+          <option value="14">최근 14일</option>
+          <option value="30">최근 30일</option>
+        </select>
+      </div>
+      <div class="summary">
+        <span>전체 방문<b id="stats-total">0</b></span>
+        <span>기간 방문<b id="stats-period">0</b></span>
+        <span>미리보기·봇<b id="stats-bot">0</b></span>
+      </div>
+      <div class="chart" id="chart"></div>
+      <div class="labels" id="chart-labels"></div>
+    </div>
+  </section>
+</main>
+
+<script>
+  const API = "/api/short-urls";
+  const STATUS_TEXT = { ACTIVE: "사용 중", DISABLED: "사용 중지", EXPIRED: "만료" };
+  let selectedKey = null;
+
+  const $ = (id) => document.getElementById(id);
+  const origin = window.location.origin;
+  const host = origin.replace(/^https?:\/\//, "");
+  $("origin-prefix").textContent = host + "/";
+
+  function isHttpUrl(value) {
+    try {
+      const url = new URL(value);
+      return url.protocol === "http:" || url.protocol === "https:";
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function formatTime(value) {
+    return value.slice(5, 16).replace("-", "/").replace("T", " ");
+  }
+
+  function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined && text !== null) node.textContent = text;
+    return node;
+  }
+
+  function showMessage(target, text) {
+    target.textContent = text;
+    target.className = text ? "message error" : "message";
+  }
+
+  async function request(url, options = {}) {
+    const response = await fetch(url, {
+      ...options,
+      headers: options.body ? { "Content-Type": "application/json" } : undefined,
+    });
+    const text = await response.text();
+    let data = null;
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch (e) {
+      data = null;
+    }
+    if (!response.ok) {
+      throw new Error((data && data.message) || "요청에 실패했습니다. (" + response.status + ")");
+    }
+    return data;
+  }
+
+  $("create-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    showMessage($("create-message"), "");
+    const originalUrl = $("originalUrl").value.trim();
+    if (!isHttpUrl(originalUrl)) {
+      showMessage($("create-message"), "http:// 또는 https:// 로 시작하는 주소를 입력해 주세요.");
+      return;
+    }
+    const body = {
+      originalUrl,
+      title: $("title").value.trim() || null,
+      customKey: $("customKey").value.trim() || null,
+      expiresOn: $("expiresOn").value || null,
+    };
+    $("create-button").disabled = true;
+    try {
+      const created = await request(API, { method: "POST", body: JSON.stringify(body) });
+      const shortUrl = origin + created.shortPath;
+      $("result-link").textContent = shortUrl;
+      $("result-link").href = shortUrl;
+      $("result-hint").textContent = created.expiresOn
+        ? created.expiresOn + "까지 사용할 수 있어요."
+        : "만료일 없이 계속 사용할 수 있어요.";
+      $("result").className = "result show";
+      $("create-form").reset();
+      selectedKey = created.key;
+      await loadList();
+    } catch (error) {
+      showMessage($("create-message"), error.message);
+    } finally {
+      $("create-button").disabled = false;
+    }
+  });
+
+  async function copyText(button, text, label) {
+    try {
+      await navigator.clipboard.writeText(text);
+      button.textContent = "복사됨";
+    } catch (e) {
+      button.textContent = "복사 실패";
+    }
+    setTimeout(() => (button.textContent = label), 1500);
+  }
+
+  $("copy-button").addEventListener("click", () =>
+    copyText($("copy-button"), $("result-link").textContent, "복사"));
+
+  async function loadList() {
+    showMessage($("list-message"), "");
+    const params = new URLSearchParams();
+    if ($("search").value.trim()) params.set("q", $("search").value.trim());
+    if ($("status-filter").value) params.set("status", $("status-filter").value);
+    if ($("opened-filter").value) params.set("opened", $("opened-filter").value);
+    try {
+      const items = await request(API + (params.toString() ? "?" + params : ""));
+      renderList(items);
+      if (selectedKey && items.some((item) => item.key === selectedKey)) {
+        await loadStats(selectedKey);
+      }
+    } catch (error) {
+      showMessage($("list-message"), error.message);
+    }
+  }
+
+  function renderList(items) {
+    const list = $("list");
+    list.replaceChildren();
+    if (items.length === 0) {
+      list.append(el("div", "empty", "조건에 맞는 링크가 없어요. 왼쪽에서 새 링크를 만들어 보세요."));
+      return;
+    }
+    for (const item of items) {
+      const card = el("div", "item" + (item.key === selectedKey ? " selected" : ""));
+      const info = el("div");
+
+      const title = el("div", "title");
+      title.append(el("span", null, item.title || "(메모 없음)"));
+      title.append(el("span", "badge " + item.status, STATUS_TEXT[item.status]));
+      if (item.custom) title.append(el("span", "badge custom", "직접 지정"));
+      if (item.visitCount === 0) title.append(el("span", "badge unopened", "아직 안 열림"));
+      info.append(title);
+
+      const shortLink = el("a", "short", host + item.shortPath);
+      shortLink.href = item.shortPath;
+      shortLink.target = "_blank";
+      shortLink.rel = "noopener noreferrer";
+      info.append(shortLink);
+
+      const originLine = el("div", "origin");
+      if (isHttpUrl(item.originalUrl)) {
+        const a = el("a", null, item.originalUrl);
+        a.href = item.originalUrl;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.style.color = "inherit";
+        originLine.append("→ ", a);
+      } else {
+        originLine.textContent = "→ " + item.originalUrl;
+      }
+      info.append(originLine);
+      info.append(el("div", "meta",
+        "생성 " + formatTime(item.createdAt) +
+        (item.expiresOn ? " · 만료일 " + item.expiresOn : " · 만료 없음")));
+      if (item.firstVisitedAt) {
+        info.append(el("div", "meta",
+          "첫 열람 " + formatTime(item.firstVisitedAt) + " · 마지막 열람 " + formatTime(item.lastVisitedAt)));
+      }
+      if (item.botVisitCount > 0) {
+        info.append(el("div", "bot", "미리보기·봇 " + item.botVisitCount + "회 (방문 수에서 제외)"));
+      }
+
+      const count = el("div", "count", String(item.visitCount));
+      count.append(el("small", null, "방문"));
+
+      const actions = el("div", "actions");
+      const statsButton = el("button", "ghost small", "통계 보기");
+      statsButton.type = "button";
+      statsButton.addEventListener("click", () => {
+        selectedKey = item.key;
+        loadList();
+      });
+      const toggle = el("button", "ghost small", item.status === "DISABLED" ? "다시 사용" : "사용 중지");
+      toggle.type = "button";
+      toggle.addEventListener("click", () => changeStatus(item.key, item.status === "DISABLED"));
+      const copy = el("button", "ghost small", "링크 복사");
+      copy.type = "button";
+      copy.addEventListener("click", () => copyText(copy, origin + item.shortPath, "링크 복사"));
+      actions.append(statsButton, toggle, copy);
+
+      card.append(info, count, actions);
+      list.append(card);
+    }
+  }
+
+  async function changeStatus(key, active) {
+    try {
+      await request(API + "/" + encodeURIComponent(key) + "/status", {
+        method: "PATCH",
+        body: JSON.stringify({ active }),
+      });
+      await loadList();
+    } catch (error) {
+      showMessage($("list-message"), error.message);
+    }
+  }
+
+  async function loadStats(key) {
+    try {
+      const days = $("stats-days").value;
+      const stats = await request(API + "/" + encodeURIComponent(key) + "/stats?days=" + days);
+      $("stats-title").textContent = "/" + stats.key + " 방문 통계";
+      $("stats-total").textContent = stats.totalCount;
+      $("stats-period").textContent = stats.periodCount;
+      $("stats-bot").textContent = stats.botCount;
+      const max = Math.max(1, ...stats.daily.map((d) => d.count));
+      const chart = $("chart");
+      const labels = $("chart-labels");
+      chart.replaceChildren();
+      labels.replaceChildren();
+      for (const day of stats.daily) {
+        const bar = el("div", "bar");
+        bar.title = day.date + " · " + day.count + "회";
+        if (day.count > 0) bar.append(el("div", "num", String(day.count)));
+        const fill = el("div", "fill" + (day.count === 0 ? " zero" : ""));
+        fill.style.height = (day.count / max) * 100 + "%";
+        bar.append(fill);
+        chart.append(bar);
+        labels.append(el("span", null, stats.daily.length > 14 ? day.date.slice(8) : day.date.slice(5)));
+      }
+      $("stats").className = "stats show";
+    } catch (error) {
+      showMessage($("list-message"), error.message);
+    }
+  }
+
+  let searchTimer;
+  $("search").addEventListener("input", () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(loadList, 250);
+  });
+  $("status-filter").addEventListener("change", loadList);
+  $("opened-filter").addEventListener("change", loadList);
+  $("refresh-button").addEventListener("click", loadList);
+  $("stats-days").addEventListener("change", () => selectedKey && loadStats(selectedKey));
+
+  loadList();
+</script>
+</body>
+</html>
