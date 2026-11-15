@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: short-url
+  profiles:
+    active: dev
+
+app:
+  zone: Asia/Seoul
