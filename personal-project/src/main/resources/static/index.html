@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>차곡 · 취미 위시리스트</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="/">차곡<span>WISHLIST</span></a><span class="tag">나의 작은 취미 생활</span></header>
+  <main>
+    <section class="intro"><p class="eyebrow">A LITTLE JOY, WITHIN YOUR BUDGET</p><h1>갖고 싶은 마음을,<br>차곡차곡.</h1><p>좋아하는 물건을 모으고, 오늘의 예산에 맞는 선택을 찾아보세요.</p></section>
+    <p id="notice" class="notice" role="status" aria-live="polite">목록을 불러오는 중입니다.</p>
+    <div class="workspace">
+      <aside>
+        <section class="panel"><p class="eyebrow">01 / ADD TO WISHLIST</p><h2>새로운 위시 담기</h2><form id="add-form">
+          <label for="name">아이템 이름</label><input id="name" name="name" placeholder="예: 주말에 읽을 책" required maxlength="200">
+          <label for="price">가격</label><div class="money-input"><input id="price" name="price" type="number" min="0" step="1" placeholder="0" required><span>원</span></div>
+          <p class="hint">무료 아이템도 0원으로 담을 수 있어요.</p><button type="submit" class="primary">위시리스트에 담기 <span aria-hidden="true">＋</span></button>
+        </form></section>
+        <div class="memo"><span aria-hidden="true">✳</span><p>취미에도 나만의 속도가 있으니까.<br>천천히 모으고, 가볍게 골라보세요.</p></div>
+      </aside>
+      <div class="content">
+        <section class="panel budget-panel"><div><p class="eyebrow">02 / FIND YOUR PICKS</p><h2>오늘은 얼마까지?</h2><p class="description">각 아이템 가격이 예산 이하인 후보를<br>저렴한 순서로 최대 3개 추천해요.</p></div><form id="budget-form"><label for="budget">아이템별 예산</label><div class="money-input"><input id="budget" type="number" min="0" step="1" placeholder="예: 10000" required><span>원</span></div><button class="primary" type="submit">추천받기 <span aria-hidden="true">↗</span></button></form>
+          <div class="recommend-section"><h3>예산에 맞는 추천</h3><div id="recommendations"><p class="empty compact">예산을 입력하면 여기에 추천 결과가 나타나요.</p></div></div>
+        </section>
+        <section class="panel list-panel"><div class="section-heading"><div><p class="eyebrow">03 / MY COLLECTION</p><h2>나의 위시리스트 <span id="count" class="count">0</span></h2></div><button id="refresh" class="subtle" type="button">전체 보기</button></div>
+          <form id="search-form" class="search"><label class="sr-only" for="query">이름 부분 검색</label><input id="query" placeholder="이름으로 찾아보기" required><button type="submit">검색</button></form>
+          <div id="items" aria-live="polite"><p class="empty">목록을 불러오는 중입니다.</p></div>
+        </section>
+      </div>
+    </div>
+    <footer>차곡 · 나의 취미 위시리스트<span>실제 API 연동 · 메모리 저장 방식으로 서버 재시작 시 데이터가 초기화됩니다.</span></footer>
+  </main>
+</body>
+</html>
