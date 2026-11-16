@@ -1,17 +1,12 @@
 package com.example.personal_project.presentation.dto.url;
 
-import com.example.personal_project.domain.ShortenUrl;
+import com.example.personal_project.application.url.result.ShortenUrlResult;
 
 public class ShortenUrlCreateResponseDto {
     private String originalUrl;
     private String shortenUrlKey;
 
-    public ShortenUrlCreateResponseDto(ShortenUrl shortenUrl) {
-        this.originalUrl = shortenUrl.getOriginalUrl();
-        this.shortenUrlKey = shortenUrl.getShortenUrlKey();
-    }
-
-    public void ShortenUrlCreateRequestDto(ShortenUrl shortenUrl) {
+    public ShortenUrlCreateResponseDto(ShortenUrlResult shortenUrl) {
         this.originalUrl = shortenUrl.getOriginalUrl();
         this.shortenUrlKey = shortenUrl.getShortenUrlKey();
     }

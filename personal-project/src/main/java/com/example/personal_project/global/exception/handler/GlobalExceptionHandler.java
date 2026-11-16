@@ -1,6 +1,7 @@
 package com.example.personal_project.global.exception.handler;
 
 import com.example.personal_project.global.exception.*;
+import com.example.personal_project.domain.url.exception.*;
 import com.example.personal_project.global.exception.dto.ErrorResponse;
 import java.util.NoSuchElementException;
 import org.springframework.http.HttpStatus;

@@ -1,13 +1,13 @@
 package com.example.personal_project.presentation.dto.url;
 
-import com.example.personal_project.domain.ShortenUrl;
+import com.example.personal_project.application.url.result.ShortenUrlResult;
 
 public class ShortenUrlInformationDto {
     private String originalUrl;
     private String shortenUrlKey;
     private Long redirectCount;
 
-    public ShortenUrlInformationDto(ShortenUrl shortenUrl) {
+    public ShortenUrlInformationDto(ShortenUrlResult shortenUrl) {
         this.originalUrl = shortenUrl.getOriginalUrl();
         this.shortenUrlKey = shortenUrl.getShortenUrlKey();
         this.redirectCount = shortenUrl.getRedirectCount();
