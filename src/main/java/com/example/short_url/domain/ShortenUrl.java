@@ -1,12 +1,19 @@
 package com.example.short_url.domain;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
 import java.util.Random;
 import java.time.LocalDateTime;
 import java.util.UUID;;
 
+@Entity
+@Table(name = "short_links")
 public class ShortenUrl {
-    private String originalUrl;
+    @Id
     private String shortenUrlKey;
+    private String originalUrl;
     private Long redirectCount;
     private LocalDateTime expire;
     private String managementToken = UUID.randomUUID().toString();

@@ -8,6 +8,7 @@ import com.example.short_url.presentation.ShortenUrlCreateResponseDto;
 import com.example.short_url.presentation.ShortenUrlInformationDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,6 +24,7 @@ public class SimpleShortenUrlService {
         this.shortenUrlRepository = shortenUrlRepository;
     }
 
+    @Transactional
     public ShortenUrlCreateResponseDto generateShortenUrl(ShortenUrlCreateRequestDto shortenUrlCreateRequestDto){
 
         List<String> originalUrls = shortenUrlCreateRequestDto.getOriginalUrls();
@@ -47,6 +49,7 @@ public class SimpleShortenUrlService {
         return shortenUrlCreateResponseDto;
     }
 
+    @Transactional(readOnly = true)
     public ShortenUrlInformationDto getShortenUrlInformationByShortenUrlKey(String shortenUrlKey){
         ShortenUrl shortenUrl = shortenUrlRepository.findShortenUrlByShortenUrlKey(shortenUrlKey);
 
@@ -57,6 +60,7 @@ public class SimpleShortenUrlService {
         return shortenUrlInformationDto;
     }
 
+    @Transactional
     public String getOriginalUrlByShortenUrlKey(String shortenUrlKey){
         ShortenUrl shortenUrl = shortenUrlRepository.findShortenUrlByShortenUrlKey(shortenUrlKey);
 
@@ -96,6 +100,7 @@ public class SimpleShortenUrlService {
         return customKey;
     }
 
+    @Transactional
     public void expireShortenUrl(String shortenUrlKey, String managementToken){
         ShortenUrl shortenUrl = shortenUrlRepository.findShortenUrlByShortenUrlKey(shortenUrlKey);
 
