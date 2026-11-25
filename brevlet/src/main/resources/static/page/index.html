@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Brevlet</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="/page/app.css">
+    <script src="/page/app.js" defer></script>
+</head>
+<body>
+<main class="shell">
+    <header class="masthead">
+        <h1>Brevlet</h1>
+        <nav aria-label="링크 메뉴">
+            <a href="#create" aria-current="page">만들기</a>
+            <a href="#lookup">조회</a>
+        </nav>
+    </header>
+    <section id="create-panel" class="panel" aria-label="링크 만들기">
+        <form class="card form-card" novalidate>
+            <label class="field-label" for="original-url">원본 URL</label>
+            <div class="input-row">
+                <input id="original-url" type="text" placeholder="https://example.com/event" spellcheck="false" autocapitalize="none">
+                <button class="primary" type="submit">단축하기</button>
+            </div>
+            <fieldset class="periods">
+                <legend>만료 기간</legend>
+                <label><input type="radio" name="days" value="" checked><span>영구</span></label>
+                <label><input type="radio" name="days" value="1"><span>1일</span></label>
+                <label><input type="radio" name="days" value="7"><span>7일</span></label>
+                <label><input type="radio" name="days" value="30"><span>30일</span></label>
+            </fieldset>
+            <details id="raw-editor">
+                <summary>요청 본문 편집</summary>
+                <label class="hint" for="raw-body">편집기를 열어 둔 상태에서 단축하면 아래 본문이 그대로 전송됩니다.</label>
+                <textarea id="raw-body" rows="5" spellcheck="false" autocapitalize="none"></textarea>
+            </details>
+        </form>
+        <p class="notice" role="status"></p>
+        <section class="card result" aria-label="생성 결과" hidden>
+            <h2>단축 링크</h2>
+            <div class="result-row">
+                <strong class="short-address"></strong>
+                <button class="action copy" type="button">복사</button>
+                <a class="action open-link" target="_blank" rel="noopener noreferrer" aria-label="단축 링크 열기 (새 창)">링크 열기 <b aria-hidden="true">»</b></a>
+            </div>
+            <p class="expiry"></p>
+        </section>
+    </section>
+    <section id="lookup-panel" class="panel" aria-label="링크 조회" hidden>
+        <form class="card form-card" novalidate>
+            <label class="field-label" for="lookup-key">단축 키</label>
+            <div class="input-row">
+                <input id="lookup-key" type="text" placeholder="AbCd2345" spellcheck="false" autocapitalize="none">
+                <button class="primary" type="submit">조회하기</button>
+            </div>
+        </form>
+        <p class="notice" role="status"></p>
+        <section class="card result" aria-label="조회 결과" hidden>
+            <h2>링크 정보</h2>
+            <dl class="info">
+                <dt>원본 URL</dt><dd class="destination"></dd>
+                <dt>만료 시각</dt><dd class="expiry"></dd>
+                <dt>이동 횟수</dt><dd class="count"></dd>
+            </dl>
+            <a class="action open-link" target="_blank" rel="noopener noreferrer" aria-label="단축 링크 열기 (새 창)">링크 열기 <b aria-hidden="true">»</b></a>
+        </section>
+    </section>
+    <template id="trace-template">
+        <details class="card trace">
+            <summary>요청·응답 상세</summary>
+            <p class="trace-empty hint">요청을 보내면 여기에 기록됩니다.</p>
+            <div class="exchange" hidden>
+                <h3>요청</h3><pre class="request-meta"></pre>
+                <h3>요청 본문</h3><pre class="request-body"></pre>
+                <h3>응답</h3><pre class="response-meta"></pre>
+                <h3>응답 본문</h3><pre class="response-body"></pre>
+            </div>
+        </details>
+    </template>
+</main>
+</body>
+</html>

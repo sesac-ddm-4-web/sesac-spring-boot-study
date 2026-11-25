@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: brevlet
+  profiles:
+    default: h2
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  sql:
+    init:
+      mode: never
