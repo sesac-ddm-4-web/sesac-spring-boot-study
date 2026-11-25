@@ -1,0 +1,15 @@
+# 테스트용 설정: MySQL 대신 메모리 DB(H2) 사용
+# - MySQL이 꺼져 있거나 비밀번호 환경변수가 없어도 테스트 실행 가능
+# - 실제 DB의 데이터를 건드리지 않음 (테스트가 끝나면 사라짐)
+# - MySQL이 없는 다른 컴퓨터에서도 동일하게 실행 가능
+spring:
+  datasource:
+    url: jdbc:h2:mem:shortari;MODE=MySQL;DATABASE_TO_LOWER=TRUE
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      # 테스트 시작 시 엔티티 기준으로 테이블 구조(스키마) 생성, 종료 시 삭제
+      ddl-auto: create-drop
+    open-in-view: false
+    show-sql: true

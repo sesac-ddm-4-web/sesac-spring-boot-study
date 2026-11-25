@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    # DB 접속 정보
+    url: ${DB_URL:jdbc:mysql://localhost:3306/shortari}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      # 엔티티 매핑과 실제 DB 스키마를 비교해 다르면 예외를 발생
+      ddl-auto: validate
+    # 트랜잭션 범위를 명확하게 하기 위해 DB 연결을 컨트롤러 응답 끝까지 유지하지 않음.
+    open-in-view: false
+    # JPA가 실행하는 SQL을 콘솔에 출력
+    show-sql: true
+    properties:
+      hibernate:
+        # SQL을 줄바꿈 해서 보기 편하게
+        format_sql: true
