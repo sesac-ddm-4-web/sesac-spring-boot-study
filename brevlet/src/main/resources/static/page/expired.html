@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>사용할 수 없는 링크 · Brevlet</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Cpath d='M13 19l6-6M11.5 15.5l-2 2a3.5 3.5 0 005 5l2-2M20.5 16.5l2-2a3.5 3.5 0 00-5-5l-2 2' stroke='white' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+  <!-- 이 페이지는 /{key} 주소에서 410으로 직접 응답되므로, 자원 경로는 반드시 절대 경로로 쓴다 -->
+  <link rel="stylesheet" href="/page/app.css">
+  <script>
+    // 메인 페이지에서 저장한 테마를 그대로 적용한다 (저장 불가 환경에서는 시스템 설정을 따른다)
+    try {
+      var t = JSON.parse(localStorage.getItem('brevlet.theme'));
+      if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t;
+    } catch (e) {}
+  </script>
+  <style>
+    .notice-wrap { flex: 1; display: grid; place-items: center; padding: 48px 16px; }
+    .notice { width: 100%; max-width: 480px; padding: 40px 28px 32px; text-align: center; }
+    .notice-icon {
+      display: grid; place-items: center; width: 64px; height: 64px; margin: 0 auto 20px;
+      border-radius: 50%; background: var(--warn-soft); color: var(--warn);
+    }
+    .notice-icon svg { width: 30px; height: 30px; stroke-width: 2; }
+    /* 한글이 단어 중간에서 끊기지 않도록 어절 단위로 줄바꿈한다 */
+    .notice h1 { margin: 0 0 10px; font-size: 22px; line-height: 1.3; letter-spacing: -.02em; word-break: keep-all; text-wrap: balance; }
+    .notice p { margin: 0 auto; max-width: 360px; color: var(--text-2); word-break: keep-all; }
+    .notice-actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 26px; }
+    .notice-code { margin-top: 22px; font-size: 12px; color: var(--text-3); }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a class="brand" href="/" aria-label="Brevlet 홈">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M9 15l6-6M7.5 11.5l-2 2a3.5 3.5 0 005 5l2-2M16.5 12.5l2-2a3.5 3.5 0 00-5-5l-2 2"/></svg>
+        </span>
+        Brevlet
+      </a>
+    </div>
+  </header>
+
+  <main class="container notice-wrap">
+    <section class="card notice" aria-labelledby="notice-title">
+      <div class="notice-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      </div>
+      <h1 id="notice-title">이 링크는 더 이상 사용할 수 없어요</h1>
+      <p>기간이 지나 만료되었거나 사용이 중단된 링크예요. 링크를 보내 준 분께 새 링크를 요청해 보세요.</p>
+      <div class="notice-actions">
+        <a class="btn btn-primary btn-lg" href="/">새 링크 만들기</a>
+      </div>
+      <div class="notice-code">오류 코드 410</div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">© <span id="year"></span> Brevlet</div>
+  </footer>
+
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>
