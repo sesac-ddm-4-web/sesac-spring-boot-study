@@ -10,6 +10,7 @@ import io.github.tkdgh816.brevlet.domain.url.ShortenUrlUnavailableException;
 import io.github.tkdgh816.brevlet.dto.url.CreateShortenUrlRequest;
 import io.github.tkdgh816.brevlet.dto.url.ShortenUrlResponse;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -44,7 +45,7 @@ public class ShortenUrlService {
             try {
                 // ShortenUrl 도메인 객체 생성 및 레포지토리 저장
                 ShortenUrl shortenUrl = new ShortenUrl(request.originalUrl(), shortenUrlKey, expiresAt);
-                shortenUrlRepository.save(shortenUrl);
+                shortenUrlRepository.create(shortenUrl);
                 return ShortenUrlResponse.from(shortenUrl);
             } catch (ShortenUrlKeyConflictException e) {
                 // 새 키 생성 다시 시도
@@ -54,6 +55,7 @@ public class ShortenUrlService {
         throw new KeyGenerationFailedException("단축 URL을 만들 수 없습니다.");
     }
 
+    @Transactional(readOnly = true)
     public ShortenUrlResponse getShortenUrlInfoByKey(String shortenUrlKey) {
         // 레포지토리에서 key에 해당하는 ShortenUrl 요청
         ShortenUrl shortenUrl = getByKey(shortenUrlKey);
@@ -62,6 +64,7 @@ public class ShortenUrlService {
         return ShortenUrlResponse.from(shortenUrl);
     }
 
+    @Transactional
     public String getOriginalUrlByKey(String shortenUrlKey) {
         // 레포지토리에서 key에 해당하는 ShortenUrl 요청
         ShortenUrl shortenUrl = getByKey(shortenUrlKey);

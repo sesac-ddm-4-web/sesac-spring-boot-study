@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:brevlet
+    username: sa
+    password:
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema-h2.sql

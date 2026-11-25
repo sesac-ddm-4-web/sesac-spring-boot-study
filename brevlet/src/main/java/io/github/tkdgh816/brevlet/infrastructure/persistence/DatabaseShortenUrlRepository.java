@@ -1,105 +1,74 @@
 package io.github.tkdgh816.brevlet.infrastructure.persistence;
 
+import io.github.tkdgh816.brevlet.domain.ItemNotFoundException;
 import io.github.tkdgh816.brevlet.domain.key.ShortenUrlKeyConflictException;
 import io.github.tkdgh816.brevlet.domain.url.ShortenUrl;
+import io.github.tkdgh816.brevlet.domain.url.ShortenUrlNotFoundException;
 import io.github.tkdgh816.brevlet.domain.url.ShortenUrlRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.PersistenceException;
+import org.hibernate.exception.ConstraintViolationException;
 import org.jspecify.annotations.Nullable;
 import org.springframework.context.annotation.Profile;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.jpa.criteria.Expressions;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Optional;
 
-@Profile("prod")
+@Profile({"mysql", "h2"})
 @Repository
 public class DatabaseShortenUrlRepository implements ShortenUrlRepository {
-    private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final JpaShortenUrlRepository jpaShortenUrlRepository;
 
-    public DatabaseShortenUrlRepository(NamedParameterJdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    public DatabaseShortenUrlRepository(JpaShortenUrlRepository jpaShortenUrlRepository) {
+        this.jpaShortenUrlRepository = jpaShortenUrlRepository;
     }
 
     @Override
-    public void save(ShortenUrl shortenUrl) {
+    @Transactional
+    public void create(ShortenUrl shortenUrl) {
         try {
-            jdbcTemplate.update("""
-                            INSERT INTO shorten_urls
-                                (shorten_url_key, original_url, redirect_count, expires_at)
-                            VALUES
-                                (:shortenUrlKey, :originalUrl, :redirectCount, :expiresAt)
-                            """,
-                    getSqlParameterSource(shortenUrl)
-            );
-        } catch (DuplicateKeyException e) {
-            throw new ShortenUrlKeyConflictException("이미 존재하는 단축 URL 키입니다.");
+            entityManager.persist(ShortenUrlEntity.from(shortenUrl));
+            entityManager.flush();
+        } catch (ConstraintViolationException ex) {
+            if (ex.getKind() == ConstraintViolationException.ConstraintKind.UNIQUE) {
+                throw new ShortenUrlKeyConflictException("이미 존재하는 단축 URL 키입니다.");
+            }
+            throw ex;
         }
     }
 
     @Override
     public Optional<ShortenUrl> findByKey(String shortenUrlKey) {
-        try {
-            ShortenUrl shortenUrl = jdbcTemplate.queryForObject("""
-                            SELECT * FROM shorten_urls
-                            WHERE shorten_url_key = :shortenUrlKey
-                            """,
-                    new MapSqlParameterSource("shortenUrlKey", shortenUrlKey),
-                    ROW_MAPPER
-            );
-            return Optional.of(shortenUrl);
-        } catch (EmptyResultDataAccessException e) {
-            return Optional.empty();
-        }
+        return jpaShortenUrlRepository.findById(shortenUrlKey)
+                .map(ShortenUrlEntity::toDomain);
     }
 
     @Override
     public void increaseRedirectCount(String shortenUrlKey) {
-        jdbcTemplate.update("""
-                        UPDATE shorten_urls
-                        SET redirect_count = redirect_count + 1
-                        WHERE shorten_url_key = :shortenUrlKey
-                        """,
-                new MapSqlParameterSource("shortenUrlKey", shortenUrlKey)
-        );
-    }
-
-    private static SqlParameterSource getSqlParameterSource(ShortenUrl shortenUrl) {
-        return new BeanPropertySqlParameterSource(shortenUrl) {
-            @Override
-            public @Nullable Object getValue(String paramName) throws IllegalArgumentException {
-                Object value = super.getValue(paramName);
-                return value instanceof Instant instant ? toLocalDateTime(instant) : value;
-            }
-        };
-    }
-
-
-    private static final RowMapper<ShortenUrl> ROW_MAPPER = (rs, rowNum) -> {
-        String shortenUrlKey = rs.getString("shorten_url_key");
-        String originalUrl = rs.getString("original_url");
-        Long redirectCount = rs.getLong("redirect_count");
-        Instant expiresAt = toInstant(rs.getObject("expires_at", LocalDateTime.class));
-
-        return ShortenUrl.restore(originalUrl, shortenUrlKey, redirectCount, expiresAt);
-    };
-
-    private static LocalDateTime toLocalDateTime(Instant instant) {
-        return instant == null
-                ? null
-                : LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
-    }
-
-    private static Instant toInstant(LocalDateTime time) {
-        return time == null
-                ? null
-                : time.toInstant(ZoneOffset.UTC);
+        long updatedRows = jpaShortenUrlRepository.update((root, update, builder) -> {
+            var key = Expressions.path(root, ShortenUrlEntity::getShortenUrlKey);
+            var count = Expressions.path(root, ShortenUrlEntity::getRedirectCount);
+            update.set(count, builder.sum(count, 1L));
+            return builder.equal(key, shortenUrlKey);
+        });
+        if (updatedRows == 0) {
+            throw new ShortenUrlNotFoundException("단축 URL(%s)를 찾을 수 없습니다.".formatted(shortenUrlKey));
+        }
     }
 }

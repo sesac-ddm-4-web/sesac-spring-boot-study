@@ -1,172 +1,84 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Brevlet · 짧고 깔끔한 링크</title>
-  <meta name="description" content="긴 URL을 짧은 링크로 바꾸고, 만료 기간과 클릭 수를 한눈에 관리하세요.">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Cpath d='M13 19l6-6M11.5 15.5l-2 2a3.5 3.5 0 005 5l2-2M20.5 16.5l2-2a3.5 3.5 0 00-5-5l-2 2' stroke='white' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="/page/app.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Brevlet</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="/page/app.css">
+    <script src="/page/app.js" defer></script>
 </head>
 <body>
-  <header class="topbar">
-    <div class="container topbar-inner">
-      <a class="brand" href="/" aria-label="Brevlet 홈">
-        <span class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M9 15l6-6M7.5 11.5l-2 2a3.5 3.5 0 005 5l2-2M16.5 12.5l2-2a3.5 3.5 0 00-5-5l-2 2"/></svg>
-        </span>
-        Brevlet
-      </a>
-      <button class="icon-btn" id="themeToggle" type="button" aria-label="테마 전환" title="테마 전환">
-        <svg class="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
-        <svg class="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
-      </button>
-    </div>
-  </header>
-
-  <main class="container">
-    <section class="hero">
-      <h1>긴 링크를 <span class="accent">짧고 깔끔하게</span></h1>
-      <p class="lead">URL을 붙여넣고 버튼 한 번이면 끝. 만료 기간과 클릭 수까지 한눈에 확인하세요.</p>
-    </section>
-
-    <section class="card main-card">
-      <div class="tabs" role="tablist">
-        <button class="tab is-active" role="tab" id="tab-create" aria-selected="true" aria-controls="panel-create" data-tab="create">링크 만들기</button>
-        <button class="tab" role="tab" id="tab-lookup" aria-selected="false" aria-controls="panel-lookup" data-tab="lookup">링크 조회</button>
-      </div>
-
-      <!-- 링크 만들기 -->
-      <div class="panel" id="panel-create" role="tabpanel" aria-labelledby="tab-create">
-        <form id="createForm" novalidate>
-          <label class="field-label" for="originalUrl">단축할 URL</label>
-          <div class="input-row">
-            <div class="input-wrap">
-              <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a5 5 0 007.07 0l3-3a5 5 0 00-7.07-7.07l-1 1M14 10a5 5 0 00-7.07 0l-3 3a5 5 0 007.07 7.07l1-1"/></svg>
-              <input id="originalUrl" name="originalUrl" type="url" inputmode="url" autocomplete="off" spellcheck="false"
-                     placeholder="https://example.com/아주/긴/주소" required>
-              <button type="button" class="paste-btn" id="pasteBtn" title="클립보드에서 붙여넣기">붙여넣기</button>
+<main class="shell">
+    <header class="masthead">
+        <h1>Brevlet</h1>
+        <nav aria-label="링크 메뉴">
+            <a href="#create" aria-current="page">만들기</a>
+            <a href="#lookup">조회</a>
+        </nav>
+    </header>
+    <section id="create-panel" class="panel" aria-label="링크 만들기">
+        <form class="card form-card" novalidate>
+            <label class="field-label" for="original-url">원본 URL</label>
+            <div class="input-row">
+                <input id="original-url" type="text" placeholder="https://example.com/event" spellcheck="false" autocapitalize="none">
+                <button class="primary" type="submit">단축하기</button>
             </div>
-            <button type="submit" class="btn btn-primary btn-lg" id="createBtn">
-              <span class="btn-label">단축하기</span>
-              <span class="spinner" aria-hidden="true"></span>
-            </button>
-          </div>
-          <p class="field-error" id="urlError" role="alert"></p>
-
-          <div class="expiry">
-            <span class="field-label">만료 기간 <span class="hint-inline">(선택)</span></span>
-            <div class="chips" role="radiogroup" aria-label="만료 기간">
-              <button type="button" class="chip is-active" data-days="none" role="radio" aria-checked="true">영구</button>
-              <button type="button" class="chip" data-days="1" role="radio" aria-checked="false">1일</button>
-              <button type="button" class="chip" data-days="7" role="radio" aria-checked="false">7일</button>
-              <button type="button" class="chip" data-days="30" role="radio" aria-checked="false">30일</button>
-              <button type="button" class="chip" data-days="90" role="radio" aria-checked="false">90일</button>
-              <button type="button" class="chip" data-days="365" role="radio" aria-checked="false">1년</button>
-              <button type="button" class="chip" data-days="custom" role="radio" aria-checked="false">직접 입력</button>
-            </div>
-            <div class="custom-days" id="customDaysWrap" hidden>
-              <input id="customDays" type="number" min="1" max="365" step="1" placeholder="1 ~ 365" aria-label="만료 일수">
-              <span>일 후 만료</span>
-            </div>
-            <p class="hint" id="expiryHint"></p>
-          </div>
+            <fieldset class="periods">
+                <legend>만료 기간</legend>
+                <label><input type="radio" name="days" value="" checked><span>영구</span></label>
+                <label><input type="radio" name="days" value="1"><span>1일</span></label>
+                <label><input type="radio" name="days" value="7"><span>7일</span></label>
+                <label><input type="radio" name="days" value="30"><span>30일</span></label>
+            </fieldset>
+            <details id="raw-editor">
+                <summary>요청 본문 편집</summary>
+                <label class="hint" for="raw-body">편집기를 열어 둔 상태에서 단축하면 아래 본문이 그대로 전송됩니다.</label>
+                <textarea id="raw-body" rows="5" spellcheck="false" autocapitalize="none"></textarea>
+            </details>
         </form>
-
-        <div class="result" id="result" hidden aria-live="polite">
-          <div class="result-head">
-            <span class="badge badge-success">생성 완료</span>
-            <span class="result-exp" id="resultExpiry"></span>
-          </div>
-          <div class="short-row">
-            <a class="short-url" id="resultShort" target="_blank" rel="noopener"></a>
-            <div class="short-actions">
-              <button class="btn btn-primary" id="resultCopy" type="button">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>
-                <span>복사</span>
-              </button>
-              <a class="btn btn-ghost" id="resultOpen" target="_blank" rel="noopener" title="새 탭에서 열기">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5"/></svg>
-              </a>
+        <p class="notice" role="status"></p>
+        <section class="card result" aria-label="생성 결과" hidden>
+            <h2>단축 링크</h2>
+            <div class="result-row">
+                <strong class="short-address"></strong>
+                <button class="action copy" type="button">복사</button>
+                <a class="action open-link" target="_blank" rel="noopener noreferrer" aria-label="단축 링크 열기 (새 창)">링크 열기 <b aria-hidden="true">»</b></a>
             </div>
-          </div>
-          <p class="result-origin">원본 <span id="resultOrigin"></span></p>
-        </div>
-      </div>
-
-      <!-- 링크 조회 -->
-      <div class="panel" id="panel-lookup" role="tabpanel" aria-labelledby="tab-lookup" hidden>
-        <form id="lookupForm" novalidate>
-          <label class="field-label" for="lookupInput">단축 링크 또는 키</label>
-          <div class="input-row">
-            <div class="input-wrap">
-              <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-              <input id="lookupInput" type="text" autocomplete="off" spellcheck="false" placeholder="예: AbCd2345 또는 단축 링크 전체">
+            <p class="expiry"></p>
+        </section>
+    </section>
+    <section id="lookup-panel" class="panel" aria-label="링크 조회" hidden>
+        <form class="card form-card" novalidate>
+            <label class="field-label" for="lookup-key">단축 키</label>
+            <div class="input-row">
+                <input id="lookup-key" type="text" placeholder="AbCd2345" spellcheck="false" autocapitalize="none">
+                <button class="primary" type="submit">조회하기</button>
             </div>
-            <button type="submit" class="btn btn-primary btn-lg" id="lookupBtn">
-              <span class="btn-label">조회</span>
-              <span class="spinner" aria-hidden="true"></span>
-            </button>
-          </div>
-          <p class="field-error" id="lookupError" role="alert"></p>
         </form>
-
-        <div class="info" id="info" hidden aria-live="polite">
-          <div class="info-head">
-            <a class="short-url" id="infoShort" target="_blank" rel="noopener"></a>
-            <span class="badge" id="infoStatus"></span>
-          </div>
-          <dl class="stats">
-            <div class="stat"><dt>클릭 수</dt><dd id="infoClicks">0</dd></div>
-            <div class="stat"><dt>만료일</dt><dd id="infoExpires">-</dd></div>
-            <div class="stat"><dt>남은 기간</dt><dd id="infoRemain">-</dd></div>
-          </dl>
-          <div class="info-origin">
-            <span class="field-label">원본 URL</span>
-            <a id="infoOrigin" target="_blank" rel="noopener noreferrer"></a>
-          </div>
-          <div class="info-actions">
-            <button class="btn btn-ghost" id="infoCopy" type="button">링크 복사</button>
-            <button class="btn btn-ghost" id="infoRefresh" type="button">새로고침</button>
-          </div>
-        </div>
-      </div>
+        <p class="notice" role="status"></p>
+        <section class="card result" aria-label="조회 결과" hidden>
+            <h2>링크 정보</h2>
+            <dl class="info">
+                <dt>원본 URL</dt><dd class="destination"></dd>
+                <dt>만료 시각</dt><dd class="expiry"></dd>
+                <dt>이동 횟수</dt><dd class="count"></dd>
+            </dl>
+            <a class="action open-link" target="_blank" rel="noopener noreferrer" aria-label="단축 링크 열기 (새 창)">링크 열기 <b aria-hidden="true">»</b></a>
+        </section>
     </section>
-
-    <section class="recent" id="recentSection" hidden>
-      <div class="recent-head">
-        <h2>최근 만든 링크</h2>
-        <button class="text-btn" id="clearRecent" type="button">목록 지우기</button>
-      </div>
-      <p class="recent-note">이 브라우저에서 만든 링크만 표시됩니다.</p>
-      <ul class="recent-list" id="recentList"></ul>
-    </section>
-
-    <section class="features" aria-label="주요 기능">
-      <div class="feature">
-        <div class="f-icon"><svg viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></div>
-        <h3>즉시 생성</h3>
-        <p>회원가입 없이 바로 짧은 링크를 만들 수 있어요.</p>
-      </div>
-      <div class="feature">
-        <div class="f-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
-        <h3>만료 기간 설정</h3>
-        <p>기본은 영구 링크예요. 원하면 1일부터 1년까지 만료 기간을 정할 수 있어요.</p>
-      </div>
-      <div class="feature">
-        <div class="f-icon"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div>
-        <h3>클릭 통계</h3>
-        <p>링크가 몇 번 열렸는지 언제든 확인할 수 있어요.</p>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer">
-    <div class="container">© <span id="year"></span> Brevlet</div>
-  </footer>
-
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
-  <script src="/page/app.js"></script>
+    <template id="trace-template">
+        <details class="card trace">
+            <summary>요청·응답 상세</summary>
+            <p class="trace-empty hint">요청을 보내면 여기에 기록됩니다.</p>
+            <div class="exchange" hidden>
+                <h3>요청</h3><pre class="request-meta"></pre>
+                <h3>요청 본문</h3><pre class="request-body"></pre>
+                <h3>응답</h3><pre class="response-meta"></pre>
+                <h3>응답 본문</h3><pre class="response-body"></pre>
+            </div>
+        </details>
+    </template>
+</main>
 </body>
 </html>

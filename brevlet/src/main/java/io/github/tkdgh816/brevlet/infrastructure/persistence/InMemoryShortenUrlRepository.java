@@ -16,7 +16,7 @@ public class InMemoryShortenUrlRepository implements ShortenUrlRepository {
     Map<String, ShortenUrl> shortenUrls = new ConcurrentHashMap<>();
 
     @Override
-    public void save(ShortenUrl shortenUrl) {
+    public void create(ShortenUrl shortenUrl) {
         ShortenUrl existing = shortenUrls.putIfAbsent(shortenUrl.getShortenUrlKey(), shortenUrl);
         if (existing != null) {
             throw new ShortenUrlKeyConflictException("이미 존재하는 단축 URL 키입니다.");
@@ -30,9 +30,12 @@ public class InMemoryShortenUrlRepository implements ShortenUrlRepository {
 
     @Override
     public void increaseRedirectCount(String shortenUrlKey) {
-        ShortenUrl shortenUrl = shortenUrls.get(shortenUrlKey);
-        if (shortenUrl != null) {
-            shortenUrl.increaseRedirectCount();
-        }
+        shortenUrls.computeIfPresent(shortenUrlKey, (key, current) ->
+                ShortenUrl.restore(
+                        current.getOriginalUrl(),
+                        key,
+                        current.getRedirectCount() + 1,
+                        current.getExpiresAt()
+                ));
     }
 }

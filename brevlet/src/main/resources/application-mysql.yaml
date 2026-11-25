@@ -2,5 +2,5 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3308/shorten_url_management
-    username: ${DB_USERNAME:root}
+    username: ${DB_USERNAME}
     password: ${DB_PASSWORD}

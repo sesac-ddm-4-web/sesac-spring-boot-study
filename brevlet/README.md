@@ -23,8 +23,8 @@ URL 단축 서비스 학습 프로젝트를 바탕으로 **만료 기간 설정 
 |---|---|
 | 언어 | Java 21 |
 | 프레임워크 | Spring Boot 4.1.2, Spring MVC, Bean Validation |
-| 데이터 접근 | Spring JDBC, `NamedParameterJdbcTemplate` |
-| 데이터베이스 | MySQL |
+| 데이터 접근 | Spring Data JPA, Hibernate |
+| 데이터베이스 | H2(기본), MySQL |
 | 웹 화면 | HTML, CSS, JavaScript |
 | 테스트 | JUnit Jupiter, AssertJ, Mockito, MockMvc |
 | 빌드 | Gradle Wrapper 9.8.2 |
@@ -52,11 +52,11 @@ flowchart LR
    end
 
    subgraph Infrastructure["Infrastructure 계층"]
-      RepoImpl["DatabaseShortenUrlRepository<br/>Spring JDBC로 데이터 접근"]
+      RepoImpl["DatabaseShortenUrlRepository<br/>JPA로 생성 · 조회 · 횟수 증가"]
       KeyImpl["RandomShortenUrlKeyGenerator<br/>랜덤 키 생성"]
    end
 
-   DB[("MySQL<br/>shorten_urls")]
+   DB[("H2 또는 MySQL<br/>shorten_urls")]
 
    User -->|"HTTP 요청"| Controller
    Controller -->|"기능 실행 요청"| Service
@@ -116,49 +116,43 @@ public boolean isAvailable(Instant now) {
 조회: DATETIME(6) → LocalDateTime → UTC로 해석한 Instant
 ```
 
-변환은 DB 저장소 안에 모았습니다. `DATETIME(6)`은 소수점 아래 초를 여섯 자리까지 저장하므로, 나노초를 표현할 수 있는 `Instant`와 정밀도가 다를 수 있습니다.
+변환은 `ShortenUrlEntity.from()`과 `toDomain()`에서 수행합니다. `DATETIME(6)`은 소수점 아래 초를 여섯 자리까지 저장하므로, 나노초를 표현할 수 있는 `Instant`와 정밀도가 다를 수 있습니다.
 
 ### 키 충돌 처리
 
 단축 키는 헷갈리기 쉬운 문자 `0`, `1`, `I`, `O`, `l`, `o`를 제외한 56개 문자에서 8자리를 무작위로 뽑아 생성합니다. 키는 대소문자를 구분합니다.
 
-중복 여부를 먼저 조회하는 대신 저장을 시도합니다. DB 기본 키 제약에 걸리면 저장소가 `DuplicateKeyException`을 `ShortenUrlKeyConflictException`으로 변환하고, 서비스가 새 키를 생성해 재시도합니다. 인메모리 저장소도 `putIfAbsent`로 중복 저장을 거부합니다.
+JPA 저장소의 `create()`는 `persist()`와 `flush()`로 새 행 삽입을 시도합니다. 기본 키가 중복되면 저장소가 `ShortenUrlKeyConflictException`을 던집니다. 해당 시도가 롤백된 뒤 서비스는 새 키로 재시도합니다. 인메모리 저장소도 `putIfAbsent`로 중복 저장을 거부합니다.
 
 현재는 만료된 행도 유지하므로 만료된 키가 다시 생성되어도 충돌로 처리합니다.
 
 ### 리다이렉트 횟수 갱신
 
-DB에서는 조회한 객체의 값을 증가시켜 전체 저장하는 대신, 다음 SQL로 카운터만 증가시킵니다. 동시에 여러 요청이 들어올 때 조회한 과거 값으로 서로의 증가분을 덮어쓰는 문제를 피하기 위한 방식입니다.
-
-```sql
-UPDATE shorten_urls
-SET redirect_count = redirect_count + 1
-WHERE shorten_url_key = :shortenUrlKey;
-```
+JPA Criteria로 `redirect_count = redirect_count + 1`에 해당하는 UPDATE를 구성합니다. DB가 해당 행의 현재 값에 1을 더하므로 같은 링크에 동시에 접속해도 각 요청의 증가분이 반영됩니다.
 
 ## 실행 방법
 
 아래 명령은 프로젝트 루트에서 실행하는 Windows PowerShell 기준입니다. JDK 21이 필요하며, Gradle은 포함된 Wrapper를 사용합니다.
 
-### DB 없이 실행
+### H2로 실행 (기본)
 
-화면과 기본 동작을 빠르게 확인하려면 인메모리 저장소를 사용하는 `test` 프로필로 실행합니다.
+외부 DB 설치 없이 JPA 저장소를 사용하려면 프로젝트 루트에서 실행합니다. 기본 프로필 `h2`는 시작할 때 `schema-h2.sql`로 메모리 DB를 준비합니다.
 
 ```powershell
-.\gradlew.bat bootRun --args="--spring.profiles.active=test"
+.\gradlew.bat bootRun
 ```
 
 실행 후 [http://localhost:8080](http://localhost:8080)에 접속합니다. 이 프로필에서는 애플리케이션을 종료하면 링크 데이터가 사라집니다.
 
 ### MySQL을 사용해 실행
 
-기본 활성 프로필은 `prod`입니다. 저장소에 있는 기본 연결 설정은 다음과 같습니다.
+`mysql` 프로필의 연결 설정은 다음과 같습니다.
 
 | 설정 | 값 |
 |---|---|
 | DB 주소 | `localhost:3308` |
 | 데이터베이스 | `shorten_url_management` |
-| 사용자 | `DB_USERNAME` 환경 변수, 없으면 `root` |
+| 사용자 | `DB_USERNAME` 환경 변수 |
 | 비밀번호 | `DB_PASSWORD` 환경 변수 |
 
 1. MySQL에서 데이터베이스를 생성합니다.
@@ -186,7 +180,7 @@ WHERE shorten_url_key = :shortenUrlKey;
    ```powershell
    $env:DB_USERNAME = "root"
    $env:DB_PASSWORD = "실제 DB 비밀번호"
-   .\gradlew.bat bootRun
+   .\gradlew.bat bootRun --args="--spring.profiles.active=mysql"
    ```
 
 DB 주소가 다르면 실행 전에 `SPRING_DATASOURCE_URL` 환경 변수로 덮어쓸 수 있습니다.
@@ -197,10 +191,10 @@ $env:SPRING_DATASOURCE_URL = "jdbc:mysql://localhost:3306/shorten_url_management
 
 ### 테스트 실행
 
-전체 테스트의 애플리케이션 컨텍스트가 인메모리 저장소를 사용하도록 `test` 프로필을 지정합니다.
+H2를 사용해 전체 테스트를 실행합니다.
 
 ```powershell
-$env:SPRING_PROFILES_ACTIVE = "test"
+$env:SPRING_PROFILES_ACTIVE = "h2"
 .\gradlew.bat test
 ```
 
@@ -210,8 +204,9 @@ $env:SPRING_PROFILES_ACTIVE = "test"
 - 서비스: 만료 시각 계산, 시간 경과, 횟수 증가, 만료 링크 차단과 정보 조회, 키 충돌 재시도 및 실패
 - 컨트롤러: 만료 기간 검증, UTC 시각 직렬화, 생성·리다이렉트·조회와 오류 상태 코드
 - 애플리케이션: Spring 컨텍스트 로딩
+- H2 통합 테스트에서 중복 키 거부와 기존 링크 보존, UTC 만료 시각 왕복, 없는 키 처리, 동시 리다이렉트 20건의 응답과 최종 횟수를 확인합니다.
 
-도메인·서비스 테스트는 인메모리 저장소를 사용하고, 컨트롤러 테스트는 서비스를 모킹합니다. 이 테스트들로 실제 MySQL의 저장·조회나 동시 요청 동작까지 검증하는 것은 아닙니다.
+서비스 단위 테스트는 인메모리 저장소를 사용하고, 컨트롤러 단위 테스트는 서비스를 모킹합니다. 실제 DB 저장소를 사용하는 통합 테스트의 실행 환경은 H2입니다.
 
 ## API
 
@@ -289,6 +284,8 @@ Location: https://example.com/articles/long-address
 | `expires_at` | `DATETIME(6) NULL` | UTC 기준 만료 시각. `NULL`이면 만료 없음 |
 
 ## 학습 기록
+
+Spring JDBC에서 JPA로 전환하면서 기존 링크를 보존하는 생성 방식, 키 충돌 재시도의 트랜잭션 경계, 동시 접속 시 조회 수 갱신 방식을 검토했습니다. 대안과 적용 코드, H2 검증 결과는 [JPA 전환 기록](https://github.com/tkdgh816/brevlet/wiki/JPA-전환-기록)에 정리했습니다.
 
 [프로젝트 Wiki](https://github.com/tkdgh816/brevlet/wiki)에 시간 타입과 `Clock`, DB 시각 매핑, 응답 코드와 예외, 키 설계와 확장에 대한 학습 내용을 정리했습니다.
 

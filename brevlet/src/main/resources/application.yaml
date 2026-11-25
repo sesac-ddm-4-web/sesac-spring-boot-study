@@ -2,4 +2,10 @@ spring:
   application:
     name: brevlet
   profiles:
-    active: prod
+    default: h2
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  sql:
+    init:
+      mode: never

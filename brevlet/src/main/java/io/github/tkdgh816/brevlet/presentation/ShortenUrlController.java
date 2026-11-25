@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Pattern;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 
 import java.net.URI;
 
@@ -18,6 +19,11 @@ public class ShortenUrlController {
 
     public ShortenUrlController(ShortenUrlService shortenUrlService) {
         this.shortenUrlService = shortenUrlService;
+    }
+
+    @GetMapping("/")
+    public ModelAndView home() {
+        return new ModelAndView("forward:/page/index.html");
     }
 
     @PostMapping("/shorten-url")
