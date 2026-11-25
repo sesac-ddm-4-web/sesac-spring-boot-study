@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ShortLab · 단축 URL 서비스</title>
+    <meta name="description" content="긴 URL을 짧게 줄이고, 접속 기록을 확인해 보세요.">
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<header class="topbar">
+    <a class="brand" href="/" aria-label="ShortLab 홈">
+        <span class="brand-mark" aria-hidden="true">S</span>
+        <span class="brand-name">ShortLab</span>
+    </a>
+    <nav class="nav" aria-label="주요 메뉴">
+        <a href="#create">단축하기</a>
+        <a href="#stats">통계 조회</a>
+        <a href="#history">최근 링크</a>
+    </nav>
+</header>
+
+<main>
+    <!-- 1. 단축 URL 생성 -->
+    <section class="hero" id="create" aria-labelledby="hero-title">
+        <h1 id="hero-title">긴 링크를 짧고 깔끔하게</h1>
+        <p class="hero-sub">URL을 붙여넣으면 단축 링크와 QR 코드가 만들어져요.<br>원하는 별칭을 정하고, 접속 기록도 확인할 수 있어요.</p>
+
+        <form id="create-form" class="hero-form" novalidate>
+            <label for="original-url" class="sr-only">단축할 URL</label>
+            <input id="original-url" type="text" inputmode="url" autocomplete="off"
+                   placeholder="https://example.com/아주/긴/링크를/붙여넣으세요">
+            <button type="submit" id="create-btn" class="btn btn-primary btn-lg">단축하기</button>
+        </form>
+        <div class="alias-box">
+            <span class="alias-prefix" id="alias-prefix"></span>
+            <label for="alias" class="sr-only">별칭 (선택)</label>
+            <input id="alias" form="create-form" type="text" autocomplete="off" maxlength="20"
+                   placeholder="별칭 (선택) 예: my-menu">
+        </div>
+        <p class="alias-hint">별칭은 영문·숫자·하이픈(-) 3~20자. 비워 두면 랜덤 8자리 키가 만들어져요.</p>
+        <p class="form-error" id="create-error" role="alert" hidden></p>
+
+        <div class="result" id="result" hidden>
+            <p class="result-label">단축 링크가 만들어졌어요</p>
+            <div class="result-row">
+                <a id="result-short-url" class="short-link" href="#" target="_blank" rel="noopener"></a>
+                <button type="button" class="btn btn-secondary" id="result-copy">복사</button>
+            </div>
+            <p class="result-original">원본 URL · <span id="result-original"></span></p>
+            <div class="result-meta">
+                <span class="badge">단축 URL 접속 <strong id="result-count">0</strong>회</span>
+                <span class="result-hint">접속 횟수는 자동으로 갱신돼요</span>
+            </div>
+
+            <div class="qr">
+                <div class="qr-preview">
+                    <img id="qr-image" alt="단축 링크 QR 코드" width="200" height="200">
+                </div>
+                <div class="qr-side">
+                    <p class="qr-title">QR 코드</p>
+                    <p class="muted small">스캔하면 단축 링크로 이동해요.</p>
+                    <div class="qr-actions">
+                        <button type="button" class="btn btn-secondary btn-sm" id="qr-download-svg">SVG 저장</button>
+                        <button type="button" class="btn btn-secondary btn-sm" id="qr-download-png">PNG 저장</button>
+                    </div>
+                    <p class="qr-hint" id="qr-hint" hidden>휴대폰으로 스캔하려면 localhost 대신 이 컴퓨터의 IP 주소(예: 192.168.0.10:8080)로 접속해서 링크를 만드세요.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. 통계 조회 -->
+    <section class="card" id="stats" aria-labelledby="stats-title">
+        <h2 id="stats-title">링크 통계 조회</h2>
+        <p class="muted">단축 URL이나 8자리 키를 입력하면 원본 URL과 단축 URL 접속 횟수를 확인할 수 있어요.</p>
+
+        <form id="stats-form" class="inline-form" novalidate>
+            <label for="stats-input" class="sr-only">단축 URL 또는 키</label>
+            <input id="stats-input" type="text" autocomplete="off"
+                   placeholder="http://localhost:8080/aB3dE7xK 또는 aB3dE7xK">
+            <button type="submit" id="stats-btn" class="btn btn-primary">조회</button>
+        </form>
+        <p class="form-error" id="stats-error" role="alert" hidden></p>
+
+        <dl class="stats" id="stats-result" hidden>
+            <div class="stat">
+                <dt>단축 URL 접속 횟수</dt>
+                <dd class="big" id="stats-count">0</dd>
+            </div>
+            <div class="stat">
+                <dt>단축 키</dt>
+                <dd class="mono" id="stats-key"></dd>
+            </div>
+            <div class="stat wide">
+                <dt>원본 URL</dt>
+                <dd class="break" id="stats-original"></dd>
+            </div>
+        </dl>
+
+        <div class="chart-box" id="log-box" hidden>
+            <p class="chart-title">접속 기록</p>
+            <p class="muted small log-note">접속한 시각을 최신순으로 보여 줘요. 기간을 고르면 그 기간의 기록만 볼 수 있어요.</p>
+            <form class="log-filter" id="log-filter" novalidate>
+                <label class="sr-only" for="log-from">시작일</label>
+                <input type="date" id="log-from">
+                <span class="log-filter-sep" aria-hidden="true">~</span>
+                <label class="sr-only" for="log-to">종료일</label>
+                <input type="date" id="log-to">
+                <button type="submit" class="btn btn-secondary btn-sm">기간 적용</button>
+                <button type="button" class="link-btn" id="log-reset">전체 보기</button>
+            </form>
+            <p class="form-error" id="log-filter-error" role="alert" hidden></p>
+            <ul class="click-log" id="click-log"></ul>
+            <p class="chart-empty" id="log-empty" hidden>아직 접속 기록이 없어요.</p>
+            <button type="button" class="btn btn-secondary log-more" id="log-more" hidden>더 보기</button>
+        </div>
+    </section>
+
+    <!-- 3. 최근 링크 -->
+    <section class="card" id="history" aria-labelledby="history-title">
+        <div class="card-head">
+            <h2 id="history-title">최근 만든 링크</h2>
+            <div class="card-actions">
+                <button type="button" class="link-btn danger" id="history-clear">목록 지우기</button>
+            </div>
+        </div>
+        <p class="muted small">이 브라우저에만 저장돼요. "통계" 버튼을 누르면 접속 기록을 볼 수 있어요.</p>
+        <ul class="history" id="history-list"></ul>
+        <p class="empty" id="history-empty">아직 만든 링크가 없어요.</p>
+    </section>
+</main>
+
+<footer class="footer">
+    <p>ShortLab · 단축 URL 학습 프로젝트</p>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="/assets/app.js"></script>
+</body>
+</html>
