@@ -1,0 +1,55 @@
+package com.example.personal_project.presentation.controller;
+
+import com.example.personal_project.application.ImportItemService;
+import com.example.personal_project.presentation.dto.item.ImportItemRequest;
+import com.example.personal_project.presentation.dto.item.ItemDto;
+
+import com.example.personal_project.application.ItemService;
+import com.example.personal_project.domain.item.model.CollectionItem;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+public class ItemController {
+
+    private final ItemService itemService;
+    private final ImportItemService importItemService;
+
+    ItemController(
+            ItemService itemService,
+            ImportItemService importItemService
+    ) {
+        this.itemService = itemService;
+        this.importItemService = importItemService;
+    }
+
+    @PostMapping("/items")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ItemDto registerItem(@RequestBody ItemDto itemDto) {
+        return itemService.add(itemDto);
+    }
+
+    @GetMapping("/items")
+    public List<ItemDto> findAllItems() {
+        return itemService.findAll();
+    }
+
+    @GetMapping("/items/{id}")
+    public CollectionItem findItemById(@PathVariable Long id) {
+        return itemService.findById(id);
+    }
+
+    @GetMapping("/recommend")
+    public List<CollectionItem> recommendItems(@RequestParam("budget") int budget) {
+        return itemService.recommendItems(budget);
+    }
+
+    @PostMapping("/items/import")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ItemDto importProduct(@RequestBody ImportItemRequest request) {
+        return ItemDto.from(importItemService.importProduct(request.externalId()));
+    }
+}
