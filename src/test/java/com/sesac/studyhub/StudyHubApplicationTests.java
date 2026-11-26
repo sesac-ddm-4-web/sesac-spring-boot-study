@@ -1,4 +1,4 @@
-package com.sesac.study_hub;
+package com.sesac.studyhub;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

@@ -1,4 +1,4 @@
-package com.sesac.study_hub;
+package com.sesac.studyhub;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
