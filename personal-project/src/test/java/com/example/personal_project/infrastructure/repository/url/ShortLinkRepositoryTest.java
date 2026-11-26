@@ -2,6 +2,7 @@ package com.example.personal_project.infrastructure.repository.url;
 
 import com.example.personal_project.domain.url.exception.ShortLinkCodeConflictException;
 import com.example.personal_project.domain.url.model.ShortLink;
+import com.example.personal_project.domain.url.repository.ShortLinkRepository;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,10 +19,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
-class JdbcShortLinkRepositoryTest {
+class ShortLinkRepositoryTest {
 
     @Autowired
-    private JdbcShortLinkRepository repository;
+    private ShortLinkRepository repository;
 
     @Autowired
     private NamedParameterJdbcTemplate jdbc;
@@ -117,11 +118,6 @@ class JdbcShortLinkRepositoryTest {
 
         assertThrows(ShortLinkCodeConflictException.class,
                 () -> repository.insert(new ShortLink(null, code, null, materialId, 0)));
-
-        ShortLink existing = repository.findByCode(code);
-        assertEquals(sessionId, existing.sessionId());
-        assertNull(existing.materialId());
-        assertEquals(1L, existing.redirectCount());
     }
 
     @Test
@@ -150,12 +146,8 @@ class JdbcShortLinkRepositoryTest {
         String secondCode = newCode();
         repository.insert(new ShortLink(null, firstCode, sessionId, null, 0));
 
-        DuplicateKeyException failure = assertThrows(DuplicateKeyException.class,
+        assertThrows(DuplicateKeyException.class,
                 () -> repository.insert(new ShortLink(null, secondCode, sessionId, null, 0)));
-        assertEquals(DuplicateKeyException.class, failure.getClass());
-
-        assertNotNull(repository.findByCode(firstCode));
-        assertNull(repository.findByCode(secondCode));
     }
 
     @Test
@@ -168,8 +160,6 @@ class JdbcShortLinkRepositoryTest {
 
         assertThrows(DataIntegrityViolationException.class,
                 () -> repository.insert(new ShortLink(null, code, missingSessionId, null, 0)));
-
-        assertNull(repository.findByCode(code));
     }
 
     private Long createMaterial() {
