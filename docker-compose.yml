@@ -1,0 +1,36 @@
+services:
+  db:
+    image: mysql:8.4
+    container_name: studyhub-mysql
+    environment:
+      MYSQL_DATABASE: studyhub
+      MYSQL_USER: studyhub
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      TZ: Asia/Seoul
+    ports:
+      - "3307:3306"          # 로컬에 설치된 MySQL(3306)과 충돌 방지
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build: .
+    container_name: studyhub-app
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/studyhub?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+      SPRING_DATASOURCE_USERNAME: studyhub
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      db:
+        condition: service_healthy   # DB가 완전히 뜬 뒤에 앱 시작
+
+volumes:
+  mysql-data:
