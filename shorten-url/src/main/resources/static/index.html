@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>KingDom | 왕국의 비밀</title>
+    <style>
+        :root{--gold:#e9c987;--gold2:#a88b55;--bg:#090d14;--card:#131b27;--ink:#f7f0df;--muted:#a8b0bb;--line:#394252;--red:#df7b79;--green:#87c9a6}
+        *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Pretendard","Malgun Gothic",sans-serif}button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}
+        .hero{position:relative;min-height:100vh;display:grid;place-items:center;text-align:center;overflow:hidden;padding:48px 20px;background:radial-gradient(ellipse at center 22%,rgba(154,115,55,.24),transparent 35%),linear-gradient(160deg,#0c1421,#080b11 65%)}
+        .hero:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 49.9%,rgba(221,188,124,.13) 50%,transparent 50.1%),repeating-linear-gradient(0deg,transparent 0 70px,rgba(217,180,114,.025) 71px 72px);pointer-events:none}
+        .hero-content{position:relative;max-width:850px}.eyebrow{letter-spacing:.45em;color:var(--gold2);font-weight:700;font-size:.75rem}.crest{font-size:5rem;filter:drop-shadow(0 0 30px #c7a25a70);line-height:1.3}.hero h1{font-family:Georgia,"Times New Roman",serif;font-size:clamp(5rem,13vw,11rem);font-weight:500;letter-spacing:.13em;text-indent:.13em;margin:12px 0 2px;color:var(--gold);text-shadow:0 0 58px #bb8e4560}.hero .subtitle{letter-spacing:.22em;font-size:clamp(1rem,2vw,1.4rem);margin:16px 0 18px}.hero .description{color:#bcc0c8;line-height:1.95;max-width:620px;margin:0 auto 35px}.primary{background:linear-gradient(135deg,#e9ce97,#b58d4c);color:#16120d;border:1px solid #f5dba3;padding:14px 36px;border-radius:5px;font-weight:800;letter-spacing:.12em;box-shadow:0 12px 30px #0004}.primary:hover{filter:brightness(1.08)}.secondary{border:1px solid var(--line);color:var(--ink);background:#202939;padding:10px 16px;border-radius:6px}.secondary:hover{border-color:var(--gold2)}.danger{border-color:#9f5557;color:#ffbabb}.back{border:none;background:transparent;color:var(--gold);font-size:1rem}
+        #dashboard{display:none;min-height:100vh;background:radial-gradient(circle at top,#172333,#090d14 580px);padding:30px clamp(16px,4vw,70px) 70px}#dashboard.open{display:block}.topbar{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:32px}.brand{font:32px Georgia,serif;color:var(--gold);letter-spacing:.1em}.overline{text-transform:uppercase;letter-spacing:.25em;color:var(--gold2);font-size:.75rem}.page-heading{font:clamp(2rem,4vw,3.3rem) Georgia,serif;margin:8px 0 12px}.lead{color:var(--muted);line-height:1.85;max-width:850px}.layout{max-width:1200px;margin:auto}.rules{margin:28px 0;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.panel{background:linear-gradient(145deg,#172130,#111923);border:1px solid #3b4656;border-radius:12px;padding:24px;box-shadow:0 15px 35px #0003}.rule-number{color:var(--gold);letter-spacing:.15em;font-size:.78rem}.panel h3{margin:10px 0;color:#f3e0b5}.panel p{color:var(--muted);line-height:1.75;font-size:.93rem}.tabs{display:flex;gap:12px;flex-wrap:wrap;border-bottom:1px solid #384252;margin-top:34px}.tab{color:#a7aeb9;border:0;border-bottom:2px solid transparent;background:transparent;padding:16px 20px;font-weight:700}.tab[aria-selected="true"]{color:var(--gold);border-bottom-color:var(--gold)}.tab-panel{display:none;padding-top:24px}.tab-panel.active{display:block}.panel-title{font:1.7rem Georgia,serif;color:var(--gold);margin:0 0 14px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.field{display:flex;flex-direction:column;gap:8px}.field.wide{grid-column:1/-1}label{font-weight:700;font-size:.9rem}input,select{width:100%;border:1px solid #465367;border-radius:6px;background:#0b121c;color:var(--ink);padding:13px}input:focus,select:focus{outline:2px solid #ad8b59}.form-actions{margin-top:18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}.message{min-height:24px;color:var(--gold);font-size:.88rem;overflow-wrap:anywhere}.url-output{margin-top:20px;background:#0c141e;border:1px solid #37445a;padding:16px;border-radius:7px;overflow-wrap:anywhere}.url-output a{color:#ead19c}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;text-align:left}th,td{padding:13px 10px;border-bottom:1px solid #303c4b;white-space:nowrap}th{font-size:.8rem;color:var(--gold2);text-transform:uppercase}td{font-size:.9rem}td.wrap{white-space:normal;word-break:break-all;min-width:230px}td a{color:#e8c887}.status{border-radius:20px;padding:4px 10px;font-size:.75rem;background:#244336;color:#a2e4be}.status.off{background:#45282d;color:#ffaaaa}.controls{display:flex;gap:10px;justify-content:space-between;align-items:center;margin-top:17px}.small{font-size:.84rem;color:var(--muted)}.muted{color:var(--muted)}.roles{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:20px 0}.role{text-align:center;padding:23px 15px}.role-emoji{font-size:3rem}.role h3{color:var(--gold);margin:4px 0}.role p{font-size:.9rem;margin:5px 0}.tips{border-left:3px solid var(--gold2);margin-top:22px;padding:14px 18px;background:#1b222c;color:#d7d3cd;line-height:1.8}.footer{text-align:center;color:#697584;margin-top:50px;font-size:.8rem}.hidden{display:none!important}
+        @media(max-width:730px){.rules,.roles,.form-grid{grid-template-columns:1fr}.field.wide{grid-column:auto}.topbar{align-items:flex-start}.hero h1{letter-spacing:.05em;text-indent:.05em}.panel{padding:18px}}
+        @media(prefers-reduced-motion:no-preference){.hero-content{animation:emerge .9s ease both}@keyframes emerge{from{opacity:0;transform:translateY(25px)}to{opacity:1;transform:translateY(0)}}}
+
+        /* 왕·신하·역적 캐릭터와 9개 힌트 URL 관리 */
+        .player-name-input{min-width:125px;width:150px;padding:9px 10px;font-size:.85rem;background:#111b29;border-color:#665940}
+        .player-role-select{min-width:104px;padding:9px 10px;font-size:.85rem;border-color:#665940;color:var(--gold);background:#111b29}
+        .role-portrait{height:180px;display:grid;place-items:center;margin:-6px -4px 12px;border-radius:9px;overflow:hidden;background:radial-gradient(circle at 50% 28%,#645334,#151e2b 70%);border:1px solid #4b4150}
+        .role-portrait svg{height:170px;width:100%;max-width:230px;filter:drop-shadow(0 10px 16px #0008)}
+        .role-portrait.subject{background:radial-gradient(circle at 50% 30%,#2d5961,#14212e 73%)}
+        .role-portrait.rebel{background:radial-gradient(circle at 50% 30%,#633842,#17131c 73%)}
+        .hint-area{margin-top:28px}
+        .section-head{margin-bottom:17px}
+        .hint-role-buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0 21px}
+        .hint-role-btn{display:flex;align-items:center;justify-content:center;gap:10px;border:1px solid #485366;background:#0d1723;color:#e8e2d8;border-radius:9px;padding:16px 10px;font-weight:700}
+        .hint-role-btn[aria-pressed="true"]{color:#edcf92;border-color:#ccaa69;background:#30291f}
+        .day-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+        .day-card{background:#0d1621;border:1px solid #394b60;border-radius:10px;padding:16px;min-width:0}
+        .day-card h4{color:var(--gold);margin:0 0 7px;font-size:1.1rem}
+        .day-card input{margin-top:10px;font-size:.9rem}
+        .day-card .secondary{margin-top:11px;width:100%}
+        .hint-muted{color:#a8b0bb;font-size:.85rem;line-height:1.6}
+        @media(max-width:730px){.day-grid,.hint-role-buttons{grid-template-columns:1fr}.role-portrait{height:145px}}
+    </style>
+</head>
+<body>
+<section class="hero" id="home" aria-label="KingDom 게임 시작 화면">
+    <div class="hero-content">
+        <div class="crest" aria-hidden="true">♛</div>
+        <div class="eyebrow">A GAME OF LOYALTY & BETRAYAL</div>
+        <h1>KingDom</h1>
+        <div class="subtitle">왕좌를 지켜라, 배신자를 찾아라</div>
+        <p class="description">열 명의 운명이 하나의 왕국에 모인다.<br>왕은 보물을 찾고, 신하는 역적을 쫓으며, 역적은 왕의 정체를 노린다.<br>사흘의 단서, 단 한 번의 선택. 왕국의 마지막 밤이 다가온다.</p>
+        <button class="primary" id="startBtn">게임 시작&nbsp; ›</button>
+    </div>
+</section>
+<main id="dashboard" aria-label="KingDom 운영 화면">
+    <div class="layout">
+        <header class="topbar"><span class="brand">♛ KingDom</span><button class="back" id="homeBtn">← 타이틀로 돌아가기</button></header>
+        <div class="overline">THE KINGDOM / GAME MASTER</div>
+        <h2 class="page-heading">왕국의 문이 열렸습니다.</h2>
+        <p class="lead">이곳은 게임 마스터를 위한 운영실입니다. 단축 URL을 발급해 참가자에게 전달하고, 왕국의 명운에 따라 링크를 활성화하거나 봉인하세요.</p>
+        <section aria-label="게임 진행 설명">
+            <div class="rules">
+                <article class="panel"><div class="rule-number">01 / 소집</div><h3>열 명의 운명</h3><p>왕 1명, 신하 7명, 역적 2명. 관리자에게서 각자 고유한 단축 URL을 전달받습니다. 같은 역할은 동일한 원본 힌트 페이지를 볼 수 있습니다.</p></article>
+                <article class="panel"><div class="rule-number">02 / 추리</div><h3>사흘의 단서</h3><p>Day 1부터 Day 3까지 역할별 힌트가 공개됩니다. 왕은 보물, 신하는 역적, 역적은 왕에 관한 단서를 추적합니다.</p></article>
+                <article class="panel"><div class="rule-number">03 / 심판</div><h3>생존과 봉인</h3><p>참가자가 탈락하면 관리자는 해당 인물의 단축 URL만 비활성화합니다. 살아남은 참가자의 링크는 계속 사용할 수 있습니다.</p></article>
+            </div>
+        </section>
+        <section aria-label="등장 인물" class="roles">
+            <article class="panel role">
+                <div class="role-portrait" aria-label="왕 캐릭터 일러스트">
+                    <svg viewBox="0 0 220 200" role="img" aria-label="황금 왕관과 왕의 로브를 입은 왕">
+                        <path d="M28 194 Q34 142 73 130 L95 120 L125 120 L147 130 Q186 142 192 194Z" fill="#7b3542" stroke="#e5bc6e" stroke-width="3"/>
+                        <path d="M66 194 L88 133 L132 133 L154 194Z" fill="#e9d7a7"/>
+                        <path d="M88 127 L87 104 L133 104 L132 127 Q109 147 88 127" fill="#c78f70"/>
+                        <ellipse cx="110" cy="82" rx="36" ry="45" fill="#d4a080"/>
+                        <path d="M74 80 Q69 43 89 39 Q112 23 134 40 Q150 50 145 79 L134 62 L88 62Z" fill="#30251f"/>
+                        <path d="M75 53 L66 15 L88 30 L110 7 L132 30 L154 15 L145 53Z" fill="#d9aa50" stroke="#f8df97" stroke-width="3"/>
+                        <rect x="75" y="48" width="70" height="13" rx="4" fill="#b78235"/>
+                        <circle cx="110" cy="47" r="6" fill="#b84053"/><circle cx="86" cy="46" r="4" fill="#347d8f"/><circle cx="134" cy="46" r="4" fill="#347d8f"/>
+                        <path d="M91 85 L102 84 M119 84 L130 85" stroke="#4c352d" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M102 106 Q110 111 119 106" stroke="#784536" stroke-width="3" fill="none"/>
+                        <path d="M46 155 L67 139 L76 193 L39 193Z M174 155 L153 139 L144 193 L181 193Z" fill="#b18b55"/>
+                    </svg>
+                </div>
+                <h3>왕 · 1명</h3><p>보물의 비밀을 쫓는 자</p>
+            </article>
+            <article class="panel role">
+                <div class="role-portrait subject" aria-label="신하 캐릭터 일러스트">
+                    <svg viewBox="0 0 220 200" role="img" aria-label="푸른 관복을 입은 신하">
+                        <path d="M30 194 Q38 138 83 125 L137 125 Q181 140 190 194Z" fill="#295265" stroke="#90a6a6" stroke-width="3"/>
+                        <path d="M93 126 L87 105 L133 105 L127 126 L110 145Z" fill="#c99373"/>
+                        <ellipse cx="110" cy="82" rx="35" ry="45" fill="#d3a080"/>
+                        <path d="M75 77 Q69 44 91 35 Q116 23 139 42 L145 79 L130 60 L88 61Z" fill="#282d30"/>
+                        <path d="M70 48 L150 48 L160 66 L60 66Z" fill="#202a36" stroke="#8b939d" stroke-width="3"/>
+                        <rect x="102" y="19" width="16" height="34" rx="3" fill="#202a36"/>
+                        <path d="M91 86 L101 84 M119 84 L129 86" stroke="#40342d" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M101 106 Q110 111 119 106" stroke="#704839" stroke-width="3" fill="none"/>
+                        <path d="M95 137 L110 160 L125 137" stroke="#c8d0c5" stroke-width="4" fill="none"/>
+                        <rect x="99" y="163" width="23" height="25" rx="3" fill="#b79b63"/>
+                    </svg>
+                </div>
+                <h3>신하 · 7명</h3><p>역적의 정체를 밝히는 자</p>
+            </article>
+            <article class="panel role">
+                <div class="role-portrait rebel" aria-label="역적 캐릭터 일러스트">
+                    <svg viewBox="0 0 220 200" role="img" aria-label="어두운 두건과 붉은 옷의 역적">
+                        <path d="M18 194 Q24 125 79 119 L141 119 Q196 130 202 194Z" fill="#482834" stroke="#a34a54" stroke-width="3"/>
+                        <path d="M62 123 Q51 40 110 19 Q169 39 158 123 L136 144 L84 144Z" fill="#22232c" stroke="#7c4851" stroke-width="3"/>
+                        <ellipse cx="110" cy="86" rx="31" ry="42" fill="#b88069"/>
+                        <path d="M76 79 Q73 35 110 29 Q148 34 144 79 L133 64 L87 64Z" fill="#161b23"/>
+                        <path d="M79 91 Q110 83 141 91 L132 119 Q110 133 88 119Z" fill="#2c2d35"/>
+                        <path d="M91 86 L102 83 M119 83 L130 86" stroke="#26201f" stroke-width="4" stroke-linecap="round"/>
+                        <path d="M72 135 L95 173 L110 156 L125 173 L148 135" stroke="#914353" stroke-width="6" fill="none"/>
+                        <path d="M158 174 L180 133" stroke="#c2c9cd" stroke-width="5" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <h3>역적 · 2명</h3><p>왕좌를 노리는 그림자</p>
+            </article>
+        </section>
+        <nav class="tabs" role="tablist" aria-label="URL 운영 메뉴">
+            <button class="tab" id="createTab" role="tab" aria-controls="createPanel" aria-selected="true">단축 URL 발급</button>
+            <button class="tab" id="manageTab" role="tab" aria-controls="managePanel" aria-selected="false">링크 봉인 · 재개 · 목적지 변경</button>
+        </nav>
+        <section id="createPanel" class="tab-panel active" role="tabpanel" aria-labelledby="createTab">
+            <div class="panel"><h3 class="panel-title">새로운 운명의 열쇠</h3><p class="muted">참가자에게 전달할 노션 힌트 페이지의 URL을 입력해 고유한 단축 링크를 발급합니다.</p>
+                <form id="createForm"><div class="form-grid"><div class="field wide"><label for="originalUrl">원본 URL (노션 공개 페이지 등)</label><input id="originalUrl" type="url" required placeholder="https://www.notion.so/..." autocomplete="url" /></div></div><div class="form-actions"><button class="primary" type="submit">단축 URL 발급</button><span class="message" id="createMsg" role="status"></span></div></form>
+                <div id="createdOutput" class="url-output hidden"><strong>발급 완료</strong><div style="margin-top:7px"><a id="createdLink" target="_blank" rel="noopener noreferrer"></a></div><button id="copyBtn" class="secondary" style="margin-top:12px">주소 복사</button></div>
+            </div>
+        </section>
+        <section id="managePanel" class="tab-panel" role="tabpanel" aria-labelledby="manageTab">
+            <div class="panel"><h3 class="panel-title">왕국의 열쇠 관리</h3><p class="muted">참가자의 링크를 봉인하거나 재개하고, Day별 힌트가 공개되면 기존 단축 URL의 원본 주소를 변경하세요.</p>
+                <div class="field" style="margin:15px 0"><label for="searchInput">URL 검색</label><input id="searchInput" placeholder="노션 주소의 일부 입력" /></div>
+                <div class="table-wrap"><table><thead><tr><th>참가자 이름</th><th>단축 코드</th><th>역할</th><th>원본 URL</th><th>상태</th><th>관리</th><th>목적지 변경</th></tr></thead><tbody id="urlRows"><tr><td colspan="7" class="muted">목록을 불러오는 중입니다.</td></tr></tbody></table></div>
+                <div class="controls"><button class="secondary" id="previousBtn">← 이전</button><span class="small" id="pageInfo">1 / 1</span><button class="secondary" id="nextBtn">다음 →</button></div><div class="message" id="manageMsg" role="status"></div>
+                <section class="url-output" id="editSection" aria-label="단축 URL의 원본 주소 변경">
+                    <h3 style="color:var(--gold);margin-top:0">Day별 힌트 목적지 변경</h3>
+                    <p class="muted">목록에서 <strong>URL 변경</strong>을 누르세요. 같은 단축 코드를 유지하면서 노션 원본 주소만 바꿀 수 있습니다.</p>
+                    <form id="editForm">
+                        <div class="field"><label for="editKey">선택된 단축 코드</label><input id="editKey" readonly required placeholder="목록에서 URL을 선택하세요" /></div>
+                        <div class="field" style="margin-top:12px"><label for="editOriginalUrl">변경할 원본 URL</label><input id="editOriginalUrl" type="url" required placeholder="https://www.notion.so/..." /></div>
+                        <div class="form-actions"><button class="primary" type="submit">원본 URL 변경</button><button class="secondary" type="button" id="checkLinkBtn">단축 URL 열어보기</button></div>
+                    </form>
+                    <p class="message" id="editMsg" role="status"></p>
+                </section>
+            </div>
+        </section>
+        <!-- 역할별 Day 1~3 노션 힌트 원본 URL 관리 (기존 탭 아래) -->
+        <section class="panel hint-area" aria-label="역할별 힌트 URL 관리">
+            <div class="section-head">
+                <div class="overline">THE SECRET ARCHIVE / GAME MASTER</div>
+                <h3 class="panel-title">사흘의 비밀 · 힌트 원본 URL</h3>
+                <p class="muted">왕, 신하, 역적별 Day 1~3 노션 링크를 먼저 등록하세요. 역할별 힌트 주소를 저장하고 필요할 때 노션 페이지를 확인할 수 있습니다.</p>
+            </div>
+            <div class="hint-role-buttons" role="group" aria-label="힌트를 설정할 역할">
+                <button class="hint-role-btn" type="button" data-role="king" aria-pressed="true">👑 왕 · 보물 힌트</button>
+                <button class="hint-role-btn" type="button" data-role="servant" aria-pressed="false">🛡️ 신하 · 역적 힌트</button>
+                <button class="hint-role-btn" type="button" data-role="rebel" aria-pressed="false">🗡️ 역적 · 왕 힌트</button>
+            </div>
+            <div class="day-grid" id="dayGrid"></div>
+            <p class="message" id="hintMsg" role="status"></p>
+            <p class="hint-muted">왕·신하·역적의 Day 1~3 노션 원본 URL을 등록하고 관리할 수 있습니다. 주소는 현재 브라우저에 저장되며, 실제 단축 URL의 목적지 변경은 위 URL 관리 탭에서 수행합니다.</p>
+        </section>
+        <footer class="footer">KINGDOM · THE KING'S SECRET</footer>
+    </div>
+</main>
+<script>
+    'use strict';
+    const $ = id => document.getElementById(id);
+    const dashboard = $('dashboard');
+    function enterGame(){ $('home').classList.add('hidden'); dashboard.classList.add('open'); window.scrollTo(0,0); loadUrls(); }
+    function exitGame(){ dashboard.classList.remove('open'); $('home').classList.remove('hidden'); window.scrollTo(0,0); }
+    $('startBtn').addEventListener('click', enterGame);
+    $('homeBtn').addEventListener('click', exitGame);
+    function switchTab(next){ for (const key of ['create','manage']) { const selected = key===next; $(key+'Tab').setAttribute('aria-selected',String(selected)); $(key+'Panel').classList.toggle('active',selected); } if(next==='manage') loadUrls(); }
+    $('createTab').addEventListener('click',()=>switchTab('create'));
+    $('manageTab').addEventListener('click',()=>switchTab('manage'));
+    async function readError(res){ const body=await res.text(); try { return JSON.parse(body).detail || JSON.parse(body).message || `HTTP ${res.status}`; } catch{ return `HTTP ${res.status}`; } }
+    $('createForm').addEventListener('submit',async e=>{
+        e.preventDefault(); $('createMsg').textContent='발급 중...'; $('createdOutput').classList.add('hidden');
+        try{
+            const res=await fetch('/shortenUrl',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({originalUrl:$('originalUrl').value.trim()})});
+            if(!res.ok)throw Error(await readError(res));
+            const data=await res.json();const url=`${location.origin}/${data.shortenUrlKey}`;
+            $('createdLink').href=url;$('createdLink').textContent=url;$('createdOutput').classList.remove('hidden');$('createMsg').textContent='새로운 단축 URL이 발급되었습니다.';
+        }catch(err){$('createMsg').textContent=`발급 실패: ${err.message}`;}
+    });
+    $('copyBtn').addEventListener('click',async()=>{try{await navigator.clipboard.writeText($('createdLink').href);$('createMsg').textContent='주소를 복사했습니다.';}catch{$('createMsg').textContent='복사 권한을 확인해 주세요.';}});
+    // 참가자 이름은 각 단축 코드별로 브라우저에 저장합니다.
+    const PLAYER_NAME_KEY = 'kingdom_player_names_v1';
+    let playerNames = {};
+    try {
+        const savedNames = JSON.parse(localStorage.getItem(PLAYER_NAME_KEY) || '{}');
+        if (savedNames && typeof savedNames === 'object' && !Array.isArray(savedNames)) {
+            playerNames = savedNames;
+        }
+    } catch (e) { console.warn('참가자 이름을 불러오지 못했습니다.', e); }
+    // 참가자 역할은 단축 코드별로 저장합니다. MySQL 저장 기능은 아직 없습니다.
+    const PLAYER_ROLE_KEY = 'kingdom_player_roles_v1';
+    let playerRoles = {};
+    try {
+        const parsedRoles = JSON.parse(localStorage.getItem(PLAYER_ROLE_KEY) || '{}');
+        if (parsedRoles && typeof parsedRoles === 'object' && !Array.isArray(parsedRoles)) {
+            playerRoles = parsedRoles;
+        }
+    } catch (e) { console.warn('역할 정보를 불러오지 못했습니다.', e); }
+    let page=0, totalPages=0, keyword='';
+    const size=5;
+    function td(value,className=''){const element=document.createElement('td');element.textContent=value; if(className)element.className=className;return element;}
+    async function loadUrls(){
+        $('urlRows').replaceChildren();const loading=document.createElement('tr');const cell=td('URL 목록을 불러오는 중입니다.');cell.colSpan=7;loading.append(cell);$('urlRows').append(loading);
+        try{
+            const p=new URLSearchParams({keyword,page:String(page),size:String(size)});
+            const res=await fetch(`/api/urls?${p}`);if(!res.ok)throw Error(await readError(res));
+            const data=await res.json();totalPages=data.totalPages;
+            $('urlRows').replaceChildren();
+            if(!data.content.length){const tr=document.createElement('tr');const empty=td('조회된 URL이 없습니다.','muted');empty.colSpan=7;tr.append(empty);$('urlRows').append(tr);}
+            for(const item of data.content){
+                const tr=document.createElement('tr');const key=td('');const a=document.createElement('a');a.href=`/${item.shortenUrlKey}`;a.target='_blank';a.rel='noopener noreferrer';a.textContent=item.shortenUrlKey;key.append(a);
+                // 단축 코드별 참가자 이름 입력란
+                const nameCell = td('');
+                const nameInput = document.createElement('input');
+                nameInput.type = 'text';
+                nameInput.className = 'player-name-input';
+                nameInput.placeholder = '이름 입력';
+                nameInput.maxLength = 30;
+                nameInput.value = playerNames[item.shortenUrlKey] || '';
+                nameInput.setAttribute('aria-label', `${item.shortenUrlKey} 참가자 이름`);
+                nameInput.addEventListener('change', () => {
+                    const name = nameInput.value.trim();
+                    nameInput.value = name;
+                    if (name) playerNames[item.shortenUrlKey] = name;
+                    else delete playerNames[item.shortenUrlKey];
+                    try {
+                        localStorage.setItem(PLAYER_NAME_KEY, JSON.stringify(playerNames));
+                        $('manageMsg').textContent = `${item.shortenUrlKey}: 참가자 이름 저장 완료`;
+                    } catch (e) {
+                        $('manageMsg').textContent = '이름 저장 실패: 브라우저 저장 공간을 확인하세요.';
+                    }
+                });
+                nameCell.append(nameInput);
+                // 단축 코드별 역할 선택 (브라우저 저장)
+                const roleCell = td('');
+                const roleSelect = document.createElement('select');
+                roleSelect.className = 'player-role-select';
+                roleSelect.setAttribute('aria-label', `${item.shortenUrlKey} 역할 선택`);
+                for (const [value, label] of Object.entries({none:'역할 선택',king:'왕',servant:'신하',rebel:'역적'})) {
+                    const option = document.createElement('option');
+                    option.value = value;
+                    option.textContent = label;
+                    roleSelect.append(option);
+                }
+                roleSelect.value = playerRoles[item.shortenUrlKey] || 'none';
+                roleSelect.addEventListener('change', () => {
+                    if (roleSelect.value === 'none') delete playerRoles[item.shortenUrlKey];
+                    else playerRoles[item.shortenUrlKey] = roleSelect.value;
+                    try {
+                        localStorage.setItem(PLAYER_ROLE_KEY, JSON.stringify(playerRoles));
+                        $('manageMsg').textContent = `${item.shortenUrlKey}: 역할을 ${roleSelect.selectedOptions[0].textContent}(으)로 설정했습니다.`;
+                    } catch (e) {
+                        $('manageMsg').textContent = '역할 저장에 실패했습니다. 브라우저 저장 공간을 확인하세요.';
+                    }
+
+                });
+                roleCell.append(roleSelect);
+                tr.append(nameCell,key,roleCell,td(item.originalUrl,'wrap'));
+                const status=td('');const badge=document.createElement('span');badge.className='status'+(item.active?'':' off');badge.textContent=item.active?'생존 · 활성':'봉인 · 중지';status.append(badge);tr.append(status);
+                const actions=td('');const btn=document.createElement('button');btn.className='secondary'+(item.active?' danger':'');btn.textContent=item.active?'봉인':'재개';btn.addEventListener('click',()=>setStatus(item.shortenUrlKey,!item.active));actions.append(btn);tr.append(actions);
+                const edit=td('');const editBtn=document.createElement('button');editBtn.className='secondary';editBtn.textContent='URL 변경';editBtn.addEventListener('click',()=>selectUrl(item.shortenUrlKey,item.originalUrl));edit.append(editBtn);tr.append(edit);$('urlRows').append(tr);
+            }
+            $('pageInfo').textContent=`${totalPages? page+1:0} / ${totalPages}`;
+            $('previousBtn').disabled=page===0;$('nextBtn').disabled=page+1>=totalPages;
+        }catch(err){$('urlRows').replaceChildren();const tr=document.createElement('tr');const c=td(`목록 조회 실패: ${err.message}`);c.colSpan=7;tr.append(c);$('urlRows').append(tr);}
+    }
+    async function setStatus(key,active){$('manageMsg').textContent='변경 중...';try{const res=await fetch(`/api/urls/${encodeURIComponent(key)}/status`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({active})});if(!res.ok)throw Error(await readError(res));$('manageMsg').textContent=`${key}: ${active?'사용 재개':'사용 중지'} 완료`;await loadUrls();}catch(err){$('manageMsg').textContent=`상태 변경 실패: ${err.message}`;}}
+    function selectUrl(key, originalUrl){
+        $('editKey').value=key;
+        $('editOriginalUrl').value=originalUrl;
+        $('editMsg').textContent=`${key}의 목적지를 수정할 수 있습니다.`;
+        $('editSection').scrollIntoView({behavior:'smooth',block:'center'});
+    }
+    $('editForm').addEventListener('submit', async e=>{
+        e.preventDefault();
+        const key=$('editKey').value;
+        const originalUrl=$('editOriginalUrl').value.trim();
+        if(!key){$('editMsg').textContent='먼저 URL 목록에서 변경할 링크를 선택하세요.';return;}
+        $('editMsg').textContent='원본 URL 변경 중...';
+        try{
+            const res=await fetch(`/api/urls/${encodeURIComponent(key)}/original-url`,{
+                method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({originalUrl})
+            });
+            if(!res.ok)throw Error(await readError(res));
+            $('editMsg').textContent='원본 URL을 변경했습니다. 같은 단축 URL로 새 목적지에 접속할 수 있습니다.';
+            await loadUrls();
+        }catch(err){$('editMsg').textContent=`URL 변경 실패: ${err.message}`;}
+    });
+    $('checkLinkBtn').addEventListener('click',()=>{
+        const key=$('editKey').value;
+        if(!key){$('editMsg').textContent='먼저 URL을 선택하세요.';return;}
+        window.open(`/${encodeURIComponent(key)}`,'_blank','noopener,noreferrer');
+    });
+    let searchHandle;
+    $('searchInput').addEventListener('input',e=>{clearTimeout(searchHandle);searchHandle=setTimeout(()=>{keyword=e.target.value.trim();page=0;loadUrls();},250);});
+    $('previousBtn').addEventListener('click',()=>{if(page>0){page--;loadUrls();}});
+    $('nextBtn').addEventListener('click',()=>{if(page+1<totalPages){page++;loadUrls();}});
+
+    // 역할별 3일치 노션 원본 URL은 브라우저 저장소에 보관
+    const HINT_STORAGE_KEY = 'kingdom_role_day_urls_v1';
+    const ROLES = {king:'왕', servant:'신하', rebel:'역적'};
+    let selectedHintRole = 'king';
+    let hintUrls = {king:['','',''],servant:['','',''],rebel:['','','']};
+    try {
+        const stored = JSON.parse(localStorage.getItem(HINT_STORAGE_KEY) || 'null');
+        if (stored && typeof stored === 'object') {
+            for (const role of Object.keys(ROLES)) {
+                if (Array.isArray(stored[role])) {
+                    hintUrls[role] = [0,1,2].map(i => typeof stored[role][i] === 'string' ? stored[role][i] : '');
+                }
+            }
+        }
+    } catch (err) { console.warn('힌트 저장 정보를 불러오지 못했습니다.', err); }
+
+    function validHintUrl(url) {
+        try { return new URL(url).protocol === 'https:'; }
+        catch { return false; }
+    }
+
+    function saveHints() {
+        try {
+            localStorage.setItem(HINT_STORAGE_KEY, JSON.stringify(hintUrls));
+            return true;
+        } catch {
+            $('hintMsg').textContent = '브라우저에 저장할 수 없습니다. 저장 공간을 확인하세요.';
+            return false;
+        }
+    }
+
+    function renderHints() {
+        for (const button of document.querySelectorAll('[data-role]')) {
+            button.setAttribute('aria-pressed',String(button.dataset.role === selectedHintRole));
+        }
+        $('dayGrid').replaceChildren();
+        for (let day = 1; day <= 3; day++) {
+            const card = document.createElement('div');
+            card.className = 'day-card';
+            const title = document.createElement('h4');
+            title.textContent = `DAY ${day}`;
+            const description = document.createElement('p');
+            description.className = 'hint-muted';
+            description.textContent = `${ROLES[selectedHintRole]}에게 제공할 ${day}일차 노션 페이지`;
+            const field = document.createElement('input');
+            field.type = 'url';
+            field.placeholder = 'https://www.notion.so/...';
+            field.setAttribute('aria-label', `${ROLES[selectedHintRole]} DAY ${day} 원본 URL`);
+            field.value = hintUrls[selectedHintRole][day - 1];
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'secondary';
+            button.textContent = '주소 저장';
+            const openButton = document.createElement('button');
+            openButton.type = 'button';
+            openButton.className = 'secondary';
+            openButton.textContent = '노션 페이지 확인 ↗';
+            button.addEventListener('click', () => {
+                const value = field.value.trim();
+                if (value && !validHintUrl(value)) {
+                    $('hintMsg').textContent = 'HTTPS 주소를 입력해 주세요.';
+                    return;
+                }
+                hintUrls[selectedHintRole][day - 1] = value;
+                if (saveHints()) $('hintMsg').textContent = `${ROLES[selectedHintRole]} DAY ${day}의 원본 URL을 저장했습니다.`;
+            });
+            openButton.addEventListener('click', () => {
+                const url = field.value.trim();
+                if (!validHintUrl(url)) {
+                    $('hintMsg').textContent = '먼저 올바른 HTTPS URL을 입력하세요.';
+                    return;
+                }
+                window.open(url, '_blank', 'noopener,noreferrer');
+            });
+            card.append(title, description, field, button, openButton);
+            $('dayGrid').append(card);
+        }
+    }
+
+    for (const button of document.querySelectorAll('[data-role]')) {
+        button.addEventListener('click', () => {
+            selectedHintRole = button.dataset.role;
+            $('hintMsg').textContent = `${ROLES[selectedHintRole]}의 힌트를 관리합니다.`;
+            renderHints();
+        });
+    }
+
+    renderHints();
+</script>
+</body>
+</html>
