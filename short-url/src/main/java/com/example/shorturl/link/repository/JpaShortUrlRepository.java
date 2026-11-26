@@ -32,6 +32,11 @@ public class JpaShortUrlRepository implements ShortUrlRepository {
     }
 
     @Override
+    public Optional<ShortUrl> findByKeyForUpdate(String key) {
+        return shortUrlJpaRepository.findWithLockByKey(key);
+    }
+
+    @Override
     public List<ShortUrl> findAll() {
         return shortUrlJpaRepository.findAllByOrderByIdDesc();
     }

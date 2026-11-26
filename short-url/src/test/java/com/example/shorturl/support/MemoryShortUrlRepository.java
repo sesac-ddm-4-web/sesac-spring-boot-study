@@ -30,6 +30,11 @@ public class MemoryShortUrlRepository implements ShortUrlRepository {
     }
 
     @Override
+    public Optional<ShortUrl> findByKeyForUpdate(String key) {
+        return findByKey(key);
+    }
+
+    @Override
     public synchronized List<ShortUrl> findAll() {
         List<ShortUrl> newestFirst = new ArrayList<>(store.values());
         Collections.reverse(newestFirst);

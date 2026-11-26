@@ -79,8 +79,7 @@ public class ShortUrl {
         this.expiresOn = expiresOn;
     }
 
-    // synchronized로 동시 방문 때 방문 수가 빠지는 것을 막음
-    public synchronized String visit(LocalDateTime now, boolean bot) {
+    public String visit(LocalDateTime now, boolean bot) {
         if (!active) {
             throw new ApiException(ErrorCode.DISABLED_SHORT_URL);
         }
@@ -104,18 +103,18 @@ public class ShortUrl {
         return expiresOn != null && today.isAfter(expiresOn);
     }
 
-    public synchronized LinkStatus status(LocalDate today) {
+    public LinkStatus status(LocalDate today) {
         if (!active) {
             return LinkStatus.DISABLED;
         }
         return isExpired(today) ? LinkStatus.EXPIRED : LinkStatus.ACTIVE;
     }
 
-    public synchronized void changeActive(boolean active) {
+    public void changeActive(boolean active) {
         this.active = active;
     }
 
-    public synchronized List<DailyVisit> dailyVisits(LocalDate from, LocalDate to) {
+    public List<DailyVisit> dailyVisits(LocalDate from, LocalDate to) {
         List<DailyVisit> result = new ArrayList<>();
         for (LocalDate date = from; !date.isAfter(to); date = date.plusDays(1)) {
             result.add(new DailyVisit(date, dailyVisits.getOrDefault(date, 0L)));
@@ -161,27 +160,27 @@ public class ShortUrl {
         return expiresOn;
     }
 
-    public synchronized boolean isActive() {
+    public boolean isActive() {
         return active;
     }
 
-    public synchronized boolean isOpened() {
+    public boolean isOpened() {
         return visitCount > 0;
     }
 
-    public synchronized long getVisitCount() {
+    public long getVisitCount() {
         return visitCount;
     }
 
-    public synchronized long getBotVisitCount() {
+    public long getBotVisitCount() {
         return botVisitCount;
     }
 
-    public synchronized LocalDateTime getFirstVisitedAt() {
+    public LocalDateTime getFirstVisitedAt() {
         return firstVisitedAt;
     }
 
-    public synchronized LocalDateTime getLastVisitedAt() {
+    public LocalDateTime getLastVisitedAt() {
         return lastVisitedAt;
     }
 }

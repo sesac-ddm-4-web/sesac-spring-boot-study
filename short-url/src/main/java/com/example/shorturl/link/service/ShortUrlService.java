@@ -57,7 +57,9 @@ public class ShortUrlService {
     @Transactional
     public String redirect(String key, String userAgent, boolean headRequest) {
         boolean bot = headRequest || BotDetector.isBot(userAgent);
-        return findShortUrl(key).visit(LocalDateTime.now(clock), bot);
+        ShortUrl shortUrl = shortUrlRepository.findByKeyForUpdate(key)
+                .orElseThrow(() -> new ApiException(ErrorCode.SHORT_URL_NOT_FOUND, key));
+        return shortUrl.visit(LocalDateTime.now(clock), bot);
     }
 
     public ShortUrlRes findByKey(String key) {

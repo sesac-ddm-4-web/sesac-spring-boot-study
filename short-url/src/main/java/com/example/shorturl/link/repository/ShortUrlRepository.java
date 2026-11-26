@@ -11,5 +11,7 @@ public interface ShortUrlRepository {
 
     Optional<ShortUrl> findByKey(String key);
 
+    Optional<ShortUrl> findByKeyForUpdate(String key);
+
     List<ShortUrl> findAll();
 }
