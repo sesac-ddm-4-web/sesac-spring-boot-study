@@ -32,7 +32,11 @@ public enum ErrorCode {
     NOT_STUDY_LEADER(HttpStatus.FORBIDDEN, "스터디장만 가능한 작업입니다."),
 
     // 일정
-    INVALID_SCHEDULE_PERIOD(HttpStatus.BAD_REQUEST, "일정 종료 시간은 시작 시간 이후여야 합니다.");
+    INVALID_SCHEDULE_PERIOD(HttpStatus.BAD_REQUEST, "일정 종료 시간은 시작 시간 이후여야 합니다."),
+
+    // security error
+    RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "요청한 경로를 찾을 수 없습니다."),
+    METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "지원하지 않는 HTTP 메서드입니다."),;
 
     private final HttpStatus status;
     private final String message;
