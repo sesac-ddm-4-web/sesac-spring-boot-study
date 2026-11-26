@@ -5,7 +5,7 @@ import com.example.shorturl.link.domain.LinkStatus;
 import com.example.shorturl.link.dto.req.ShortUrlCreateReq;
 import com.example.shorturl.link.dto.res.ShortUrlRes;
 import com.example.shorturl.link.dto.res.ShortUrlStatsRes;
-import com.example.shorturl.link.repository.MemoryShortUrlRepository;
+import com.example.shorturl.support.MemoryShortUrlRepository;
 import com.example.shorturl.support.MutableClock;
 import com.example.shorturl.support.SequenceKeyGenerator;
 import org.junit.jupiter.api.DisplayName;

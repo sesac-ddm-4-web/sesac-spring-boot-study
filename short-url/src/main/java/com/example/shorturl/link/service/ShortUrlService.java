@@ -13,6 +13,8 @@ import com.example.shorturl.link.dto.res.ShortUrlRes;
 import com.example.shorturl.link.dto.res.ShortUrlStatsRes;
 import com.example.shorturl.link.repository.ShortUrlRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URI;
 import java.time.Clock;
@@ -21,6 +23,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@Transactional(readOnly = true)
 public class ShortUrlService {
 
     public static final int MAX_KEY_RETRY = 5;
@@ -36,6 +39,7 @@ public class ShortUrlService {
         this.clock = clock;
     }
 
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public ShortUrlRes create(ShortUrlCreateReq request, URI serviceOrigin) {
         String originalUrl = UrlPolicy.normalizeOriginalUrl(request.originalUrl());
         UrlPolicy.validateNotSelfLink(originalUrl, serviceOrigin);
@@ -50,6 +54,7 @@ public class ShortUrlService {
         return ShortUrlRes.of(saved, now.toLocalDate());
     }
 
+    @Transactional
     public String redirect(String key, String userAgent, boolean headRequest) {
         boolean bot = headRequest || BotDetector.isBot(userAgent);
         return findShortUrl(key).visit(LocalDateTime.now(clock), bot);
@@ -69,6 +74,7 @@ public class ShortUrlService {
                 .toList();
     }
 
+    @Transactional
     public ShortUrlRes changeActive(String key, boolean active) {
         ShortUrl shortUrl = findShortUrl(key);
         shortUrl.changeActive(active);

@@ -1,7 +1,7 @@
-package com.example.shorturl.link.repository;
+package com.example.shorturl.support;
 
 import com.example.shorturl.link.domain.ShortUrl;
-import org.springframework.stereotype.Repository;
+import com.example.shorturl.link.repository.ShortUrlRepository;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@Repository
 public class MemoryShortUrlRepository implements ShortUrlRepository {
 
     private final Map<String, ShortUrl> store = new LinkedHashMap<>();
