@@ -2,6 +2,16 @@ package com.example.shorturl.link.domain;
 
 import com.example.shorturl.global.exception.ApiException;
 import com.example.shorturl.global.exception.ErrorCode;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.MapKeyColumn;
+import jakarta.persistence.Table;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -12,21 +22,52 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
+@Entity
+@Table(name = "short_url")
 public class ShortUrl {
 
-    private final String key;
-    private final String originalUrl;
-    private final String title;
-    private final boolean custom;
-    private final LocalDateTime createdAt;
-    private final LocalDate expiresOn;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
+    @Column(name = "short_key", nullable = false, unique = true, columnDefinition = "varchar(30) collate utf8mb4_bin")
+    private String key;
+
+    @Column(nullable = false, length = 2048)
+    private String originalUrl;
+
+    @Column(length = 50)
+    private String title;
+
+    @Column(nullable = false)
+    private boolean custom;
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
+    private LocalDate expiresOn;
+
+    @Column(nullable = false)
     private boolean active = true;
+
+    @Column(nullable = false)
     private long visitCount;
+
+    @Column(nullable = false)
     private long botVisitCount;
+
     private LocalDateTime firstVisitedAt;
+
     private LocalDateTime lastVisitedAt;
-    private final Map<LocalDate, Long> dailyVisits = new HashMap<>();
+
+    @ElementCollection
+    @CollectionTable(name = "short_url_daily_visit", joinColumns = @JoinColumn(name = "short_url_id"))
+    @MapKeyColumn(name = "visit_date")
+    @Column(name = "visit_count", nullable = false)
+    private Map<LocalDate, Long> dailyVisits = new HashMap<>();
+
+    protected ShortUrl() {
+    }
 
     public ShortUrl(String key, String originalUrl, String title, boolean custom,
                     LocalDateTime createdAt, LocalDate expiresOn) {
@@ -90,6 +131,10 @@ public class ShortUrl {
         return key.toLowerCase(Locale.ROOT).contains(lower)
                 || originalUrl.toLowerCase(Locale.ROOT).contains(lower)
                 || (title != null && title.toLowerCase(Locale.ROOT).contains(lower));
+    }
+
+    public Long getId() {
+        return id;
     }
 
     public String getKey() {
