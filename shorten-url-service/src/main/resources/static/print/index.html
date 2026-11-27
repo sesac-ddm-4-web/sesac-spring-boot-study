@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f6f6f2">
+    <title>프린트 링크 | 휴대폰에서 PC로</title>
+    <link rel="stylesheet" href="/print/styles.css?v=4">
+    <script src="/print/app.js?v=10" defer></script>
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a class="brand" href="/" aria-label="프린트 링크 홈">
+                <span class="brand-mark" aria-hidden="true"><span></span><span></span></span>
+                프린트<span class="brand-accent">링크</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="page">
+        <section class="intro" aria-labelledby="page-title">
+            <h1 id="page-title">휴대폰의 자료,<br>PC에서 <span>바로 열기.</span></h1>
+            <p>휴대폰에서 PDF나 웹 링크를 보내고 공용 PC에서 8자리 코드를 입력하세요.<br class="desktop-break"> 메신저나 이메일에 로그인하지 않아도 돼요.</p>
+        </section>
+
+        <section class="transfer-grid" aria-label="자료 보내기와 열기">
+            <article class="transfer-card send-card" aria-labelledby="send-title">
+                <div class="card-heading">
+                    <span class="device-icon phone-icon" aria-hidden="true"></span>
+                    <div>
+                        <p class="device-label">휴대폰에서</p>
+                        <h2 id="send-title">자료 보내기</h2>
+                    </div>
+                </div>
+                <p class="card-description">PC에서 열고 싶은 PDF 또는 웹 링크를 등록해 주세요.</p>
+
+                <form id="send-form" novalidate>
+                    <div class="mode-switch" role="group" aria-label="전송할 자료 종류">
+                        <button id="pdf-mode" type="button" aria-pressed="true" aria-controls="pdf-fields">PDF 파일</button>
+                        <button id="link-mode" type="button" aria-pressed="false" aria-controls="link-fields">웹 링크</button>
+                    </div>
+
+                    <div id="pdf-fields">
+                        <label for="pdf-file">PDF 선택</label>
+                        <input id="pdf-file" name="file" type="file" multiple accept=".pdf,application/pdf"
+                               aria-describedby="pdf-help send-message" required>
+                        <p class="field-help" id="pdf-help">최대 5개 · 파일당 10MB · 합계 20MB · 업로드 후 10분 동안 열 수 있어요.</p>
+                        <span id="send-pin-label">열람 PIN (숫자 4자리)</span>
+                        <div class="pin-digits" id="send-pin" role="group" aria-labelledby="send-pin-label">
+                            <input type="text" inputmode="numeric" pattern="[0-9]" autocomplete="off" aria-label="1번째 숫자">
+                            <input type="text" inputmode="numeric" pattern="[0-9]" autocomplete="off" aria-label="2번째 숫자">
+                            <input type="text" inputmode="numeric" pattern="[0-9]" autocomplete="off" aria-label="3번째 숫자">
+                            <input type="text" inputmode="numeric" pattern="[0-9]" autocomplete="off" aria-label="4번째 숫자">
+                        </div>
+                        <p class="field-help">받는 사람에게 코드와 PIN을 함께 알려주세요.</p>
+                    </div>
+
+                    <div id="link-fields" hidden>
+                        <label for="original-url">원본 링크</label>
+                        <input id="original-url" name="originalUrl" type="url"
+                               placeholder="https://example.com/document"
+                               autocomplete="url" autocapitalize="off" spellcheck="false"
+                               aria-describedby="send-message" required disabled>
+                    </div>
+
+                    <button class="button primary" id="send-button" type="submit">8자리 코드 발급</button>
+                    <p class="form-message" id="send-message" aria-live="polite" hidden></p>
+                </form>
+
+                <div class="issued-code" id="issued-code" hidden>
+                    <label for="issued-value">발급된 코드</label>
+                    <input id="issued-value" class="issued-value" readonly
+                           aria-label="발급된 8자리 코드">
+                    <p id="issued-note">공용 PC에서 프린트 링크를 열고 이 코드를 입력하세요.</p>
+                    <div class="result-actions">
+                        <button class="button secondary" id="copy-button" type="button">코드 복사</button>
+                        <a class="text-link" id="preview-link" href="/" target="_blank" rel="noopener">이 기기에서 열기 ↗</a>
+                    </div>
+                    <p class="form-message" id="copy-message" aria-live="polite" hidden></p>
+                    <div id="cancel-actions" class="cancel-actions" hidden>
+                        <button class="button cancel-button" id="cancel-button" type="button">전송 취소 · PDF 삭제</button>
+                        <p class="field-help">출력이 끝났거나 잘못 보낸 자료는 바로 삭제할 수 있어요.</p>
+                        <p class="form-message" id="cancel-message" aria-live="polite" hidden></p>
+                    </div>
+                </div>
+            </article>
+
+            <article class="transfer-card open-card" aria-labelledby="open-title">
+                <div class="card-heading">
+                    <span class="device-icon pc-icon" aria-hidden="true"></span>
+                    <div>
+                        <p class="device-label">공용 PC에서</p>
+                        <h2 id="open-title">자료 열기</h2>
+                    </div>
+                </div>
+                <p class="card-description">휴대폰에서 발급받은 8자리 코드를 입력하세요.</p>
+
+                <form id="open-form" novalidate>
+                    <label for="access-code">접속 코드</label>
+                    <input id="access-code" name="shortenUrlKey" class="access-code"
+                           type="text" inputmode="numeric" pattern="[0-9]{8}"
+                           placeholder="00000000" autocomplete="off"
+                           aria-describedby="open-message" required>
+                    <span id="receive-pin-label">PDF 열람 PIN (웹 링크는 생략)</span>
+                    <div class="pin-digits" id="receive-pin" role="group" aria-labelledby="receive-pin-label">
+                        <input type="text" inputmode="numeric" pattern="[0-9]" autocomplete="off" aria-label="1번째 숫자">
+                        <input type="text" inputmode="numeric" pattern="[0-9]" autocomplete="off" aria-label="2번째 숫자">
+                        <input type="text" inputmode="numeric" pattern="[0-9]" autocomplete="off" aria-label="3번째 숫자">
+                        <input type="text" inputmode="numeric" pattern="[0-9]" autocomplete="off" aria-label="4번째 숫자">
+                    </div>
+                    <button class="button primary" id="open-button" type="submit">자료 열기</button>
+                    <p class="form-message" id="open-message" aria-live="polite" hidden></p>
+                    <a class="button secondary open-fallback" id="open-fallback" target="_blank" rel="noopener noreferrer" hidden>새 탭에서 자료 열기 ↗</a>
+                </form>
+                <ul id="received-files" aria-label="받은 PDF 목록" hidden></ul>
+                <p class="pc-note">자료는 새 탭에서 열려요. 브라우저에서 출력한 뒤 이 화면으로 돌아오세요.</p>
+            </article>
+        </section>
+
+        <p class="privacy-note">코드를 아는 사람이 자료를 열 수 있으니 필요한 사람에게만 공유하세요. 웹 링크는 PC에서도 접근 가능한 주소를 등록해 주세요.</p>
+    </main>
+</body>
+</html>
