@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>스터디 콘솔</title>
+  <link rel="stylesheet" href="./console.css">
+  <script src="./console.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand"><span class="brand-icon" aria-hidden="true">S</span><h1>스터디 콘솔</h1></div>
+      <nav aria-label="기능 선택">
+        <button type="button" id="member-tab" class="tab" aria-pressed="true">회원</button>
+        <button type="button" id="study-tab" class="tab" aria-pressed="false">스터디</button>
+      </nav>
+      <div class="actor-label"><label for="actor">요청자</label>
+        <select id="actor"><option value="">선택 안 함</option></select>
+      </div>
+    </div>
+  </header>
+
+  <main aria-busy="false">
+    <section id="member-view" aria-labelledby="member-title">
+      <div class="view-title"><div><h2 id="member-title">회원과 프로필</h2><p>요청자를 등록하거나 회원 ID로 불러옵니다.</p></div></div>
+      <div class="member-grid">
+        <section class="panel">
+          <h3>회원 등록</h3>
+          <form id="register-form">
+            <label>이메일<input name="email" type="email" maxlength="254" placeholder="member@example.test" required></label>
+            <label>닉네임<input name="nickname" minlength="2" maxlength="30" required></label>
+            <label>자기소개<textarea name="bio" maxlength="500" rows="2"></textarea></label>
+            <button type="submit" class="primary">회원 등록</button>
+          </form>
+        </section>
+        <section class="panel">
+          <h3>공개 프로필 조회</h3>
+          <form id="lookup-form" class="inline-form">
+            <label>회원 ID<input name="memberId" type="number" min="1" step="1" required></label>
+            <button type="submit" class="secondary">프로필 조회</button>
+          </form>
+          <div id="public-profile" class="profile-preview" hidden></div>
+          <div class="section-divider"></div>
+          <h3>내 프로필 수정</h3>
+          <form id="profile-form">
+            <fieldset id="profile-fields" disabled>
+              <label>새 닉네임<input name="nickname" minlength="2" maxlength="30" required></label>
+              <label>새 자기소개<textarea name="bio" maxlength="500" rows="2"></textarea></label>
+              <button type="submit" class="secondary">프로필 저장</button>
+            </fieldset>
+          </form>
+        </section>
+      </div>
+    </section>
+
+    <section id="study-view" aria-labelledby="study-title" hidden>
+      <div class="view-title">
+        <div><h2 id="study-title">스터디</h2><p>모집 중인 스터디를 찾고, 참여와 모임을 관리합니다.</p></div>
+        <button type="button" class="primary" id="open-study">스터디 개설</button>
+      </div>
+      <div class="study-grid">
+        <section class="panel study-list-panel" aria-labelledby="list-title">
+          <div class="section-title"><h3 id="list-title">스터디 목록</h3><button type="button" id="refresh-studies" class="secondary compact">새로고침</button></div>
+          <div class="segment" aria-label="스터디 목록 범위">
+            <button type="button" id="all-studies" class="tab" aria-pressed="true">전체 스터디</button>
+            <button type="button" id="my-studies" class="tab" aria-pressed="false">내 스터디</button>
+          </div>
+          <label id="filter-label">모집 상태<select id="recruitment-filter"><option value="">전체 상태</option><option value="OPEN">모집 중</option><option value="CLOSED">모집 종료</option></select></label>
+          <div id="study-list" class="study-list"></div>
+          <div class="pagination">
+            <button type="button" class="secondary compact" id="previous-page" disabled>이전</button>
+            <span id="page-info">–</span>
+            <button type="button" class="secondary compact" id="next-page" disabled>다음</button>
+          </div>
+        </section>
+
+        <section class="panel detail-panel" aria-label="스터디 상세">
+          <p id="empty-detail" class="blank">목록에서 스터디를 선택하세요.</p>
+          <div id="study-detail" hidden>
+            <div class="detail-heading"><h3 id="detail-title"></h3><span id="detail-status" class="pill"></span></div>
+            <p id="detail-description" class="description"></p>
+            <dl class="study-facts">
+              <div><dt>스터디 ID</dt><dd id="detail-id"></dd></div>
+              <div><dt>스터디장</dt><dd id="detail-owner"></dd></div>
+              <div><dt>참여 인원</dt><dd id="detail-capacity"></dd></div>
+              <div><dt>남은 자리</dt><dd id="detail-slots"></dd></div>
+            </dl>
+            <div class="actions">
+              <button type="button" class="primary" id="join-study">참여하기</button>
+              <button type="button" class="secondary" id="leave-study">탈퇴하기</button>
+              <button type="button" class="secondary" id="change-recruitment">모집 닫기</button>
+            </div>
+            <section class="detail-section" aria-labelledby="roster-title">
+              <div class="section-title"><h4 id="roster-title">참여자</h4><button type="button" class="secondary compact" id="show-participants">참여자 조회</button></div>
+              <div id="participants" class="result-list"></div>
+              <button type="button" class="text-button" id="more-participants" hidden>참여자 더 보기</button>
+            </section>
+            <section class="detail-section" aria-labelledby="meetings-title">
+              <div class="section-title"><h4 id="meetings-title">모임 일정</h4><div class="actions"><button type="button" class="secondary compact" id="show-meetings">일정 조회</button><button type="button" class="secondary compact" id="open-meeting">일정 등록</button></div></div>
+              <div id="meetings" class="result-list"></div>
+              <button type="button" class="text-button" id="more-meetings" hidden>일정 더 보기</button>
+            </section>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <details id="response-panel" class="api-panel">
+      <summary><span>API 응답</span><span id="response-path">요청 대기</span><span class="pill" id="response-status" hidden></span></summary>
+      <pre id="response-body">API를 호출하면 상태 코드와 응답을 확인할 수 있습니다.</pre>
+    </details>
+    <p id="feedback" role="status" aria-live="polite"></p>
+  </main>
+
+  <dialog id="study-dialog" aria-labelledby="study-dialog-title">
+    <div class="dialog-title"><h2 id="study-dialog-title">스터디 개설</h2><button type="button" class="secondary compact" data-close="study-dialog">닫기</button></div>
+    <form id="study-form">
+      <label>스터디 이름<input name="title" maxlength="100" required></label>
+      <label>소개<textarea name="description" maxlength="2000" rows="3" required></textarea></label>
+      <label>총정원<input name="capacity" type="number" min="2" max="100" step="1" value="4" required></label>
+      <button type="submit" class="primary">개설하기</button>
+      <p class="form-message" role="status"></p>
+    </form>
+  </dialog>
+  <dialog id="meeting-dialog" aria-labelledby="meeting-dialog-title">
+    <div class="dialog-title"><h2 id="meeting-dialog-title">모임 일정 등록</h2><button type="button" class="secondary compact" data-close="meeting-dialog">닫기</button></div>
+    <form id="meeting-form">
+      <label>일정 이름<input name="title" maxlength="100" required></label>
+      <label>장소<input name="location" maxlength="255" required></label>
+      <div class="date-fields">
+        <label>시작 시각<input name="startsAt" type="datetime-local" required></label>
+        <label>종료 시각<input name="endsAt" type="datetime-local" required></label>
+      </div>
+      <p class="muted">입력은 브라우저 현지 시각이며 서버에는 UTC로 전송합니다.</p>
+      <button type="submit" class="primary">일정 저장</button>
+      <p class="form-message" role="status"></p>
+    </form>
+  </dialog>
+</body>
+</html>
