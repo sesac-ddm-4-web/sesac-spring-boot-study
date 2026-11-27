@@ -27,7 +27,12 @@ public class Profile extends BaseEntity {
     }
 
     void update(String imageUrl, String description) {
-        this.imageUrl = imageUrl;
-        this.description = description;
+        if (imageUrl != null) {
+            // "" 보내면 이미지 삭제
+            this.imageUrl = imageUrl.isBlank() ? null : imageUrl;
+        }
+        if (description != null) {
+            this.description = description;
+        }
     }
 }
