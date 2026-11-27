@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: study-member
+  profiles:
+    default: h2
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
