@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3307/studyhub?serverTimezone=Asia/Seoul&characterEncoding=UTF-8}
+    username: ${SPRING_DATASOURCE_USERNAME:studyhub}
+    password: ${SPRING_DATASOURCE_PASSWORD:studyhub1234}
+  jpa:
+    hibernate:
+      ddl-auto: update        # 개발용. 운영에서는 validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+
+jwt:
+  secret: ${JWT_SECRET:local-dev-secret-key-must-be-at-least-32-bytes}
+  access-validity-ms: 3600000   # 1시간
+
+app:
+  seed:
+    enabled: true   # 샘플 데이터 넣기 (필요 없으면 false)
