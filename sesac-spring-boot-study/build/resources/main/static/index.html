@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스터디 모임</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: -apple-system, "Pretendard", "Malgun Gothic", sans-serif;
+            background: #f5f6f8;
+            color: #222;
+        }
+        header {
+            background: #2d3a4a;
+            color: #fff;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        header h1 { font-size: 20px; margin: 0; }
+        header .login { display: flex; gap: 8px; align-items: center; }
+        header .login input { width: 90px; }
+        header .who { font-size: 14px; opacity: 0.9; }
+
+        main {
+            max-width: 1100px;
+            margin: 24px auto;
+            padding: 0 16px;
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 800px) { main { grid-template-columns: 1fr; } }
+
+        .card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+        .card h2 { font-size: 16px; margin: 0 0 12px; }
+        .card h3 { font-size: 14px; margin: 16px 0 8px; color: #555; }
+
+        form { display: flex; flex-direction: column; gap: 8px; }
+        .row { display: flex; gap: 8px; }
+        .row > * { flex: 1; }
+        input, textarea, button {
+            font: inherit;
+            padding: 8px 10px;
+            border: 1px solid #ccd;
+            border-radius: 6px;
+        }
+        textarea { resize: vertical; min-height: 60px; }
+        button {
+            background: #3b6fd8;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover { background: #2f5cb8; }
+        button.secondary { background: #e8ebf0; color: #333; }
+        button.danger { background: #d9534f; }
+        button:disabled { background: #aab; cursor: not-allowed; }
+
+        ul.list { list-style: none; padding: 0; margin: 0; }
+        ul.list li {
+            padding: 10px 12px;
+            border: 1px solid #e3e6ea;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+        ul.list li.clickable { cursor: pointer; }
+        ul.list li.clickable:hover { background: #f0f4ff; }
+        ul.list li.active { border-color: #3b6fd8; background: #f0f4ff; }
+
+        .muted { color: #888; font-size: 13px; }
+        .badge {
+            display: inline-block;
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: #e8ebf0;
+            color: #444;
+        }
+        .badge.leader { background: #fff1d6; color: #9a6400; }
+        .empty { color: #999; font-size: 14px; padding: 8px 0; }
+        .actions { display: flex; gap: 8px; margin-top: 8px; }
+
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: #fff;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+        #toast.error { background: #c9302c; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>📚 스터디 모임</h1>
+    <div class="login">
+        <span class="who" id="who">로그인하지 않음</span>
+        <input type="number" id="loginId" placeholder="회원 ID" min="1">
+        <button id="loginBtn">회원으로 접속</button>
+        <button class="secondary" id="logoutBtn">나가기</button>
+    </div>
+</header>
+
+<main>
+    <!-- 왼쪽: 회원 -->
+    <section>
+        <div class="card">
+            <h2>회원 가입</h2>
+            <form id="signupForm">
+                <input name="email" type="email" placeholder="이메일" required>
+                <input name="nickname" placeholder="닉네임" maxlength="30" required>
+                <button type="submit">가입하기</button>
+            </form>
+        </div>
+
+        <div class="card" id="myCard">
+            <h2>내 정보</h2>
+            <div id="myInfo" class="empty">회원 ID로 접속해 주세요.</div>
+
+            <h3>자기소개</h3>
+            <form id="profileForm">
+                <textarea name="introduction" placeholder="자기소개를 입력하세요" maxlength="500" required></textarea>
+                <button type="submit">저장</button>
+            </form>
+
+            <h3>내가 참여한 스터디</h3>
+            <ul class="list" id="myStudies"></ul>
+        </div>
+    </section>
+
+    <!-- 오른쪽: 스터디 -->
+    <section>
+        <div class="card">
+            <h2>스터디 개설</h2>
+            <form id="studyForm">
+                <input name="title" placeholder="스터디 이름" maxlength="100" required>
+                <textarea name="description" placeholder="스터디 소개" maxlength="1000"></textarea>
+                <div class="row">
+                    <input name="maxCapacity" type="number" min="2" placeholder="정원 (개설자 포함, 2명 이상)" required>
+                    <button type="submit">개설하기</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>스터디 목록 <button class="secondary" id="refreshBtn" style="float:right;padding:4px 10px;font-size:13px">새로고침</button></h2>
+            <ul class="list" id="studyList"></ul>
+        </div>
+
+        <div class="card" id="detailCard" style="display:none">
+            <h2 id="detailTitle"></h2>
+            <div id="detailInfo" class="muted"></div>
+            <p id="detailDesc"></p>
+            <div class="actions" id="detailActions"></div>
+
+            <h3>참여자</h3>
+            <ul class="list" id="memberList"></ul>
+
+            <h3>모임 일정</h3>
+            <ul class="list" id="scheduleList"></ul>
+
+            <form id="scheduleForm" style="display:none; margin-top:8px">
+                <div class="row">
+                    <input name="title" placeholder="일정 제목" maxlength="100" required>
+                    <input name="startsAt" type="datetime-local" required>
+                </div>
+                <button type="submit">일정 등록 (개설자 전용)</button>
+            </form>
+        </div>
+    </section>
+</main>
+
+<div id="toast"></div>
+
+<script>
+    const $ = (selector) => document.querySelector(selector);
+
+    let me = null;              // 현재 접속한 회원
+    let currentStudyId = null;  // 상세 화면에 열린 스터디
+
+    // ===== 공통 =====
+
+    async function api(method, url, body) {
+        const options = { method, headers: {} };
+        if (body) {
+            options.headers['Content-Type'] = 'application/json';
+            options.body = JSON.stringify(body);
+        }
+        const res = await fetch(url, options);
+        if (res.status === 204) return null;
+        const data = await res.json().catch(() => null);
+        if (!res.ok) {
+            throw new Error(data?.message || `요청에 실패했습니다. (${res.status})`);
+        }
+        return data;
+    }
+
+    function toast(message, isError = false) {
+        const el = $('#toast');
+        el.textContent = message;
+        el.className = isError ? 'error' : '';
+        el.style.display = 'block';
+        clearTimeout(el.timer);
+        el.timer = setTimeout(() => (el.style.display = 'none'), 2500);
+    }
+
+    function esc(value) {
+        const div = document.createElement('div');
+        div.textContent = value ?? '';
+        return div.innerHTML;
+    }
+
+    function fmt(dateTime) {
+        return dateTime ? dateTime.replace('T', ' ').slice(0, 16) : '';
+    }
+
+    function requireLogin() {
+        if (!me) {
+            toast('먼저 회원 ID로 접속해 주세요.', true);
+            return false;
+        }
+        return true;
+    }
+
+    async function run(action, successMessage) {
+        try {
+            await action();
+            if (successMessage) toast(successMessage);
+        } catch (e) {
+            toast(e.message, true);
+        }
+    }
+
+    // ===== 회원 =====
+
+    async function login(memberId) {
+        me = await api('GET', `/members/${memberId}`);
+        $('#who').textContent = `${me.nickname} 님 (ID ${me.id})`;
+        renderMyInfo();
+        await loadMyStudies();
+        if (currentStudyId) await loadDetail(currentStudyId);
+    }
+
+    function logout() {
+        me = null;
+        $('#who').textContent = '로그인하지 않음';
+        $('#myInfo').innerHTML = '회원 ID로 접속해 주세요.';
+        $('#myInfo').className = 'empty';
+        $('#profileForm').introduction.value = '';
+        $('#myStudies').innerHTML = '';
+        if (currentStudyId) loadDetail(currentStudyId);
+    }
+
+    function renderMyInfo() {
+        $('#myInfo').className = '';
+        $('#myInfo').innerHTML = `
+      <div><strong>${esc(me.nickname)}</strong> <span class="muted">ID ${me.id}</span></div>
+      <div class="muted">${esc(me.email)} · 가입 ${fmt(me.createdAt)}</div>`;
+        $('#profileForm').introduction.value = me.introduction ?? '';
+    }
+
+    async function loadMyStudies() {
+        const list = await api('GET', `/members/${me.id}/studies`);
+        $('#myStudies').innerHTML = list.length === 0
+            ? '<li class="empty" style="border:none">참여한 스터디가 없습니다.</li>'
+            : list.map(s => `
+          <li class="clickable" data-id="${s.studyId}">
+            <span>${esc(s.title)} ${s.leader ? '<span class="badge leader">개설자</span>' : ''}</span>
+            <span class="muted">${fmt(s.joinedAt)}</span>
+          </li>`).join('');
+    }
+
+    // ===== 스터디 =====
+
+    async function loadStudies() {
+        const list = await api('GET', '/studies');
+        $('#studyList').innerHTML = list.length === 0
+            ? '<li class="empty" style="border:none">아직 개설된 스터디가 없습니다.</li>'
+            : list.map(s => `
+          <li class="clickable ${s.id === currentStudyId ? 'active' : ''}" data-id="${s.id}">
+            <span><strong>${esc(s.title)}</strong> <span class="muted">개설자 ${esc(s.leaderNickname)}</span></span>
+            <span class="badge">정원 ${s.maxCapacity}명</span>
+          </li>`).join('');
+    }
+
+    async function loadDetail(studyId) {
+        currentStudyId = studyId;
+        const [study, schedules] = await Promise.all([
+            api('GET', `/studies/${studyId}`),
+            api('GET', `/studies/${studyId}/schedules`)
+        ]);
+
+        $('#detailCard').style.display = 'block';
+        $('#detailTitle').textContent = study.title;
+        $('#detailInfo').textContent =
+            `개설자 ${study.leaderNickname} · 인원 ${study.currentMemberCount} / ${study.maxCapacity}명 · 개설 ${fmt(study.createdAt)}`;
+        $('#detailDesc').textContent = study.description || '';
+
+        // 참여자
+        $('#memberList').innerHTML = study.members.map(m => `
+      <li>
+        <span>${esc(m.nickname)} ${m.memberId === study.leaderId ? '<span class="badge leader">개설자</span>' : ''}</span>
+        <span class="muted">${fmt(m.joinedAt)} 참여</span>
+      </li>`).join('');
+
+        // 참여·탈퇴 버튼
+        const isLeader = me && me.id === study.leaderId;
+        const isMember = me && study.members.some(m => m.memberId === me.id);
+        const isFull = study.currentMemberCount >= study.maxCapacity;
+        let actions = '';
+        if (!me) {
+            actions = '<span class="muted">접속하면 참여할 수 있습니다.</span>';
+        } else if (isLeader) {
+            actions = '<span class="badge leader">내가 개설한 스터디</span>';
+        } else if (isMember) {
+            actions = '<button class="danger" id="leaveBtn">탈퇴하기</button>';
+        } else {
+            actions = `<button id="joinBtn" ${isFull ? 'disabled' : ''}>${isFull ? '정원 마감' : '참여하기'}</button>`;
+        }
+        $('#detailActions').innerHTML = actions;
+
+        // 일정
+        $('#scheduleList').innerHTML = schedules.length === 0
+            ? '<li class="empty" style="border:none">등록된 일정이 없습니다.</li>'
+            : schedules.map(s => `
+          <li>
+            <span>${esc(s.title)}</span>
+            <span class="badge">${fmt(s.startsAt)}</span>
+          </li>`).join('');
+        $('#scheduleForm').style.display = isLeader ? 'flex' : 'none';
+
+        await loadStudies(); // 선택 표시 갱신
+    }
+
+    async function refreshAfterChange() {
+        await loadStudies();
+        if (currentStudyId) await loadDetail(currentStudyId);
+        if (me) await loadMyStudies();
+    }
+
+    // ===== 이벤트 =====
+
+    $('#loginBtn').addEventListener('click', () => {
+        const id = $('#loginId').value;
+        if (!id) return toast('회원 ID를 입력해 주세요.', true);
+        run(() => login(id), '접속했습니다.');
+    });
+
+    $('#logoutBtn').addEventListener('click', logout);
+
+    $('#signupForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const form = e.target;
+        run(async () => {
+            const member = await api('POST', '/members', {
+                email: form.email.value,
+                nickname: form.nickname.value
+            });
+            form.reset();
+            $('#loginId').value = member.id;
+            await login(member.id);
+        }, '가입하고 접속했습니다.');
+    });
+
+    $('#profileForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (!requireLogin()) return;
+        run(async () => {
+            me = await api('PUT', `/members/${me.id}/profile`, {
+                introduction: e.target.introduction.value
+            });
+            renderMyInfo();
+        }, '자기소개를 저장했습니다.');
+    });
+
+    $('#studyForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (!requireLogin()) return;
+        const form = e.target;
+        run(async () => {
+            const study = await api('POST', '/studies', {
+                leaderId: me.id,
+                title: form.title.value,
+                description: form.description.value,
+                maxCapacity: Number(form.maxCapacity.value)
+            });
+            form.reset();
+            currentStudyId = study.id;
+            await refreshAfterChange();
+        }, '스터디를 개설했습니다.');
+    });
+
+    $('#refreshBtn').addEventListener('click', () => run(loadStudies));
+
+    // 목록 클릭 → 상세 (스터디 목록, 내 스터디 목록 공통)
+    ['#studyList', '#myStudies'].forEach(selector => {
+        $(selector).addEventListener('click', (e) => {
+            const li = e.target.closest('li[data-id]');
+            if (li) run(() => loadDetail(Number(li.dataset.id)));
+        });
+    });
+
+    // 참여·탈퇴 (버튼이 다시 그려지므로 부모에 이벤트 연결)
+    $('#detailActions').addEventListener('click', (e) => {
+        if (e.target.id === 'joinBtn') {
+            run(async () => {
+                await api('POST', `/studies/${currentStudyId}/members`, { memberId: me.id });
+                await refreshAfterChange();
+            }, '스터디에 참여했습니다.');
+        }
+        if (e.target.id === 'leaveBtn') {
+            if (!confirm('이 스터디에서 탈퇴할까요?')) return;
+            run(async () => {
+                await api('DELETE', `/studies/${currentStudyId}/members/${me.id}`);
+                await refreshAfterChange();
+            }, '스터디에서 탈퇴했습니다.');
+        }
+    });
+
+    $('#scheduleForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const form = e.target;
+        run(async () => {
+            await api('POST', `/studies/${currentStudyId}/schedules`, {
+                memberId: me.id,
+                title: form.title.value,
+                startsAt: form.startsAt.value   // 예: 2026-11-28T19:00
+            });
+            form.reset();
+            await loadDetail(currentStudyId);
+        }, '일정을 등록했습니다.');
+    });
+
+    // 처음 열 때 스터디 목록 불러오기
+    run(loadStudies);
+</script>
+</body>
+</html>
