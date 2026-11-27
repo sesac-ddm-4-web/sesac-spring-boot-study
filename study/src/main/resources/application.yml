@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: study
+  config:
+    # docker-compose와 같은 .env 파일에서 비밀번호를 읽는다.
+    import: optional:file:.env[.properties]
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3308/study
+    username: study
+    password: ${DB_PASSWORD}
+  jpa:
+    # 지연 로딩이 서비스 트랜잭션 안에서 끝나도록 끈다.
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+
+  jackson:
+    deserialization:
+      # 정원 2.5 같은 값을 2로 바꾸지 않는다.
+      accept-float-as-int: false
+    datatype:
+      enum:
+        # 요일·모집 상태를 순서 번호로 받지 않는다.
+        fail-on-numbers-for-enums: true
+
+server:
+  servlet:
+    session:
+      timeout: 30m
+      # 세션 ID는 쿠키로만 주고받는다. (URL에 노출하지 않음)
+      tracking-modes: cookie
+      cookie:
+        http-only: true
+        same-site: lax
+
+logging:
+  level:
+    org.hibernate.SQL: debug

@@ -1,0 +1,31 @@
+name: study
+
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: study-mysql
+    environment:
+      MYSQL_DATABASE: study
+      MYSQL_USER: study
+      MYSQL_PASSWORD: ${DB_PASSWORD:?.env 파일에 DB_PASSWORD를 설정하세요}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?.env 파일에 DB_ROOT_PASSWORD를 설정하세요}
+      TZ: Asia/Seoul
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+    ports:
+      - "127.0.0.1:3308:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      # 최초 실행(빈 볼륨)에만 실행된다.
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      # 테스트 DB까지 접속할 수 있어야 준비 완료로 본다.
+      test: ["CMD-SHELL", "MYSQL_PWD=\"$$MYSQL_PASSWORD\" mysql -h 127.0.0.1 -ustudy -e 'SELECT 1' study_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+volumes:
+  mysql-data:

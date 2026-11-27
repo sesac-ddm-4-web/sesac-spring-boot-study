@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>스터디 모임</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%233b5bdb'/><path d='M9 11h14M9 16h14M9 21h9' stroke='white' stroke-width='3' stroke-linecap='round'/></svg>">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<header class="topbar">
+    <div class="container topbar-inner">
+        <a class="brand" href="#/studies">스터디 모임</a>
+        <nav id="nav" hidden>
+            <a href="#/studies" data-route="studies">스터디 목록</a>
+            <a href="#/studies/new" data-route="new">개설</a>
+            <a href="#/me" data-route="me">내 정보</a>
+            <button type="button" id="logout" class="link-button">로그아웃</button>
+        </nav>
+    </div>
+</header>
+
+<main id="app" class="container" aria-live="polite"></main>
+
+<div id="toast" class="toast" role="status" hidden></div>
+
+<dialog id="confirm">
+    <p id="confirm-message"></p>
+    <form method="dialog" class="actions">
+        <button value="cancel" class="secondary">취소</button>
+        <button value="ok" id="confirm-ok" class="danger">확인</button>
+    </form>
+</dialog>
+
+<noscript><p class="container">이 화면을 사용하려면 JavaScript가 필요합니다.</p></noscript>
+<script src="/js/app.js" defer></script>
+</body>
+</html>
