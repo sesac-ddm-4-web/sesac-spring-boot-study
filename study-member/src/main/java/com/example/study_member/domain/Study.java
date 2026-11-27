@@ -1,5 +1,6 @@
-package com.example.study_member.Domain;
+package com.example.study_member.domain;
 
+import com.example.study_member.exception.InvalidStudyInputException;
 import jakarta.persistence.*;
 
 import java.util.Objects;
@@ -27,12 +28,28 @@ public class Study {
 
     public Study(Member creator, String title, String description, int capacity) {
         if (capacity < 1) {
-            throw new IllegalArgumentException("스터디 정원은 1명 이상이어야 합니다.");
+            throw new InvalidStudyInputException("스터디 정원은 1명 이상이어야 합니다.");
         }
         this.creator = Objects.requireNonNull(creator, "creator");
         this.title = Objects.requireNonNull(title, "title");
         this.description = description;
         this.capacity = capacity;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public Integer getCapacity() {
+        return capacity;
     }
 
     public Member getCreator() {
@@ -41,5 +58,13 @@ public class Study {
 
     public void setCreator(Member creator) {
         this.creator = Objects.requireNonNull(creator, "creator");
+    }
+
+    public boolean isFull(long currentMemberCount) {
+        return currentMemberCount >= capacity;
+    }
+
+    public boolean isCreator(Long memberId) {
+        return creator.getId().equals(memberId);
     }
 }

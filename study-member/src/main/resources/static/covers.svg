@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200">
+  <defs>
+    <pattern id="cloth" width="4" height="4" patternUnits="userSpaceOnUse">
+      <path d="M0 .5h4M.5 0v4" fill="none" stroke="#fff3db" stroke-width=".5" opacity=".22"/>
+    </pattern>
+    <pattern id="rules" width="90" height="16" patternUnits="userSpaceOnUse">
+      <path d="M0 15.5h90" fill="none" stroke="#ccb197" stroke-width="1"/>
+    </pattern>
+    <g id="rosette" fill="none" stroke="currentColor" stroke-width="1.3">
+      <path d="M0-9 3-3 9 0 3 3 0 9-3 3-9 0-3-3Z"/>
+      <circle r="3"/>
+    </g>
+  </defs>
+  <symbol id="books" viewBox="0 0 320 200">
+    <g transform="rotate(-5 165 110)" stroke-linejoin="round">
+      <!-- Worn cloth, a paper title plate, and visible fore edges distinguish the bindings. -->
+      <path d="m26 160 226-8 33 7-229 14Z" fill="#754a32" opacity=".15"/>
+      <path d="M39 125h205l21-9H61Z" fill="#af7553" stroke="#714932"/>
+      <path d="M39 125h205v37H39q-11-2-10-19t10-18Z" fill="#744a35" stroke="#603d2b"/>
+      <path d="M39 126h204v35H39q-10-3-9-18t9-17Z" fill="url(#cloth)"/>
+      <path d="m244 126 21-9v35l-21 10Z" fill="#ead1b1" stroke="#77533b"/>
+      <path d="m248 133 13-6m-13 14 13-6m-13 14 13-6" fill="none" stroke="#b99a76"/>
+      <path d="M52 126v34m5-34v34m157-34v34m5-34v34" stroke="#dec093" fill="none"/>
+      <rect x="85" y="136" width="98" height="15" rx="1" fill="none" stroke="#e2c59e"/>
+      <path d="M96 143.5h26m24 0h26" stroke="#cdaa81"/>
+      <use href="#rosette" transform="translate(134 143.5) scale(.55)" color="#ead3ad"/>
+      <g transform="rotate(3 160 115)">
+        <path d="m59 97 191 1 21-10-190-1Z" fill="#f0d8b7" stroke="#8b6648"/>
+        <path d="M59 97h192v30H59q-8-1-8-15t8-15Z" fill="#e9cd9f" stroke="#8b6648"/>
+        <path d="m251 97 20-9v28l-20 11Z" fill="#f8e6cc" stroke="#8b6648"/>
+        <path d="M60 102h182m-182 20h182" stroke="#b59770" fill="none"/>
+        <path d="M76 98v28m6-28v28m143-28v28" stroke="#986643"/>
+        <path d="M99 112h41m14 0h52" stroke="#977752"/>
+        <circle cx="147" cy="112" r="2" fill="#977752"/>
+      </g>
+      <g transform="rotate(-3 136 92)">
+        <path d="m36 63 165-1 27-12-165 1Z" fill="#cc9166" stroke="#805035"/>
+        <path d="M36 63h165v33H36q-9-2-9-16t9-17Z" fill="#aa613e" stroke="#805035"/>
+        <path d="M36 64h165v31H36q-8-2-8-15t8-16Z" fill="url(#cloth)"/>
+        <path d="m201 63 27-13v32l-27 14Z" fill="#f4dfbc" stroke="#805035"/>
+        <path d="m206 69 17-8m-17 14 17-8m-17 14 17-8" stroke="#bda07d"/>
+        <path d="M43 68h149m-149 22h149" stroke="#e0b38a"/>
+        <rect x="68" y="72" width="78" height="14" rx="1" fill="#f3dcba"/>
+        <path d="M78 79h50m3 0h5" stroke="#986b48"/>
+        <path d="m195 89 15-7 1 20-7-2-8 7Z" fill="#89492f"/>
+      </g>
+    </g>
+  </symbol>
+  <symbol id="cards" viewBox="0 0 320 200">
+    <g transform="rotate(9 174 88)">
+      <rect x="89" y="30" width="192" height="112" rx="7" fill="#9f6348" stroke="#714730"/>
+      <rect x="90" y="31" width="190" height="110" rx="7" fill="url(#cloth)"/>
+      <rect x="97" y="38" width="176" height="96" rx="4" fill="none" stroke="#dfaf83"/>
+    </g>
+    <g transform="rotate(-9 149 113)">
+      <rect x="46" y="58" width="206" height="117" rx="7" fill="#714831" opacity=".16"/>
+      <rect x="42" y="54" width="206" height="117" rx="7" fill="#f8e8cc" stroke="#855e43" stroke-width="1.4"/>
+      <rect x="49" y="61" width="192" height="103" rx="3" fill="none" stroke="#bea080"/>
+      <path d="M56 83h179" stroke="#af8b69"/>
+      <text x="57" y="76" font-family="Georgia, serif" font-style="italic" font-size="10" fill="#6c4933">Library member</text>
+      <rect x="57" y="93" width="45" height="53" fill="#dfbd97"/>
+      <circle cx="79.5" cy="109" r="8.5" fill="#a57351"/>
+      <path d="M63 141v-5a16.5 16.5 0 0 1 33 0v5Z" fill="#a57351"/>
+      <path d="M115 102h96m-96 15h77m-77 15h52" stroke="#b1987e"/>
+      <g transform="translate(211 141) rotate(-12)" fill="none" stroke="#a86744">
+        <circle r="14"/><circle r="11.5" stroke-dasharray="1.2 2"/>
+        <use href="#rosette" color="#a86744" transform="scale(.78)"/>
+      </g>
+    </g>
+  </symbol>
+  <symbol id="planner" viewBox="0 0 320 200">
+    <g transform="rotate(-7 155 105)" stroke-linejoin="round">
+      <path d="M30 45q67-13 124 4 57-16 130-1v126q-74-13-129 1-64-17-125-8Z" fill="#734c38" opacity=".18"/>
+      <path d="M24 40q66-14 129 4 59-17 128-1v126q-66-14-128 1-65-18-129-7Z" fill="#aa6948" stroke="#79503a"/>
+      <path d="M30 36q63-10 123 8v119q-55-17-123-8Z" fill="#efdab6" stroke="#957454"/>
+      <path d="M153 44q58-17 122-6v119q-72-9-122 6Z" fill="#faeace" stroke="#957454"/>
+      <path d="M148 45v116m10-118v118" fill="none" stroke="#c1a180"/>
+      <path d="M44 69h89v74H44zm126-2h89v76h-89z" fill="url(#rules)"/>
+      <path d="M44 65h89m37-2h89" stroke="#9a7353"/>
+      <text x="44" y="58" font-family="Georgia, serif" font-size="11" font-style="italic" fill="#78513a">Week</text>
+      <path d="M74 69v74m28-74v74m98-76v76m29-76v76" stroke="#d1b79a"/>
+      <g fill="#c38960"><rect x="46" y="81" width="26" height="9" rx="1"/><rect x="104" y="113" width="27" height="9" rx="1"/><rect x="202" y="97" width="24" height="9" rx="1"/></g>
+      <path d="M174 47h50m-50 6h34" stroke="#b69979"/>
+      <path d="M246 36h9v28l-4-4-5 4Z" fill="#a25b38"/>
+    </g>
+  </symbol>
+</svg>

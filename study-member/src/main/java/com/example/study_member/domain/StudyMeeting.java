@@ -1,6 +1,9 @@
-package com.example.study_member.Domain;
+package com.example.study_member.domain;
 
+import com.example.study_member.exception.InvalidStudyInputException;
 import jakarta.persistence.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -13,6 +16,7 @@ public class StudyMeeting {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "study_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Study study;
 
     @Column(nullable = false)
@@ -45,7 +49,7 @@ public class StudyMeeting {
         this.startsAt = Objects.requireNonNull(startsAt, "startsAt");
         this.finishesAt = Objects.requireNonNull(finishesAt, "finishesAt");
         if (!finishesAt.isAfter(startsAt)) {
-            throw new IllegalArgumentException("종료 시각은 시작 시각보다 늦어야 합니다.");
+            throw new InvalidStudyInputException("종료 시각은 시작 시각보다 늦어야 합니다.");
         }
         this.study = Objects.requireNonNull(membership.getStudy(), "membership.study");
         this.creator = Objects.requireNonNull(membership.getMember(), "membership.member");
@@ -61,5 +65,33 @@ public class StudyMeeting {
 
     public Study getStudy() {
         return study;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getStartsAt() {
+        return startsAt;
+    }
+
+    public LocalDateTime getFinishesAt() {
+        return finishesAt;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public String getDescription() {
+        return description;
     }
 }

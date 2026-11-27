@@ -1,4 +1,4 @@
-package com.example.study_member.Domain;
+package com.example.study_member.domain;
 
 import jakarta.persistence.*;
 
@@ -18,5 +18,13 @@ public class Member {
 
     public Member(String name) {
         this.name = Objects.requireNonNull(name, "name");
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
     }
 }

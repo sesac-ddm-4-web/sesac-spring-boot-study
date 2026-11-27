@@ -1,6 +1,8 @@
-package com.example.study_member.Domain;
+package com.example.study_member.domain;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.Objects;
 
@@ -12,6 +14,7 @@ public class MemberProfile {
 
     @OneToOne(optional = false)
     @JoinColumn(name = "member_id", nullable = false, unique = true)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Member member;
 
     private String description;
@@ -30,5 +33,17 @@ public class MemberProfile {
 
     public void setMember(Member member) {
         this.member = Objects.requireNonNull(member, "member");
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void updateDescription(String description){
+        this.description = description;
     }
 }

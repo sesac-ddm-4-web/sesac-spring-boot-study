@@ -1,6 +1,8 @@
-package com.example.study_member.Domain;
+package com.example.study_member.domain;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -14,10 +16,12 @@ public class StudyMembership {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "study_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Study study;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "member_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Member member;
 
     @Column(nullable = false)

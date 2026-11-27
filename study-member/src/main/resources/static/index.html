@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#faf8f5">
+  <title>스터디 목록 · Study Member</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="study.css">
+  <script type="module" src="study.js"></script>
+</head>
+<body>
+  <a class="skip" href="#workspace">본문으로 이동</a>
+  <div class="page">
+    <header class="masthead">
+      <a class="brand" href="#studies" aria-label="Study Member 홈">
+        <svg class="mark" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 7C9 5 6 4.5 2.5 5v13c3.5-.5 6.5 0 9.5 2 3-2 6-2.5 9.5-2V5C18 4.5 15 5 12 7Zm0 0v13"/></svg>
+        Study Member
+      </a>
+      <nav aria-label="주 메뉴">
+        <a href="#studies" id="nav-studies">스터디</a>
+        <a href="#members" id="nav-members">회원</a>
+      </nav>
+    </header>
+    <main id="workspace" tabindex="-1">
+      <div class="poster">
+        <p class="poster-title" lang="en"><span id="poster-first">Study</span> <i id="poster-second">Groups</i></p>
+        <svg class="cover-art" viewBox="0 0 320 200" aria-hidden="true" focusable="false"><use id="cover-print" href="covers.svg#books" width="320" height="200"/></svg>
+      </div>
+      <div id="notice" role="status"></div>
+      <div id="content"></div>
+      <noscript>스터디와 회원 정보를 이용하려면 자바스크립트를 켜 주세요.</noscript>
+    </main>
+  </div>
+  <dialog id="editor" aria-labelledby="dialog-title">
+    <form id="editor-form">
+      <h2 id="dialog-title"></h2>
+      <div class="dialog-body">
+        <div id="fields"></div>
+        <p id="form-error" class="error" role="alert"></p>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" id="cancel">취소</button>
+        <button class="primary" id="submit"></button>
+      </div>
+    </form>
+  </dialog>
+</body>
+</html>
