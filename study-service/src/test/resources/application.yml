@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: study-service
+  datasource:
+    url: jdbc:h2:mem:study_service;MODE=MySQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    open-in-view: false
+
+jwt:
+  secret: dGVzdC1zZWNyZXQta2V5LWZvci1zdHVkeS1zZXJ2aWNlLXRlc3RzLW9ubHktMTIzNDU2Nzg5MA==
+  access-token-expiration: 30m
+  refresh-token-expiration: 14d
+
+app:
+  zone: Asia/Seoul

@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: study-service
+  profiles:
+    active: dev
+
+jwt:
+  access-token-expiration: 30m
+  refresh-token-expiration: 14d
+
+app:
+  zone: Asia/Seoul
