@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>스터디룸</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="top"><div class="wrap bar"><a class="brand" href="/"><span aria-hidden="true">S</span> 스터디룸</a><button class="secondary" id="profile-link">내 프로필</button></div></header>
+  <main class="wrap">
+    <section class="hero">
+      <div><h1>함께 공부할<br>스터디를 찾아보세요.</h1><p>스터디를 열고, 멤버를 모으고, 다음 모임을 정해보세요.</p></div>
+      <button id="new-study" class="primary">스터디 개설</button>
+    </section>
+    <p id="status" class="status" role="status" hidden></p>
+    <div class="layout">
+      <aside class="panel" id="profile-panel">
+        <h2>내 프로필</h2>
+        <p class="muted" id="active-member">회원 등록 또는 기존 회원 ID 조회 후 스터디에 참여할 수 있어요.</p>
+        <form id="lookup" class="lookup">
+          <label for="lookup-id">기존 회원 ID</label>
+          <div><input id="lookup-id" name="id" type="number" min="1" step="1" required><button class="secondary">조회</button></div>
+        </form>
+        <form id="profile" class="stack">
+          <label>이름<input name="name" maxlength="100" required></label>
+          <label>자기소개<textarea name="bio" maxlength="1000" rows="3"></textarea></label>
+          <div class="actions"><button class="primary" id="save-member">회원 등록</button><button type="button" class="secondary" id="reset-member" hidden>새 회원</button></div>
+        </form>
+      </aside>
+      <section aria-labelledby="studies-title">
+        <div class="section-head"><h2 id="studies-title">스터디 목록</h2><button id="refresh" class="secondary">새로고침</button></div>
+        <div id="studies" class="cards"><p class="panel muted">스터디를 불러오는 중입니다.</p></div>
+        <section id="detail" class="panel detail" hidden aria-labelledby="study-title">
+          <div class="section-head">
+            <div><p class="meta" id="study-meta"></p><h2 id="study-title"></h2></div>
+            <div class="actions"><button class="primary" id="join">참여</button><button class="secondary" id="leave">탈퇴</button></div>
+          </div>
+          <p id="study-description" class="description"></p>
+          <div class="details-grid">
+            <div><h3>참여자</h3><ul id="participants" class="rows"></ul></div>
+            <div><h3>모임 일정</h3><ul id="meetings" class="rows"></ul>
+              <form id="meeting" class="stack" hidden>
+                <label>모임 이름<input name="title" maxlength="120" required></label>
+                <label>장소<input name="location" maxlength="200" required></label>
+                <label>시작 시간<input name="startsAt" type="datetime-local" required></label>
+                <button class="primary">일정 등록</button>
+              </form>
+            </div>
+          </div>
+        </section>
+      </section>
+    </div>
+  </main>
+  <dialog id="create-dialog">
+    <div class="section-head"><h2>스터디 개설</h2><button type="button" class="secondary" id="close-dialog">닫기</button></div>
+    <form id="create-study" class="stack">
+      <label>스터디 이름<input name="title" maxlength="120" required></label>
+      <label>소개<textarea name="description" maxlength="1000" rows="4"></textarea></label>
+      <label>정원<input name="capacity" type="number" min="1" step="1" value="6" required></label>
+      <p id="create-error" class="status" role="alert" hidden></p>
+      <button class="primary">개설하기</button>
+    </form>
+  </dialog>
+</body>
+</html>
