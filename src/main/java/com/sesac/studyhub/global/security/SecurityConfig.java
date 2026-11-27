@@ -33,6 +33,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**", "/error").permitAll()
                 .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/studies", "/api/studies/*").permitAll()
+                .requestMatchers("/", "/index.html", "/css/**", "/js/**").permitAll()
                 .anyRequest().authenticated())
             .exceptionHandling(e -> e
                 .authenticationEntryPoint(authenticationEntryPoint)
