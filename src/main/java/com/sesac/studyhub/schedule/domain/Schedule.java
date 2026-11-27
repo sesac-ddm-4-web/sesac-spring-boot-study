@@ -1,6 +1,8 @@
 package com.sesac.studyhub.schedule.domain;
 
 import com.sesac.studyhub.global.common.BaseEntity;
+import com.sesac.studyhub.global.exception.BusinessException;
+import com.sesac.studyhub.global.exception.ErrorCode;
 import com.sesac.studyhub.study.domain.Study;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -44,6 +46,9 @@ public class Schedule extends BaseEntity {
 
     public static Schedule create(Study study, String title, String place,
         LocalDateTime startAt, LocalDateTime endAt) {
+        if (!endAt.isAfter(startAt)) {
+            throw new BusinessException(ErrorCode.INVALID_SCHEDULE_PERIOD);
+        }
         return new Schedule(study, title, place, startAt, endAt);
     }
 }
