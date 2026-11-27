@@ -2,9 +2,11 @@ package com.sesac.studyhub.study.repository;
 
 import com.sesac.studyhub.study.domain.Study;
 import com.sesac.studyhub.study.domain.StudyStatus;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -26,4 +28,7 @@ public interface StudyRepository extends JpaRepository<Study, Long> {
     @Query("select s from Study s join fetch s.leader where s.id = :id")
     Optional<Study> findWithLeaderById(@Param("id") Long id);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select s from Study s where s.id = :id")
+    Optional<Study> findByIdForUpdate(@Param("id") Long id);
 }
